@@ -1,0 +1,25 @@
+{
+    "name": "Homework 1",
+    "endpoint": "icbs/busi97284/fa20/hw01",
+    "src": [
+        "hw01.py"
+    ],
+    "tests": {
+      "hw01.py:wind_chill": "doctest",
+      "hw01.py:the_35_teaser": "doctest",
+      "hw01.py:the_35_looper": "doctest",
+      "hw01.py:convert_day": "doctest",
+      "hw01.py:convert_month": "doctest",
+      "hw01.py:convert_year": "doctest",
+      "hw01.py:date_conversion": "doctest",
+      "hw01.py:date_conversion_robust": "doctest",
+      "hw01.py:comparison_function": "doctest",
+      "hw01.py:counting_sort": "doctest"
+    },
+    "protocols": [
+        "file_contents",
+        "grading",
+        "analytics",
+        "backup"
+    ]
+}
