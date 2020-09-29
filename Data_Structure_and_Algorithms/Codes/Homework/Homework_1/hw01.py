@@ -41,8 +41,7 @@ def wind_chill(temp, wind_speed, a=13.12, b=0.6215, c=-11.37, d=0.16, e=0.3965):
     if wind_speed < 5:
         return temp
     else:
-    	x = round(a + b*temp + c*wind_speed**d + e*temp*wind_speed**d)
-        return x
+        return round(a + b*temp + c*wind_speed**d + e*temp*wind_speed**d)
 
 
 #####
@@ -283,7 +282,8 @@ def date_conversion_robust(date_string):
         return True
 
     def is_three_elements(date_string):
-        date_as_list = date_string.split('/')
+        date_as_list = date_string.split('/') 
+        print(date_as_list)
         if len(date_as_list) !=3:
             return False
         return True
@@ -292,6 +292,18 @@ def date_conversion_robust(date_string):
         if (year >= 0 and year <= 99) or (year >=1000 and year <=9999):
             return True
         return False
+        
+    def is_leap_year(year):
+        if (year % 4) == 0:
+            if (year % 100) == 0:
+                if (year % 400) == 0:
+                    return True
+                else:
+                    return False
+            else:
+                return True
+        else:
+            return False
         
     def is_actual_date(day,month,year):
         month_31 = [1,3,5,7,8,10,12]
@@ -302,24 +314,25 @@ def date_conversion_robust(date_string):
         elif month in month_30 and day > 30:
             return False
         elif month == month_29_28:
-            if year % 4 == 0 and day > 29:
+            if is_leap_year and day > 29:
                 return False
-            elif year % 4 ==1 and day > 28:
+            elif is_leap_year and day > 28:
                 return False
         return True
-    
-    if not is_European_date_order(date_string) or not is_three_elements(date_string):
-        print('Not a valid date.')
-        return 'None'
+
+        
     date_as_list = date_string.split('/')  # Use this to split slash format string into a list
     day = date_as_list[0]
     month = date_as_list[1]
     year= date_as_list[2]
-    
-    if is_three_elements(date_string) and is_in_range(int(day),int(month),int(year)) and is_actual_date(int(day),int(month),int(year)):
-        return date_conversion(date_string)
+    if is_European_date_order(date_string) and is_three_elements(date_string):
+        if is_three_elements(date_string) and is_in_range(int(day),int(month),int(year)) and is_actual_date(int(day),int(month),int(year)):
+            return date_conversion(date_string)
+        else:
+            print('Not a valid date.')
     else:
         print('Not a valid date.')
+        return 'None'
 
 
 
@@ -373,7 +386,7 @@ def counting_sort(items):
     # Please do NOT edit this function.
 
     return sorted(items, key=comparison_function)
-x = 1
+
 def date_conversion(date_string):
     """
     Converts date string from slash format to dash format

@@ -137,6 +137,18 @@ def make_trades(starting_cash, prices, crossovers):
     # Your code here. Don't change anything above.
     # Note: the rounding in the examples happens *after* the function call. Your function should not round the results.
     current_value = [starting_cash]  # value of portfolio
+    cash_position = 1
+    start_index = 1
+    if start_index 
+        shares = starting_cash / prices[0]
+        cash_position = 0
+    else:
+        if 
+        for price in prices[1:]:
+        current_value.append(price * shares)
+    return current_value
+    
+    
 
 
 def palindrome(s, k):
@@ -191,7 +203,8 @@ def palindrome(s, k):
         return True
     
     def even_even(s_modified,change_left):
-        return True
+    	if change_left >= 2:
+            return True
     
     
     string_list = list(s)
@@ -202,16 +215,15 @@ def palindrome(s, k):
     str_output = ''
     
     if change_left < 0:
-        reutrn 'Not possible.'
-    else:
+        return 'Not possible.'
+    elif len(string_list) >= 2:
         if string_odd and change_left_odd:
             odd_odd(s_modified,change_left)
         elif string_odd and not change_left_odd:
             odd_even(s_modified,change_left)
         elif not string_odd and not change_left_odd:
-            pass
-        else:
-            pass
+            odd_odd(s_modified,change_left)
+            
     return str_output.join(s_modified),change_left
 
     
