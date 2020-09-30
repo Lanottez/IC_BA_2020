@@ -297,4 +297,11 @@ def reverse_engineer(seq):
     [6, 9, 11, 10]
     """
     # Your code here.
-    pass
+    def return_factor(num):
+        output = []
+        for index in range(1,num+1):
+            if num % index == 0:
+                output.append(index)
+        return output
+    
+    
