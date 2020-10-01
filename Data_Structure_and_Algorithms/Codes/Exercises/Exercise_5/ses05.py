@@ -74,13 +74,19 @@ def sort_by_key(country_list, key_function):
     # YOUR CODE HERE
 
         
-    def find_min_index_tuple(A, k):
-        mv_unemployment = ('',float('inf'),'')
+    def find_max_index_tuple(A, k):
+        mv_unemployment = ('',float('-inf'),'')
         for tuple_single in A[k:]:
-            if get_unemployment(tuple_single) < get_unemployment(mv_unemployment):
+            if get_unemployment(tuple_single) > get_unemployment(mv_unemployment):
                 mv_unemployment = tuple_single
         return A.index(mv_unemployment, k)
 
+    L = country_list[:] # create a copy of the list to also preserve original list
+    n = len(L)
+    for index in range(n):
+        min_index = find_max_index_tuple(L, index)
+        L[min_index],L[index] = L[index],L[min_index]
+    return L    
 
 def get_unemployment(x):
     """

@@ -274,20 +274,51 @@ def date_conversion_robust(date_string):
     Not a valid date.
     None
     """
+    
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE BELOW
+    """
+print(date_conversion_robust('131/2/1928'))
+print(date_conversion_robust(19/2/1928))
+print(date_conversion_robust(2))
+print(date_conversion_robust('asd'))
+print(date_conversion_robust('as/d'))
+print(date_conversion_robust('a/s/d'))
+print(date_conversion_robust('a/s/v/d'))
+print(date_conversion_robust('11/13/1928'))
+print(date_conversion_robust('11/12/11111'))
+print(date_conversion_robust('11/12/111'))
+print(date_conversion_robust('32/12/111'))
+print(date_conversion_robust('31/11/111'))
+    """
+    
     def is_European_date_order(date_string):
         if not isinstance(date_string, str) or not '/' in date_string:
             return False
         return True
 
-    def is_three_elements(date_string):
+    def is_three_digit(date_string):
         date_as_list = date_string.split('/') 
-        print(date_as_list)
         if len(date_as_list) !=3:
             return False
         return True
+
+
+    def is_ints(date_string):
         
+        def is_int(s):
+            try: 
+                int(s)
+                return True
+            except ValueError:
+                return False
+            
+        date_as_list = date_string.split('/') 
+        for date in date_as_list:
+            if not is_int(date):
+                return False
+        return True    
+    
     def is_in_range(day,month,year):
         if (year >= 0 and year <= 99) or (year >=1000 and year <=9999):
             return True
@@ -309,30 +340,33 @@ def date_conversion_robust(date_string):
         month_31 = [1,3,5,7,8,10,12]
         month_30 = [4,6,9,11]
         month_29_28 = 2
-        if month in month_31 and day > 31:
+        if month not in month_31 and month not in month_30 and month != month_29_28:
             return False
-        elif month in month_30 and day > 30:
-            return False
-        elif month == month_29_28:
-            if is_leap_year and day > 29:
+        else:
+            if month in month_31 and day > 31:
                 return False
-            elif is_leap_year and day > 28:
+            elif month in month_30 and day > 30:
                 return False
-        return True
+            elif month == month_29_28:
+                if is_leap_year and day > 29:
+                    return False
+                elif is_leap_year and day > 28:
+                    return False
+            return True
 
         
-    date_as_list = date_string.split('/')  # Use this to split slash format string into a list
-    day = date_as_list[0]
-    month = date_as_list[1]
-    year= date_as_list[2]
-    if is_European_date_order(date_string) and is_three_elements(date_string):
-        if is_three_elements(date_string) and is_in_range(int(day),int(month),int(year)) and is_actual_date(int(day),int(month),int(year)):
+
+    if is_European_date_order(date_string) and is_three_digit(date_string) and is_ints(date_string):
+        date_as_list = date_string.split('/')  # Use this to split slash format string into a list
+        day = date_as_list[0]
+        month = date_as_list[1]
+        year= date_as_list[2]
+        if is_in_range(int(day),int(month),int(year)) and is_actual_date(int(day),int(month),int(year)):
             return date_conversion(date_string)
         else:
             print('Not a valid date.')
     else:
         print('Not a valid date.')
-        return 'None'
 
 
 
