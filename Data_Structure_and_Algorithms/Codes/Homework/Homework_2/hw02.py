@@ -136,21 +136,69 @@ def make_trades(starting_cash, prices, crossovers):
     """
     # Your code here. Don't change anything above.
     # Note: the rounding in the examples happens *after* the function call. Your function should not round the results.
-    current_value = [starting_cash]  # value of portfolio
+    current_value = []  # value of portfolio
+    holding_shares = 0
     cash_position = 1
-    start_index = 1
-    if start_index 
-        shares = starting_cash / prices[0]
-        cash_position = 0
-    else:
-        if 
-        for price in prices[1:]:
-        current_value.append(price * shares)
+    current_cash = starting_cash
+    
+    corssover_dict = {}    
+    for crossover in crossovers:
+        corssover_dict[crossover[0]] = crossover[1]
+        
+    for index in range(len(prices)):
+        current_price = prices[index]
+        if cash_position: # 目前持有现金
+            if index in corssover_dict and corssover_dict[index] == 1: #买入
+                """
+                修改cash position
+                更新holding_shares
+                重复current_value
+                修改current_cash
+                """
+                cash_position = 0
+                holding_shares = current_cash / current_price
+                current_value.append(current_cash)
+                current_cash = 0
+            elif index in corssover_dict and corssover_dict[index] == 2: # 建议卖出
+                """
+                cash position不变
+                holding_shares不变
+                重复current_value
+                current_cash不变
+                """
+                current_value.append(current_cash)
+            else:
+                """
+                更新current_value
+                """
+                current_value.append(current_cash)
+        else: # 目前持有股票
+            if index in corssover_dict and corssover_dict[index] == 1: # 建议买入
+                """
+                cash_positon不变
+                holding_shares不变
+                更新current_value
+                current_cash不变
+                """
+                current_value.append(holding_shares*current_price)
+            elif index in corssover_dict and corssover_dict[index] == 2: #建议卖出
+                """
+                修改cash position  
+                修改holding_shares
+                更新current_value
+                修改current_cash
+                """
+                cash_position = 1
+                current_value.append(holding_shares*current_price)
+                current_cash = holding_shares*current_price
+                holding_shares = 0
+            else: 
+                """
+                更新current_value
+                """
+                current_value.append(holding_shares*current_price)
     return current_value
     
-    
-
-
 def palindrome(s, k):
     """
     Find highest-value palindrome from s with max k digit changes.
@@ -249,4 +297,11 @@ def reverse_engineer(seq):
     [6, 9, 11, 10]
     """
     # Your code here.
-    pass
+    def return_factor(num):
+        output = []
+        for index in range(1,num+1):
+            if num % index == 0:
+                output.append(index)
+        return output
+    
+    
