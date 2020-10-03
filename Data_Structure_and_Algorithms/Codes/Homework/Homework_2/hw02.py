@@ -350,6 +350,8 @@ def reverse_engineer(seq):
     
  
     def return_dict(letter_set,letter_set_sorted,letters_dict):
+        time = 40
+        
         while time:
             time -= 1
             seq_copy = seq.copy()
