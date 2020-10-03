@@ -25,9 +25,30 @@ def caesar_cipher_encrypt(str_to_encrypt, n):
     >>> caesar_cipher_encrypt('thisistherealdeal', 6)
     'znoyoyznkxkgrjkgr'
     """
+    
+
+        
+        
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE BELOW THIS
-    alphabet = 'abcdefghijklmnopqrstuvwxyz'
+    def encrypter(letter,n):
+         alphabet = 'abcdefghijklmnopqrstuvwxyz'
+         alphabet_list = list(alphabet)
+         new_letter_pos = alphabet_list.index(letter) + n
+         
+         try:
+             return alphabet_list[new_letter_pos]
+         except IndexError:
+             return alphabet_list[new_letter_pos-26]
+         
+    str_list = list(str_to_encrypt)
+    
+    output = ''
+    for _str_ in str_to_encrypt:
+        output += encrypter(_str_,n)
+    return output
+        
+   
     
 
 def caesar_cipher_decrypt(str_to_decrypt, n):
@@ -54,7 +75,23 @@ def caesar_cipher_decrypt(str_to_decrypt, n):
     """
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE BELOW THIS
-    alphabet = 'abcdefghijklmnopqrstuvwxyz'
+    
+    def decrypter(letter,n):
+         alphabet = 'abcdefghijklmnopqrstuvwxyz'
+         alphabet_list = list(alphabet)
+         new_letter_pos = alphabet_list.index(letter) - n
+         
+         try:
+             return alphabet_list[new_letter_pos]
+         except IndexError:
+             return alphabet_list[new_letter_pos+26]
+         
+    str_list = list(str_to_decrypt)
+    
+    output = ''
+    for _str_ in str_to_decrypt:
+        output += decrypter(_str_,n)
+    return output
     
 
 

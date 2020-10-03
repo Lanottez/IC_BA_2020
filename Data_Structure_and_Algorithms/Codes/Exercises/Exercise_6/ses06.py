@@ -21,8 +21,15 @@ def print_dict_values(a):
     """
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE BELOW THIS
+    def takekey(item):
+        return item[0]
+    list_a = list(a.items())
+    list_a.sort(key = takekey)
     
-    
+    for item in list_a:
+        print(item[0],item[1])
+    return len(list_a)
+   
 def count_characters(a):
     """
     Counts how many times different characters appear in the input string.
@@ -48,6 +55,11 @@ def count_characters(a):
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE BELOW THIS
 
+    dictionary = {}
+    for letter in a:
+        dictionary[letter] = 1 if letter not in dictionary else dictionary[letter] + 1
+    return dictionary
+    
 
 def divide(a, b):
     """
@@ -64,11 +76,15 @@ def divide(a, b):
     >>> divide(10, 2)
     5.0
     >>> divide(10, 0)
-    No division by 0.
+    No division by 0.int(0.)
     """
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE BELOW THIS
-
+    try:
+        return a / b
+    except ZeroDivisionError: 
+        print('No division by 0.int(0.)')
+        return None
 
 def count_words(a):
     """
@@ -92,6 +108,9 @@ def count_words(a):
     """
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE BELOW THIS
-
-
-
+    words_list = a.split()
+    
+    dictionary = {}
+    for word in words_list:
+        dictionary[word] = 1 if word not in dictionary else dictionary[word] + 1
+    return dictionary

@@ -13,6 +13,13 @@ def recursive_fibonacci(n):
     """
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE HERE
+    if n == 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        return recursive_fibonacci(n-1)+recursive_fibonacci(n-2)
+    
 
 
 def merge_sort(L):
@@ -33,7 +40,10 @@ def merge_sort(L):
     """
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE HERE
-
+    if len(L) < 2: # Base case - list is max one item, so sorted
+        return L[:] # Return (copy of) the entire list
+    else: # General case: split and sort each half, then merge
+        return merge(merge_sort(L[:len(L)//2]),merge_sort(L[len(L)//2:]))
 
 def merge(left, right):
     """
@@ -52,4 +62,9 @@ def merge(left, right):
     """
     # YOUR CODE BELOW
     # DON'T CHANGE ANYTHING ABOVE
-    
+    # This is one possible approach:
+    result = [] # the result of merging
+    while left != [] and right != []:
+        result = result + [left.pop(0)] if left[0] < right[0] else result + [right.pop(0)]
+    result = result + right if left == [] else result + left
+    return result
