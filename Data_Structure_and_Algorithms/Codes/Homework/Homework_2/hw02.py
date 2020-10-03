@@ -1,3 +1,4 @@
+import pdb
 """
 
 Homework 2
@@ -304,4 +305,90 @@ def reverse_engineer(seq):
                 output.append(index)
         return output
     
+    def return_letter_set(seq):
+        letters_output = []
+        letters_dict = {}
+        for letters in seq:
+            for letter in letters:
+                if letter not in letters_output:
+                    letters_output.append(letter)
+        for index in range(len(letters_output)):
+            letters_dict[letters_output[index]] = [index+1,False]
+            
+        return [letters_output,sorted(letters_output),letters_dict]
     
+    
+    def the_teaser(n,letter_set,letter_set_sorted,letters_dict):
+
+        output_letter = ''
+        for letter in letter_set_sorted:
+            if n % letters_dict[letter][0] == 0:
+                output_letter += letter
+
+        if output_letter:
+            return output_letter
+        else:
+            return None
+        
+    def incrementer(letter_set,letters_dict):
+        edit_indictor = 0
+        for letter in letter_set[::-1]:
+            if letters_dict[letter][1] == False:
+                letters_dict[letter][0] += 1
+                letters_dict[letter][1] = True
+                edit_indictor = 1
+                break
+        if edit_indictor == 0:
+            for letter in letter_set:
+                letters_dict[letter][1] = False
+            largest_letter = letter_set[-1]
+            letters_dict[largest_letter][0] +=1
+            letters_dict[largest_letter][1] = True
+
+    [letter_set,letter_set_sorted,letters_dict] = return_letter_set(seq)
+    
+ 
+    def return_dict(letter_set,letter_set_sorted,letters_dict):
+        time = 40
+        
+        while time:
+            time -= 1
+            seq_copy = seq.copy()
+            n_value = 1
+            while seq_copy:
+                output_letter = the_teaser(n_value,letter_set,letter_set_sorted,letters_dict)
+                n_value += 1
+                if output_letter:
+                    if output_letter != seq_copy.pop(0):
+                        break
+                if seq_copy == []:
+                    return letters_dict
+            incrementer(letter_set,letters_dict)
+            print(letters_dict)
+            
+    return_dict = return_dict(letter_set,letter_set_sorted,letters_dict)
+    
+    return_list = []
+    for letter in letter_set_sorted:
+        return_list.append(return_dict[letter][0])
+    return return_list
+    
+
+# =============================================================================
+# seq_copy = ["a", "b", "d", "c", "a", "ab"]
+# letter_set = ['a', 'b', 'd', 'c']
+# letter_set_sorted = ['a', 'b', 'c', 'd']
+# letters_dict =  {'a': [6, False], 'b': [9, False], 'd': [10, False], 'c': [11, False]}
+# n_value = 1
+# while seq_copy:
+#     output_letter = the_teaser(n_value,letter_set,letter_set_sorted,letters_dict)
+#     n_value += 1
+#     if output_letter:
+#         if output_letter != seq_copy.pop(0):
+#             print('break')
+#     if seq_copy == []:
+#         print('return')
+# incrementer(letter_set,letters_dict)
+# =============================================================================
+
+            
