@@ -343,7 +343,8 @@ def reverse_engineer(seq):
                 letters_dict[letter][1] = False
             largest_letter = letter_set[-1]
             letters_dict[largest_letter][0] +=1
-            letters_dict[largest_letter][1] = True
+            letters_dict[largest_letter][1] = True 
+            # testing github desktop
 
     [letter_set,letter_set_sorted,letters_dict] = return_letter_set(seq)
     
