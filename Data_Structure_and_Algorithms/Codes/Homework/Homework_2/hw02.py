@@ -299,6 +299,9 @@ def reverse_engineer(seq):
     """
     # Your code here.
     def return_factor(num):
+        """
+        返回input的因数分解
+        """
         output = []
         for index in range(1,num+1):
             if num % index == 0:
@@ -306,6 +309,10 @@ def reverse_engineer(seq):
         return output
     
     def return_letter_set(seq):
+        """
+        解析输入的seq，读取需要的信息
+
+        """
         letters_output = []
         letters_dict = {}
         for letters in seq:
@@ -313,16 +320,18 @@ def reverse_engineer(seq):
                 if letter not in letters_output:
                     letters_output.append(letter)
         for index in range(len(letters_output)):
-            letters_dict[letters_output[index]] = [index+1,False]
+            letters_dict[letters_output[index]] = index+1
             
-        return [letters_output,sorted(letters_output),letters_dict]
+        largest_value = digit_position = len(letters_output)
+        
+        return [largest_value,digit_position,letters_output,sorted(letters_output),letters_dict]
     
     
     def the_teaser(n,letter_set,letter_set_sorted,letters_dict):
 
         output_letter = ''
         for letter in letter_set_sorted:
-            if n % letters_dict[letter][0] == 0:
+            if n % letters_dict[letter] == 0:
                 output_letter += letter
 
         if output_letter:
@@ -330,45 +339,68 @@ def reverse_engineer(seq):
         else:
             return None
         
-    def incrementer(letter_set,letters_dict):
-        edit_indictor = 0
-        for letter in letter_set[::-1]:
-            if letters_dict[letter][1] == False:
-                letters_dict[letter][0] += 1
-                letters_dict[letter][1] = True
-                edit_indictor = 1
-                break
-        if edit_indictor == 0:
-            for letter in letter_set:
-                letters_dict[letter][1] = False
-            largest_letter = letter_set[-1]
-            letters_dict[largest_letter][0] +=1
-            letters_dict[largest_letter][1] = True
 
-    [letter_set,letter_set_sorted,letters_dict] = return_letter_set(seq)
-    
- 
-    def return_dict(letter_set,letter_set_sorted,letters_dict):
-        while time:
-            time -= 1
-            seq_copy = seq.copy()
-            n_value = 1
-            while seq_copy:
-                output_letter = the_teaser(n_value,letter_set,letter_set_sorted,letters_dict)
-                n_value += 1
-                if output_letter:
-                    if output_letter != seq_copy.pop(0):
-                        break
-                if seq_copy == []:
-                    return letters_dict
-            incrementer(letter_set,letters_dict)
-            print(letters_dict)
+
+    def create_all_sets(largest_value,digit_position):
+        
+        def largest_list(list_original):
+            output_diff = []
+            list_1 = list_original[1:]
+            list_2 = list_original[:-1]
+            for n1,n2 in zip(list_1,list_2):
+                output_diff.append(n1-n2)
+            def check_if_all_n_one(input_list):
+                for digit in input_list:
+                    if digit != -1:
+                        return False
+                return True
+            return check_if_all_n_one(output_diff)
+        
+        
+        collection_set = []
+        
+        single_set = list(reversed(range(1,digit_position+1)))
+        single_set[0] = largest_value
+        collection_set.append(list(reversed(single_set.copy())))
+        
+        while not largest_list(single_set):   
+            for index in range(1,len(single_set)):
+                if single_set[index-1] - single_set[index] != 1:
+                    single_set[index] += 1
+                    break
+            collection_set.append(list(reversed(single_set.copy())))
+        
+        return collection_set
             
-    return_dict = return_dict(letter_set,letter_set_sorted,letters_dict)
+        
+    def update_value_letters_dict(single_set,letter_set,letters_dict):
+        for index in range(len(single_set)):
+            letters_dict[letter_set[index]] = single_set[index]
+ 
+    def return_dict(seq):
+        [largest_value,digit_position,letter_set,letter_set_sorted,letters_dict] = return_letter_set(seq)
+        while True:
+            collection_set = create_all_sets(largest_value,digit_position)
+            for single_set in collection_set:
+                update_value_letters_dict(single_set,letter_set,letters_dict)
+                seq_copy = seq.copy()
+                n_value = 1
+                while seq_copy:
+                    output_letter = the_teaser(n_value,letter_set,letter_set_sorted,letters_dict)
+                    n_value += 1
+                    if output_letter:
+                        if output_letter != seq_copy.pop(0):
+                            break
+                    if seq_copy == []:
+                        return letters_dict,letter_set_sorted
+            largest_value += 1
+  
+            
+    return_dict,letter_set_sorted = return_dict(seq)
     
     return_list = []
     for letter in letter_set_sorted:
-        return_list.append(return_dict[letter][0])
+        return_list.append(return_dict[letter])
     return return_list
     
 
