@@ -1,4 +1,3 @@
-import pdb
 """
 
 Homework 2
@@ -298,20 +297,9 @@ def reverse_engineer(seq):
     [6, 9, 11, 10]
     """
     # Your code here.
-    def return_factor(num):
-        """
-        返回input的因数分解
-        """
-        output = []
-        for index in range(1,num+1):
-            if num % index == 0:
-                output.append(index)
-        return output
-    
     def return_letter_set(seq):
         """
-        解析输入的seq，读取需要的信息
-
+        解析输入的seq，读取需要的信息，生成后续需要用到的变量
         """
         letters_output = []
         letters_dict = {}
@@ -326,23 +314,17 @@ def reverse_engineer(seq):
         
         return [largest_value,digit_position,letters_output,sorted(letters_output),letters_dict]
     
-    
     def the_teaser(n,letter_set,letter_set_sorted,letters_dict):
-
         output_letter = ''
         for letter in letter_set_sorted:
             if n % letters_dict[letter] == 0:
                 output_letter += letter
-
         if output_letter:
             return output_letter
         else:
             return None
         
-
-
     def create_all_sets(largest_value,digit_position):
-        
         def largest_list(list_original):
             output_diff = []
             list_1 = list_original[1:]
@@ -355,24 +337,18 @@ def reverse_engineer(seq):
                         return False
                 return True
             return check_if_all_n_one(output_diff)
-        
-        
         collection_set = []
-        
         single_set = list(reversed(range(1,digit_position+1)))
         single_set[0] = largest_value
         collection_set.append(list(reversed(single_set.copy())))
-        
         while not largest_list(single_set):   
             for index in range(1,len(single_set)):
                 if single_set[index-1] - single_set[index] != 1:
                     single_set[index] += 1
                     break
-            collection_set.append(list(reversed(single_set.copy())))
-        
+            collection_set.append(list(reversed(single_set.copy())))  
         return collection_set
             
-        
     def update_value_letters_dict(single_set,letter_set,letters_dict):
         for index in range(len(single_set)):
             letters_dict[letter_set[index]] = single_set[index]
@@ -394,31 +370,11 @@ def reverse_engineer(seq):
                     if seq_copy == []:
                         return letters_dict,letter_set_sorted
             largest_value += 1
-  
             
     return_dict,letter_set_sorted = return_dict(seq)
-    
     return_list = []
     for letter in letter_set_sorted:
         return_list.append(return_dict[letter])
     return return_list
     
-
-# =============================================================================
-# seq_copy = ["a", "b", "d", "c", "a", "ab"]
-# letter_set = ['a', 'b', 'd', 'c']
-# letter_set_sorted = ['a', 'b', 'c', 'd']
-# letters_dict =  {'a': [6, False], 'b': [9, False], 'd': [10, False], 'c': [11, False]}
-# n_value = 1
-# while seq_copy:
-#     output_letter = the_teaser(n_value,letter_set,letter_set_sorted,letters_dict)
-#     n_value += 1
-#     if output_letter:
-#         if output_letter != seq_copy.pop(0):
-#             print('break')
-#     if seq_copy == []:
-#         print('return')
-# incrementer(letter_set,letters_dict)
-# =============================================================================
-
             
