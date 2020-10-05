@@ -3,7 +3,7 @@
 Homework 2
 
 """
-
+import pdb
 def moving_average(prices, n):
     """
     Calculates n-period moving average of a list of floats/integers.
@@ -308,16 +308,15 @@ def reverse_engineer(seq):
                 if letter not in letters_output:
                     letters_output.append(letter)
         for index in range(len(letters_output)):
-            letters_dict[letters_output[index]] = index+1
-            
+            letters_dict[letters_output[index]] = [index+1]
         largest_value = digit_position = len(letters_output)
-        
         return [largest_value,digit_position,letters_output,sorted(letters_output),letters_dict]
     
     def the_teaser(n,letter_set,letter_set_sorted,letters_dict):
         output_letter = ''
         for letter in letter_set_sorted:
-            if n % letters_dict[letter] == 0:
+
+            if n % letters_dict[letter][0] == 0:
                 output_letter += letter
         if output_letter:
             return output_letter
@@ -351,7 +350,7 @@ def reverse_engineer(seq):
             
     def update_value_letters_dict(single_set,letter_set,letters_dict):
         for index in range(len(single_set)):
-            letters_dict[letter_set[index]] = single_set[index]
+            letters_dict[letter_set[index]][0] = single_set[index]
  
     def return_dict(seq):
         [largest_value,digit_position,letter_set,letter_set_sorted,letters_dict] = return_letter_set(seq)
@@ -374,7 +373,7 @@ def reverse_engineer(seq):
     return_dict,letter_set_sorted = return_dict(seq)
     return_list = []
     for letter in letter_set_sorted:
-        return_list.append(return_dict[letter])
+        return_list.append(return_dict[letter][0])
     return return_list
     
             
