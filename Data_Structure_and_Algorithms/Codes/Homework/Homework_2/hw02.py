@@ -297,6 +297,26 @@ def reverse_engineer(seq):
     [6, 9, 11, 10]
     """
     # Your code here.
+    def return_factor(num):
+        """
+        返回input的因数分解
+        """
+        output = []
+        for index in range(1,num+1):
+            if num % index == 0:
+                output.append(index)
+        return output
+        
+    def update_dict_factor(seq,letters_dict):
+        for element in seq:
+            if len(element) > 1:
+                seq_list = list(element)
+                dict_key = seq_list.pop(-1)
+                for factor in seq_list:
+                    if factor not in letters_dict[dict_key][1]:
+                        letters_dict[dict_key][1].append(factor)
+        return letters_dict
+        
     def return_letter_set(seq):
         """
         解析输入的seq，读取需要的信息，生成后续需要用到的变量
@@ -309,6 +329,7 @@ def reverse_engineer(seq):
                     letters_output.append(letter)
         for index in range(len(letters_output)):
             letters_dict[letters_output[index]] = [index+1]
+            letters_dict[letters_output[index]].append([])
         largest_value = digit_position = len(letters_output)
         return [largest_value,digit_position,letters_output,sorted(letters_output),letters_dict]
     
