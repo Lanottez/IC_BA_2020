@@ -402,36 +402,27 @@ def reverse_engineer(seq):
 
 
 
-# =============================================================================
-# def the_teaser(n,letter_set_sorted,letters_dict):
-#     output_letter = ''
-#     for letter in letter_set_sorted:
-#         if n % letters_dict[letter] == 0:
-#             output_letter += letter
-#     if output_letter:
-#         return output_letter
-# 
-# def teaser_looper(n,letter_set_sorted,letters_dict):
-#     outbook_list = []
-#     for i in range(1,n):
-#         ou = the_teaser(i,letter_set_sorted,letters_dict)
-#         if ou:
-#              outbook_list.append(ou) 
-#     return outbook_list
-# 
-# n=2000
-# letter_set_sorted = ['a','b','c','d','e','f']
-#                      'g','h','i','j','k','l','m','n']
-# 
-# letters_dict = {'a':30,'b':60,'c':90,'d':120,'e':150,'f':181}
-# letters_dict['g'] = 225
-# letters_dict['h'] = 250
-# letters_dict['i'] = 300
-# letters_dict['j'] = 400
-# letters_dict['k'] = 450
-# letters_dict['l'] = 500
-# letters_dict['m'] = 550
-# letters_dict['n'] = 551
-# 
-# seq = teaser_looper(n,letter_set_sorted,letters_dict)
-# =============================================================================
+def the_teaser(n,letter_set_sorted,letters_dict):
+    output_letter = ''
+    for letter in letter_set_sorted:
+        if n % letters_dict[letter] == 0:
+            output_letter += letter
+    if output_letter:
+        return output_letter
+
+def teaser_looper(n,letter_set_sorted,letters_dict):
+    outbook_list = []
+    for i in range(1,n):
+        ou = the_teaser(i,letter_set_sorted,letters_dict)
+        if ou:
+            print(i)
+            outbook_list.append(ou)
+    return outbook_list
+
+n=20
+letter_set_sorted = ['c','a','b','e','f','d']
+
+
+letters_dict = {'a':3,'b':4,'c':2,'d':11,'e':8,'f':9}
+
+seq = teaser_looper(n,letter_set_sorted,letters_dict)
