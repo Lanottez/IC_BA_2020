@@ -316,6 +316,20 @@ def reverse_engineer(seq):
                     if factor not in letters_dict[dict_key][1]:
                         letters_dict[dict_key][1].append(factor)
         return letters_dict
+    
+    def if_eligible(letters_dict):
+        """
+        判断是否符合因数定律
+        """
+        letters = letters_dict.keys()
+        for letter in letters:
+            factors = letters_dict[letter][1]
+            for factor in factors:
+                if letters_dict[letter][0] // letters_dict[factor][0] != 0:
+                    return False
+        return True
+                    
+                    
         
     def return_letter_set(seq):
         """
@@ -376,11 +390,8 @@ def reverse_engineer(seq):
     def return_dict(seq):
         [largest_value,digit_position,letter_set,letter_set_sorted,letters_dict] = return_letter_set(seq)
         while True:
-            print(largest_value)
             collection_set = create_all_sets(largest_value,digit_position)
             for single_set in collection_set:
-                if largest_value== 181:
-                    pdb.set_trace()
                 update_value_letters_dict(single_set,letter_set,letters_dict)
                 seq_copy = seq.copy()
                 n_value = 1
@@ -399,6 +410,30 @@ def reverse_engineer(seq):
     for letter in letter_set_sorted:
         return_list.append(return_dict[letter][0])
     return return_list
+
+def the_teaser(n,letter_set_sorted,letters_dict):
+    output_letter = ''
+    for letter in letter_set_sorted:
+        if n % letters_dict[letter] == 0:
+            output_letter += letter
+    if output_letter:
+        return output_letter
+
+def teaser_looper(n,letter_set_sorted,letters_dict):
+    outbook_list = []
+    for i in range(1,n):
+        ou = the_teaser(i,letter_set_sorted,letters_dict)
+        if ou:
+             outbook_list.append(ou) 
+    return outbook_list
+
+n=2000
+letter_set_sorted = ['a','b','c']
+                     # 'c','d','e','f']
+                #     'g','h','i','j','k','l','m','n']
+
+letters_dict = {'a':4,'b':5,'c':20}
+#,'c':90,'d':120,'e':150,'f':181}
 
 
 
@@ -426,3 +461,7 @@ letter_set_sorted = ['c','a','b','e','f','d']
 letters_dict = {'a':3,'b':4,'c':2,'d':11,'e':8,'f':9}
 
 seq = teaser_looper(n,letter_set_sorted,letters_dict)
+# =============================================================================
+# print(reverse_engineer(seq))
+# =============================================================================
+
