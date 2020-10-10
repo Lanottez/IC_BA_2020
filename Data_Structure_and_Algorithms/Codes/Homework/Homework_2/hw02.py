@@ -406,13 +406,10 @@ def reverse_engineer(seq):
                         return letters_dict,letter_set_sorted
             largest_value += 1
             
-    beginning_time = time.perf_counter()
     return_dict,letter_set_sorted = return_dict(seq)
     return_list = []
     for letter in letter_set_sorted:
         return_list.append(return_dict[letter][0])
-    ending_time = time.perf_counter()
-    print(ending_time-beginning_time)
     return return_list
 
 def the_teaser(n,letter_set_sorted,letters_dict):

@@ -1,7 +1,8 @@
 seq1 = ["a", "ab", "c", "a", "ab", "ac"]
 seq2 = ["b", "bc", "ab", "bc", "b", "abc", "b"]
-seq3 = ["a", "b", "d", "c", "a", "ab"]
-
+seq3 = ["a", "b", "d", "c", "a", "ab"] 
+seq4 = ['a', 'b', 'a', 'c', 'b', 'a', 'b', 'a', 'c', 'ab'] #{'a':4,'b':5,'c':9}
+import pdb
 def the_teaser(n,letter_set_sorted,letters_dict):
     output_letter = ''
     for letter in letter_set_sorted:
@@ -9,7 +10,14 @@ def the_teaser(n,letter_set_sorted,letters_dict):
             output_letter += letter
     if output_letter:
         return output_letter
-    
+def teaser_looper(n,letter_set_sorted,letters_dict):
+    outbook_list = []
+    for i in range(1,n):
+        ou = the_teaser(i,letter_set_sorted,letters_dict)
+        if ou:
+             outbook_list.append(ou) 
+    return outbook_list
+
 def return_letter_occurrence(seq):
     def return_letter_set(seq):
         letters_output = []
@@ -56,8 +64,8 @@ def return_letter_occurrence(seq):
                     letters_dict_for_relationship[in_key][out_key] = 1/letters_dict_for_relationship[out_key][in_key] 
         complete_letters_dict_for_relationship(letters_dict_for_relationship)   
         return occurrence_list_collection,letters_dict_for_relationship
-    occurrence_list_collection,letters_dict_for_relationship = update_occurrence_recorder_letters_dict_for_relationship(letters_output,letters_dict,letters_dict_for_relationship)
     
+    occurrence_list_collection,letters_dict_for_relationship = update_occurrence_recorder_letters_dict_for_relationship(letters_output,letters_dict,letters_dict_for_relationship)
     
     return occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship
 
@@ -99,6 +107,9 @@ def reverse_engineer(seq):
                     if seq_copy == []:
                         return [letters_dict,letter_set_sorted]
                 incrementer(letters_dict,letters_output,letters_dict_for_relationship)
+                print(letters_dict)
+                
+                
     [return_dict,letter_set_sorted] = return_dict(seq)
     return_list = []
     for letter in letter_set_sorted:
