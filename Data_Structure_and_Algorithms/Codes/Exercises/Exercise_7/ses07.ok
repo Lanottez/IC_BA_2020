@@ -1,0 +1,26 @@
+{
+    "name": "Session 7",
+    "endpoint": "icbs/busi97284/fa20/ses07",
+    "src": [
+        "ses07.py",
+		"ses07_extra.py",
+		"ses07_numpy.ipynb"
+    ],
+    "tests": {
+      "tests/recap.py": "ok_test",
+      "tests/monsters.py": "ok_test",
+      "tests/more_monsters.py": "ok_test",
+	  "tests/q*.py": "ok_test",
+	  "ses07.py:Monster.heal": "doctest",
+	  "ses07.py:Monster.use_attack": "doctest",
+      "ses07.py:test_attack": "doctest",
+      "ses07_extra.py:test_listqueue": "doctest",
+      "ses07_extra.py:test_queue": "doctest"
+    },
+    "protocols": [
+        "file_contents",
+        "grading",
+        "analytics",
+        "backup"
+    ]
+}

@@ -1,0 +1,21 @@
+{
+    "name": "Session 8",
+    "endpoint": "icbs/busi97284/fa20/ses08",
+    "src": [
+        "ses08.py",
+	    "ses08_extra.py"
+    ],
+    "tests": {
+      "tests/recap.py": "ok_test",
+      "ses08.py:create_bfs_graph": "doctest",
+      "ses08.py:bfs": "doctest",
+      "ses08.py:bfs_track_path": "doctest",
+      "ses08_extra.py:dfs": "doctest"
+    },
+    "protocols": [
+        "file_contents",
+        "grading",
+        "analytics",
+        "backup"
+    ]
+}
