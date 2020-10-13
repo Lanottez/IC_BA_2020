@@ -12,20 +12,18 @@ test = {
           >>> # highest_FB_daily_returns.  (Click that cell and then click the "run
           >>> # cell" button in the menu bar above.)
           >>> 'highest_FB_daily_returns' in vars()
-          a7465ecc0421c9e0085a8a012fce1e93
-          # locked
+          True
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
           >>> highest_FB_daily_returns//0.0001 == 504.0
-          a7465ecc0421c9e0085a8a012fce1e93
-          # locked
+          True
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         }
       ],
       'scored': False,
