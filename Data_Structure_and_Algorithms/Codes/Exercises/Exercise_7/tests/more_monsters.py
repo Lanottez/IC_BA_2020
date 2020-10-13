@@ -5,7 +5,7 @@ test = {
     {
       'cases': [
         {
-          'answer': '453cf288da1dfd386b98842f7679fc94',
+          'answer': '3',
           'choices': [
             '1',
             '3',
@@ -13,7 +13,7 @@ test = {
             '5'
           ],
           'hidden': False,
-          'locked': True,
+          'locked': False,
           'question': r"""
           Let's introduce a new class Attack(object):
           
@@ -43,7 +43,7 @@ test = {
     {
       'cases': [
         {
-          'answer': 'ea18993f8405572bde4b654a3b876282',
+          'answer': "(3 elements) Attacking monster's attack damage and combat points, and target monster's combat points",
           'choices': [
             "(2 elements) Attacking monster's attack damage points and target monster's health",
             "(4 elements) Attacking monster's and target monster's attack damage and combat points",
@@ -51,7 +51,7 @@ test = {
             "(2 elements) Attacking monster's and target monster's attack damage points"
           ],
           'hidden': False,
-          'locked': True,
+          'locked': False,
           'question': r"""
           Let's extend the Monster(object) class by adding the constructor parameters and with two additional methos:
           Assume the class Attack(object) has been defined as above
@@ -157,12 +157,11 @@ test = {
           >>> squirt = Monster('Squirtle','water',200,50,[spray])
           >>> # Pikachu attacks Squirtle!
           >>> pika.use_attack(lightning, squirt)
-          970721e7593716ed3efced9657c7cf37
-          899f23bb350395097d58c097a6b662bf
-          # locked
+          Pikachu hits Squirtle for 10 damage!
+          Squirtle has 40 health left.
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         }
       ],
       'scored': False,
@@ -171,7 +170,7 @@ test = {
     {
       'cases': [
         {
-          'answer': '5c812d04a01c54bd2b0ce183a213419e',
+          'answer': '60',
           'choices': [
             '80',
             '70',
@@ -179,7 +178,7 @@ test = {
             '50'
           ],
           'hidden': False,
-          'locked': True,
+          'locked': False,
           'question': r"""
           Q: How many health points would pika have remaining after squirt attacked it with:
           squirt.use_attack(spray,pika)

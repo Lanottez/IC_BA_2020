@@ -12,20 +12,18 @@ test = {
           >>> # fb_vol.  (Click that cell and then click the "run
           >>> # cell" button in the menu bar above.)
           >>> 'fb_vol' in vars()
-          a7465ecc0421c9e0085a8a012fce1e93
-          # locked
+          True
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
           >>> fb_vol//0.0001 == 161.0
-          a7465ecc0421c9e0085a8a012fce1e93
-          # locked
+          True
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         }
       ],
       'scored': False,

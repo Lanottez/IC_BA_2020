@@ -12,20 +12,18 @@ test = {
           >>> # number_of_entries.  (Click that cell and then click the "run
           >>> # cell" button in the menu bar above.)
           >>> 'number_of_entries' in vars()
-          a7465ecc0421c9e0085a8a012fce1e93
-          # locked
+          True
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
           >>> number_of_entries == 252
-          a7465ecc0421c9e0085a8a012fce1e93
-          # locked
+          True
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         }
       ],
       'scored': False,
