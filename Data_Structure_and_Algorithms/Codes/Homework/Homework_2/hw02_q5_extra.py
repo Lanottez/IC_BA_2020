@@ -11,10 +11,11 @@ occurrence_list_collection = [{'a': 1}, {'b': 1}, {'a': 2}, {'c': 1}, {'b': 2}, 
 letters_dict = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7, 'h': 8, 'i': 9, 'j': 10, 'k': 11, 'l': 12, 'm': 13}
 letters_output = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm']
 letters_dict_for_relationship = {'a': {'b': 0.8, 'c': 0.4444444444444444, 'f': 0.02631578947368421, 'h': 0.018867924528301886, 'k': 0.015384615384615385, 'e': 0.02666666666666667, 'i': 0.017391304347826087, 'd': 0.03305785123966942, 'j': 0.015748031496062992, 'g': 0.018957345971563982, 'l': 0.0031847133757961785}, 'b': {'c': 0.5555555555555556, 'e': 0.03333333333333333, 'i': 0.021739130434782608, 'd': 0.04132231404958678, 'g': 0.023696682464454975, 'j': 0.01968503937007874, 'a': 1.25}, 'c': {'d': 0.0743801652892562, 'g': 0.04265402843601896, 'j': 0.03543307086614173, 'a': 2.25, 'b': 1.7999999999999998}, 'd': {'a': 30.25, 'b': 24.2, 'c': 13.444444444444445}, 'e': {'a': 37.5, 'b': 30.0}, 'f': {'a': 38.0}, 'g': {'a': 52.74999999999999, 'b': 42.2, 'c': 23.444444444444443}, 'h': {'a': 53.0}, 'i': {'a': 57.5, 'b': 46.0}, 'j': {'a': 63.5, 'b': 50.8, 'c': 28.22222222222222}, 'k': {'a': 65.0}, 'l': {'a': 314.0}, 'm': {}}
+{'a':4,'b':5,'c':9,'d':121,'e':150,'f':152,'g':211,'h':212,'i':230,'j':254,'k':260,'l':1256,'m':2451}
 
 def verify_relationship_and_update(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
     def is_int(input_num):
-        if int(input_num) == input_num:
+        if max(input_num, round(input_num)) - min(input_num, round(input_num)) < 0.0001:
             return True
         return False
     def verify_relationship_and_update_inner(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
@@ -27,12 +28,11 @@ def verify_relationship_and_update(occurrence_list_collection,letters_dict,lette
                     letters_dict[letter] += 1
                     return False
                 else:
-                    letters_dict[letter_modified] = value_modified
+                    letters_dict[letter_modified] = round(value_modified)
         return True
                     
     while True:
         if verify_relationship_and_update_inner(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
-            pdb.set_trace()
             break
         
         

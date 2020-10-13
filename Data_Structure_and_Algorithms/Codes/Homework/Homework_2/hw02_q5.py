@@ -31,13 +31,8 @@ def teaser_looper(n,letter_set_sorted,letters_dict):
 
 n=3000
 letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k','l','m']
-letters_dict_1 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':152,'g':211,'h':212,'i':230,'j':254,'k':260,'l':1256,'m':2451}
-seq5 = teaser_looper(n,letter_set_sorted,letters_dict_1)
-
-import pdb
-
-
-
+letters_dict_2 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':152,'g':210,'h':212,'i':230,'j':254,'k':260,'l':1256,'m':2451}
+seq5 = teaser_looper(n,letter_set_sorted,letters_dict_2)
 def return_letter_occurrence(seq):
     def return_letter_set(seq):
         letters_output = []
@@ -86,7 +81,6 @@ def return_letter_occurrence(seq):
         return occurrence_list_collection,letters_dict_for_relationship
     occurrence_list_collection,letters_dict_for_relationship = update_occurrence_recorder_letters_dict_for_relationship(letters_output,letters_dict,letters_dict_for_relationship)
     return occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship
-
         
 def reverse_engineer(seq):
     def return_one_key(input_dict):
@@ -94,7 +88,7 @@ def reverse_engineer(seq):
             return keys,input_dict[keys]
     def verify_relationship_and_update(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
         def is_int(input_num):
-            if int(input_num) == input_num:
+            if max(input_num, round(input_num)) - min(input_num, round(input_num)) < 0.0001:
                 return True
             return False
         def verify_relationship_and_update_inner(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
@@ -109,14 +103,10 @@ def reverse_engineer(seq):
                     else:
                         letters_dict[letter_modified] = value_modified
             return True
-                        
         while True:
             if verify_relationship_and_update_inner(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
                 break
-
-        
     occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship = return_letter_occurrence(seq)
-    pdb.set_trace()
     def verify_size_relationship(occurrence_list_collection,letters_dict):
         for index in range(1,len(occurrence_list_collection)):
             occurrence_list_n = occurrence_list_collection[index]
