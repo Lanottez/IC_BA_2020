@@ -11,7 +11,7 @@ seq3 = ["a", "b", "d", "c", "a", "ab"]
 seq4 = ['a', 'b', 'a', 'c', 'b', 'a', 'b', 'a', 'c', 'ab'] 
 occurrence_list_collection4 = [{'a': 1}, {'b': 1}, {'a': 2}, {'c': 1}, {'b': 2}, {'a': 3}, {'b': 3}, {'a': 4}, {'c': 2}, {'a': 5, 'b': 4}]
 # seq 4=     [4,5,9]
-import pdb
+
 
 def the_teaser(n,letter_set_sorted,letters_dict):
     output_letter = ''
@@ -27,6 +27,15 @@ def teaser_looper(n,letter_set_sorted,letters_dict):
         if ou:
              outbook_list.append(ou) 
     return outbook_list
+
+
+n=3000
+letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k','l','m']
+letters_dict_1 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':152,'g':211,'h':212,'i':230,'j':254,'k':260,'l':1256,'m':2451}
+seq5 = teaser_looper(n,letter_set_sorted,letters_dict_1)
+
+import pdb
+
 
 
 def return_letter_occurrence(seq):
@@ -48,6 +57,7 @@ def return_letter_occurrence(seq):
             if letter in letter_list:
                 return letter_list.index(letter)
     [letters_output,letters_dict,letters_dict_for_relationship] = return_letter_set(seq)
+
     def update_occurrence_recorder_letters_dict_for_relationship(letters_output,letters_dict,letters_dict_for_relationship):
         occurrence_recorder = {}
         for letter in letters_output:
@@ -78,14 +88,36 @@ def return_letter_occurrence(seq):
     return occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship
 
         
-    
 def reverse_engineer(seq):
     def return_one_key(input_dict):
         for keys in input_dict:
             return keys,input_dict[keys]
+    def verify_relationship_and_update(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
+        def is_int(input_num):
+            if int(input_num) == input_num:
+                return True
+            return False
+        def verify_relationship_and_update_inner(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
+            for letter in letters_output:
+                relationships = letters_dict_for_relationship[letter]
+                letters_modified = list(relationships.keys())
+                for letter_modified in letters_modified:
+                    value_modified = letters_dict[letter] / relationships[letter_modified]
+                    if not is_int(value_modified):
+                        letters_dict[letter] += 1
+                        return False
+                    else:
+                        letters_dict[letter_modified] = value_modified
+            return True
+                        
+        while True:
+            if verify_relationship_and_update_inner(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
+                break
 
+        
     occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship = return_letter_occurrence(seq)
-    def verify_size_relatiomship(occurrence_list_collection,letters_dict):
+    pdb.set_trace()
+    def verify_size_relationship(occurrence_list_collection,letters_dict):
         for index in range(1,len(occurrence_list_collection)):
             occurrence_list_n = occurrence_list_collection[index]
             occurrence_list_n_1 = occurrence_list_collection[index-1]
@@ -93,16 +125,16 @@ def reverse_engineer(seq):
             for keys in occurrence_list_n:
                 if occurrence_list_n[keys] * letters_dict[keys] <= letters_dict[letter] * letter_occurrence:
                     letters_dict[keys] += 1
+                    verify_relationship_and_update(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship)
                     return False
         return True
 
     
     while True:
-        if verify_size_relatiomship(occurrence_list_collection,letters_dict):
-            return letters_dict
+        if verify_size_relationship(occurrence_list_collection,letters_dict):
+            return_list = []
+            for letter in sorted(letters_output):
+                return_list.append(int(letters_dict[letter]))
+            return return_list
+        
 
-n=3000
-letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k','l','m']
-letters_dict_1 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':152,'g':211,'h':212,'i':230,'j':254,'k':260,'l':1256,'m':2451}
-seq5 = teaser_looper(n,letter_set_sorted,letters_dict_1)
-print(reverse_engineer(seq5))
