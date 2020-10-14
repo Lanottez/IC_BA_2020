@@ -298,136 +298,124 @@ def reverse_engineer(seq):
     [6, 9, 11, 10]
     """
     # Your code here.
-    def return_factor(num):
-        """
-        返回input的因数分解
-        """
-        output = []
-        for index in range(1,num+1):
-            if num % index == 0:
-                output.append(index)
-        return output
-        
-    def update_dict_factor(seq,letters_dict):
-        for element in seq:
-            if len(element) > 1:
-                seq_list = list(element)
-                dict_key = seq_list.pop(-1)
-                for factor in seq_list:
-                    if factor not in letters_dict[dict_key][1]:
-                        letters_dict[dict_key][1].append(factor)
-        return letters_dict
-    
-    def if_eligible(letters_dict):
-        """
-        判断是否符合因数定律
-        """
-        letters = letters_dict.keys()
-        for letter in letters:
-            factors = letters_dict[letter][1]
-            for factor in factors:
-                if letters_dict[letter][0] // letters_dict[factor][0] != 0:
+    def return_letter_occurrence(seq):
+        def return_letter_set(seq):
+            letters_output = []
+            letters_dict = {}
+            for letters in seq:
+                for letter in letters:
+                    if letter not in letters_output:
+                        letters_output.append(letter)
+            for index in range(len(letters_output)):
+                letters_dict[letters_output[index]] = index+1
+            letters_dict_for_relationship = letters_dict.copy()
+            for keys in letters_dict_for_relationship:
+                letters_dict_for_relationship[keys] = {}
+            return [letters_output,letters_dict,letters_dict_for_relationship]
+        def find_the_index_of_smallest_element(letter_list,letters_output):
+            for letter in letters_output:
+                if letter in letter_list:
+                    return letter_list.index(letter)
+        [letters_output,letters_dict,letters_dict_for_relationship] = return_letter_set(seq)
+        def update_occurrence_recorder_letters_dict_for_relationship(letters_output,letters_dict,letters_dict_for_relationship):
+            occurrence_recorder = {}
+            for letter in letters_output:
+                occurrence_recorder[letter] = 0
+            occurrence_list_collection = []
+            for letters_index in range(len(seq)):
+                occurrence_list = {}
+                letters = seq[letters_index]
+                for letter in letters:
+                    occurrence_recorder[letter] += 1
+                    occurrence_list[letter] = occurrence_recorder[letter]
+                if len(letters) > 1:
+                    letter_list = list(letters)
+                    smallest_element = letter_list.pop(find_the_index_of_smallest_element(letter_list,letters_output))
+                    for relationship in letter_list:
+                        letters_dict_for_relationship[smallest_element][relationship] = occurrence_recorder[relationship] / occurrence_recorder[smallest_element]
+                occurrence_list_collection.append(occurrence_list.copy())
+            def complete_letters_dict_for_relationship(letters_dict_for_relationship):        
+                for keys in letters_dict_for_relationship:
+                    out_key = keys
+                    letter_dict_for_relationship = letters_dict_for_relationship[out_key]
+                    for keys in letter_dict_for_relationship:
+                        in_key = keys
+                        letters_dict_for_relationship[in_key][out_key] = 1/letters_dict_for_relationship[out_key][in_key] 
+            complete_letters_dict_for_relationship(letters_dict_for_relationship)   
+            return occurrence_list_collection,letters_dict_for_relationship
+        occurrence_list_collection,letters_dict_for_relationship = update_occurrence_recorder_letters_dict_for_relationship(letters_output,letters_dict,letters_dict_for_relationship)
+        return occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship
+    def return_one_key(input_dict):
+        for keys in input_dict:
+            return keys,input_dict[keys]
+    def verify_relationship_and_update(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
+        def is_int(input_num):
+            if max(input_num, round(input_num)) - min(input_num, round(input_num)) < 0.000001:
+                return True
+            return False
+        def verify_relationship_and_update_inner(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
+            for letter in letters_output:
+                relationships = letters_dict_for_relationship[letter]
+                letters_modified = list(relationships.keys())
+                for letter_modified in letters_modified:
+                    value_modified = letters_dict[letter] / relationships[letter_modified]
+                    if not is_int(value_modified):
+                        letters_dict[letter] += 1
+                        return False
+                    else:
+                        letters_dict[letter_modified] = round(value_modified)
+            return True
+        while True:
+            if verify_relationship_and_update_inner(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship):
+                break
+    occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship = return_letter_occurrence(seq)
+    def verify_size_relationship(occurrence_list_collection,letters_dict):
+        for index in range(1,len(occurrence_list_collection)):
+            occurrence_list_n = occurrence_list_collection[index]
+            occurrence_list_n_1 = occurrence_list_collection[index-1]
+            letter,letter_occurrence = return_one_key(occurrence_list_n_1)
+            for keys in occurrence_list_n:
+                if occurrence_list_n[keys] * letters_dict[keys] <= letters_dict[letter] * letter_occurrence:
+                    letters_dict[keys] += 1
+                    verify_relationship_and_update(occurrence_list_collection,letters_dict,letters_output,letters_dict_for_relationship)
                     return False
         return True
-                    
-                    
-        
-    def return_letter_set(seq):
-        """
-        解析输入的seq，读取需要的信息，生成后续需要用到的变量
-        """
-        letters_output = []
-        letters_dict = {}
-        for letters in seq:
-            for letter in letters:
-                if letter not in letters_output:
-                    letters_output.append(letter)
-        for index in range(len(letters_output)):
-            letters_dict[letters_output[index]] = [index+1]
-            letters_dict[letters_output[index]].append([])
-        largest_value = digit_position = len(letters_output)
-        return [largest_value,digit_position,letters_output,sorted(letters_output),letters_dict]
-    
-    def the_teaser(n,letter_set,letter_set_sorted,letters_dict):
-        output_letter = ''
-        for letter in letter_set_sorted:
 
-            if n % letters_dict[letter][0] == 0:
-                output_letter += letter
-        if output_letter:
-            return output_letter
-        else:
-            return None
-        
-    def create_all_sets(largest_value,digit_position):
-        def largest_list(list_original):
-            output_diff = []
-            list_1 = list_original[1:]
-            list_2 = list_original[:-1]
-            for n1,n2 in zip(list_1,list_2):
-                output_diff.append(n1-n2)
-            def check_if_all_n_one(input_list):
-                for digit in input_list:
-                    if digit != -1:
-                        return False
-                return True
-            return check_if_all_n_one(output_diff)
-        collection_set = []
-        single_set = list(reversed(range(1,digit_position+1)))
-        single_set[0] = largest_value
-        collection_set.append(list(reversed(single_set.copy())))
-        while not largest_list(single_set):   
-            for index in range(1,len(single_set)):
-                if single_set[index-1] - single_set[index] != 1:
-                    single_set[index] += 1
-                    break
-            collection_set.append(list(reversed(single_set.copy())))  
-        return collection_set
-            
-    def update_value_letters_dict(single_set,letter_set,letters_dict):
-        for index in range(len(single_set)):
-            letters_dict[letter_set[index]][0] = single_set[index]
- 
-    def return_dict(seq):
-        [largest_value,digit_position,letter_set,letter_set_sorted,letters_dict] = return_letter_set(seq)
-        while True:
-            collection_set = create_all_sets(largest_value,digit_position)
-            for single_set in collection_set:
-                update_value_letters_dict(single_set,letter_set,letters_dict)
-                seq_copy = seq.copy()
-                n_value = 1
-                while seq_copy:
-                    output_letter = the_teaser(n_value,letter_set,letter_set_sorted,letters_dict)
-                    n_value += 1
-                    if output_letter:
-                        if output_letter != seq_copy.pop(0):
-                            break
-                    if seq_copy == []:
-                        return letters_dict,letter_set_sorted
-            largest_value += 1
-            
-    return_dict,letter_set_sorted = return_dict(seq)
-    return_list = []
-    for letter in letter_set_sorted:
-        return_list.append(return_dict[letter][0])
-    return return_list
-
-def the_teaser(n,letter_set_sorted,letters_dict):
-    output_letter = ''
-    for letter in letter_set_sorted:
-        if n % letters_dict[letter] == 0:
-            output_letter += letter
-    if output_letter:
-        return output_letter
-
-def teaser_looper(n,letter_set_sorted,letters_dict):
-    outbook_list = []
-    for i in range(1,n):
-        ou = the_teaser(i,letter_set_sorted,letters_dict)
-        if ou:
-             outbook_list.append(ou) 
-    return outbook_list
-print(reverse_engineer(["a", "b", "d", "c", "a", "ab"]))
+    while True:
+        if verify_size_relationship(occurrence_list_collection,letters_dict):
+            return_list = []
+            for letter in sorted(letters_output):
+                return_list.append(round(letters_dict[letter]))
+            return return_list
+# =============================================================================
+# Other testing cases:
+#            
+# def the_teaser(n,letter_set_sorted,letters_dict):
+#     output_letter = ''
+#     for letter in letter_set_sorted:
+#         if n % letters_dict[letter] == 0:
+#             output_letter += letter
+#     if output_letter:
+#         return output_letter
+# def teaser_looper(n,letter_set_sorted,letters_dict):
+#     outbook_list = []
+#     for i in range(1,n):
+#         ou = the_teaser(i,letter_set_sorted,letters_dict)
+#         if ou:
+#              outbook_list.append(ou) 
+#     return outbook_list
+# 
+# n=3000
+# letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
+# letters_dict_2 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1502,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
+# seq5 = teaser_looper(n,letter_set_sorted,letters_dict_2)
+# 
+# 
+# 
+# letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
+# letters_dict_3 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1501,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
+# seq6 = teaser_looper(n,letter_set_sorted,letters_dict_3)
+# =============================================================================
 
 
 
