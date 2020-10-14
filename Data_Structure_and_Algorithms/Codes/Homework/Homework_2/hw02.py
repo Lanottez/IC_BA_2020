@@ -382,13 +382,16 @@ def reverse_engineer(seq):
         return True
 
     while True:
+        print(letters_dict)
         if verify_size_relationship(occurrence_list_collection,letters_dict):
+           
             return_list = []
             for letter in sorted(letters_output):
                 return_list.append(round(letters_dict[letter]))
             return return_list
+
 # =============================================================================
-# Other testing cases:
+# # Other testing cases:
 #            
 # def the_teaser(n,letter_set_sorted,letters_dict):
 #     output_letter = ''
@@ -406,6 +409,7 @@ def reverse_engineer(seq):
 #     return outbook_list
 # 
 # n=3000
+# 
 # letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
 # letters_dict_2 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1502,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
 # seq5 = teaser_looper(n,letter_set_sorted,letters_dict_2)
