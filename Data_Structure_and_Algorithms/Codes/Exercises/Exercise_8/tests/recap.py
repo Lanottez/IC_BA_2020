@@ -8,30 +8,27 @@ test = {
           'code': r"""
           >>> d = {'dog', 'cat', 'bird', 'cow'}
           >>> type(d)
-          57b7c912fd8e411c9a07f7fc58c1bb91
-          # locked
+          set
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
           >>> 'cat' in d
-          70a50a5a98926d4029cce48410554547
-          # locked
+          True
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
           >>> d.add('mouse')
           >>> len(d)
-          0ea5b037c780e28ecb4d0e3507dea50a
-          # locked
+          5
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         }
       ],
       'scored': False,
@@ -44,11 +41,10 @@ test = {
           >>> # Write Error if there's an error
           >>> x, y = [9,3,1], 1 
           >>> y
-          b9509e670ba3c81eaa17a34507ee3b3b
-          # locked
+          1
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
@@ -56,11 +52,10 @@ test = {
           >>> x, y = 4, 1 
           >>> y, x = x, y 
           >>> x
-          b9509e670ba3c81eaa17a34507ee3b3b
-          # locked
+          1
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
@@ -70,14 +65,12 @@ test = {
           ...     return a, b
           >>> x, y = f(2, 2)
           >>> x
-          26512e2c8fbce288cb2560b16f37741f
-          # locked
+          6
           >>> y
-          324385caec9f65bade73f864596137c3
-          # locked
+          4
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
@@ -87,11 +80,10 @@ test = {
           ...    if animals[animal] == 'bird':
           ...        bird_count += 1
           >>> bird_count
-          75dfaeffc0c9a90182d43468a629e16a
-          # locked
+          3
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         }
       ],
       'scored': False,

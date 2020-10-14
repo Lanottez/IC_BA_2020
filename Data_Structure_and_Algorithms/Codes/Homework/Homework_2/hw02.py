@@ -398,36 +398,36 @@ def reverse_engineer(seq):
             return return_list
         print(letters_dict)
 
-# =============================================================================
-# # Other testing cases:
-#            
-# def the_teaser(n,letter_set_sorted,letters_dict):
-#     output_letter = ''
-#     for letter in letter_set_sorted:
-#         if n % letters_dict[letter] == 0:
-#             output_letter += letter
-#     if output_letter:
-#         return output_letter
-# def teaser_looper(n,letter_set_sorted,letters_dict):
-#     outbook_list = []
-#     for i in range(1,n):
-#         ou = the_teaser(i,letter_set_sorted,letters_dict)
-#         if ou:
-#              outbook_list.append(ou) 
-#     return outbook_list
-# 
-# n=3000
-# 
-# letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
-# letters_dict_2 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1502,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
-# seq5 = teaser_looper(n,letter_set_sorted,letters_dict_2)
-# 
-# 
-# 
-# letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
-# letters_dict_3 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1501,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
-# seq6 = teaser_looper(n,letter_set_sorted,letters_dict_3)
-# =============================================================================
+# Other testing cases:
+           
+def the_teaser(n,letter_set_sorted,letters_dict):
+    output_letter = ''
+    for letter in letter_set_sorted:
+        if n % letters_dict[letter] == 0:
+            output_letter += letter
+    if output_letter:
+        return output_letter
+def teaser_looper(n,letter_set_sorted,letters_dict):
+    outbook_list = []
+    for i in range(1,n):
+        ou = the_teaser(i,letter_set_sorted,letters_dict)
+        if ou:
+             outbook_list.append(ou) 
+    return outbook_list
+
+n=3000
+
+letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
+letters_dict_2 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1502,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
+seq5 = teaser_looper(n,letter_set_sorted,letters_dict_2)
 
 
 
+letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
+letters_dict_3 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1501,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
+seq6 = teaser_looper(n,letter_set_sorted,letters_dict_3)
+
+n = 10
+letter_set_sorted = ['a','b','c']
+letters_dict_4 = {'a':3,'b':4,'c':7}
+seq7 = teaser_looper(n,letter_set_sorted,letters_dict_4)
