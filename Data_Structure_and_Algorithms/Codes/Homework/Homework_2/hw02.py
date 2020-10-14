@@ -4,7 +4,6 @@ Homework 2
 
 """
 import pdb
-import time
 def moving_average(prices, n):
     """
     Calculates n-period moving average of a list of floats/integers.
@@ -242,38 +241,48 @@ def palindrome(s, k):
         change_left = change_total - change_required
         return s,change_left
 
-    def odd_even(s_modified,change_left):
-        return True
-    
-    def odd_odd(s_modified,change_left):
-        return True
-    
-    def even_odd(s_modified,change_left):
-        return True
-    
-    def even_even(s_modified,change_left):
-    	if change_left >= 2:
-            return True
-    
-    
     string_list = list(s)
     s_modified,change_left = return_change_required(string_list,k)
-    
-    string_odd = is_odd(len(s_modified)) #Boolean 
-    change_left_odd = is_odd(change_left) #Boolean 
+
     str_output = ''
     
     if change_left < 0:
         return 'Not possible.'
-    elif len(string_list) >= 2:
-        if string_odd and change_left_odd:
-            odd_odd(s_modified,change_left)
-        elif string_odd and not change_left_odd:
-            odd_even(s_modified,change_left)
-        elif not string_odd and not change_left_odd:
-            odd_odd(s_modified,change_left)
-            
-    return str_output.join(s_modified),change_left
+    elif change_left == 1:
+        if is_odd(len(s)):
+            s_modified[len(s)//2] = '9'
+            return str_output.join(s_modified)
+        else:
+            mid_1 = s[len(s)//2]
+            mid_2 = s[len(s)//2-1]
+            if max(mid_1,mid_2) != '9':
+                return str_output.join(s_modified)
+            else:
+                if min(mid_1,mid_2) == mid_2:
+                    s_modified[len(s)//2-1] = '9'
+                else:
+                    s_modified[len(s)//2] = '9'
+                return str_output.join(s_modified)
+          
+    starting_index = 0
+    ending_index = len(s) - 1
+    while (starting_index <= ending_index): 
+        if (starting_index == ending_index): 
+            if (change_left > 0): 
+                s_modified[l] = '9'
+        if (s_modified[l] < '9'): 
+            if (change_left >= 2 and palin[l] == strr[l] and palin[r] == strr[r]): 
+                change_left -= 1
+                s_modified[l] = palin[r] = '9'
+            elif (k >= 1 and (palin[l] != strr[l] or palin[r] != strr[r])): 
+                change_left -= 1
+                palin[l] = palin[r] = '9'
+  
+        l += 1
+        r -= 1
+  
+    return palin
+    return str_output.join(s_modified)
 
     
 
@@ -382,13 +391,12 @@ def reverse_engineer(seq):
         return True
 
     while True:
-        print(letters_dict)
         if verify_size_relationship(occurrence_list_collection,letters_dict):
-           
             return_list = []
             for letter in sorted(letters_output):
                 return_list.append(round(letters_dict[letter]))
             return return_list
+        print(letters_dict)
 
 # =============================================================================
 # # Other testing cases:
