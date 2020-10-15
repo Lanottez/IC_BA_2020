@@ -26,6 +26,12 @@ def create_bfs_graph():
     g.add_edge('John', 'Chris')
     g.add_edge('Helena', 'Chris')
     g.add_edge('Helena', 'Paul')
+    g.add_edge('Chris', 'Paul')
+    g.add_edge('Chris', 'Vicki')
+    g.add_edge('Paul', 'Jared')
+    g.add_edge('Jared', 'Donald')
+    g.add_edge('Jared', 'Vicki')
+    
     
     return g
 
@@ -53,7 +59,7 @@ def bfs(graph, start):
     # YOUR CODE BELOW
     
     # Keep track of queue of nodes to explore next
-    q = ____ # Initialize an empty queue
+    q = Queue() # Initialize an empty queue
     q.enqueue(start) # add start to queue
     
     # Keep track of explored nodes
@@ -61,18 +67,18 @@ def bfs(graph, start):
     explored.add(start) # Mark starting node explored
     
     # Keep track of distances from start to all other nodes
-    dists = ____ # Initialize distances as an empty dictionary
-    dists[start] = 0 # Zero distance from start node to itself
+    dists = {start:0} # Initialize distances as an empty dictionary
+
     
     # Main loop
-    while ____: # Loop while queue not empty
-        v = ____ # Pop the first item from the queue 
+    while not q.is_empty(): # Loop while queue not empty
+        v = q.dequeue() # Pop the first item from the queue 
         # Explore all adjacent nodes of v
-        for w in graph.____(v): # loop through adjacent nodes
-            if w not in ____: # If w not explored yet
-                explored.____(w) # Mark w explored
-                dists[w] = ____ # Calculate distance from start to w based on v's distance
-                ____ # Add w to queue to explore from in the future
+        for w in graph.children_of(v): # loop through adjacent nodes
+            if w not in explored: # If w not explored yet
+                explored.add(w) # Mark w explored
+                dists[w] = dists[v] + 1
+                q.enqueue(w) # Add w to queue to explore from in the future
     return dists
 
 
@@ -102,6 +108,29 @@ def bfs_track_path(graph, start):
     # Copy your bfs code here
     # Modify to keep track of paths using a new dictionary prev_nodes
     # Update this dictionary similarly to dists above, but with previous node info
+    # Keep track of queue of nodes to explore next
+    q = Queue() # Initialize an empty queue
+    q.enqueue(start) # add start to queue
+    
+    # Keep track of explored nodes
+    explored = set() # Initialize explored nodes as an empty set
+    explored.add(start) # Mark starting node explored
+    
+    # Keep track of distances from start to all other nodes
+    dists = {start:0} # Initialize distances as an empty dictionary
+    prev_nodes = {start:None}
+    
+    # Main loop
+    while not q.is_empty(): # Loop while queue not empty
+        v = q.dequeue() # Pop the first item from the queue 
+        # Explore all adjacent nodes of v
+        for w in graph.children_of(v): # loop through adjacent nodes
+            if w not in explored: # If w not explored yet
+                explored.add(w) # Mark w explored
+                dists[w] = dists[v] + 1
+                prev_nodes[w] = v
+                q.enqueue(w) # Add w to queue to explore from in the future
+    return dists,prev_nodes
     
 
 #### 

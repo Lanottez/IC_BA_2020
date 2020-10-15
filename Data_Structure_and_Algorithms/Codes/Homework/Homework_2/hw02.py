@@ -65,7 +65,7 @@ def cross_overs(prices1, prices2):
     # Your code here. Don't change anything above.
     crossovers = []
     for index in range(1,len(prices1)):
-        if prices1[index-1] and prices2[index-1]:
+        if prices1[index-1] != None and prices2[index-1] != None:
             if prices1[index-1] < prices2[index-1] and prices1[index] > prices2[index]:
                 crossovers.append([index,1])
             elif prices1[index-1] > prices2[index-1] and prices1[index] < prices2[index]:
@@ -266,23 +266,27 @@ def palindrome(s, k):
           
     starting_index = 0
     ending_index = len(s) - 1
-    while (starting_index <= ending_index): 
-        if (starting_index == ending_index): 
-            if (change_left > 0): 
-                s_modified[l] = '9'
-        if (s_modified[l] < '9'): 
-            if (change_left >= 2 and palin[l] == strr[l] and palin[r] == strr[r]): 
-                change_left -= 1
-                s_modified[l] = palin[r] = '9'
-            elif (k >= 1 and (palin[l] != strr[l] or palin[r] != strr[r])): 
-                change_left -= 1
-                palin[l] = palin[r] = '9'
+    while True: 
+        if change_left == 1:
+            if len(s) %2 != 0:
+                s_modified[len(s)//2] = 9
+            return str_output.join(s_modified) 
+        
+        if change_left < 1 or starting_index > ending_index:
+            return str_output.join(s_modified) 
   
-        l += 1
-        r -= 1
-  
-    return palin
-    return str_output.join(s_modified)
+        if s_modified[starting_index] != '9' and s_modified[ending_index] != '9':
+            s_modified[starting_index] = s_modified[ending_index] = '9'
+            change_left -= 2
+            starting_index += 1
+            ending_index -= 1
+        if (s_modified[starting_index] != '9') != (s_modified[ending_index] != '9'):
+           s_modified[starting_index] = s_modified[ending_index] = '9'
+           change_left -= 1
+           starting_index += 1
+           ending_index -= 1       
+
+           
 
     
 
@@ -391,43 +395,59 @@ def reverse_engineer(seq):
         return True
 
     while True:
+        def if_seq_match(seq,letter_set_sorted,letters_dict):
+            while True:
+                    seq_copy = seq.copy()
+                    n_value = 1
+                    while seq_copy:
+                        output_letter = the_teaser(n_value,letter_set_sorted,letters_dict)
+                        n_value += 1
+                        if output_letter:
+                            if output_letter != seq_copy.pop(0):
+                                return False
+                        if seq_copy == []:
+                            return True      
         if verify_size_relationship(occurrence_list_collection,letters_dict):
+            sorted_letters_output = sorted(letters_output)      
             return_list = []
             for letter in sorted(letters_output):
                 return_list.append(round(letters_dict[letter]))
             return return_list
-        print(letters_dict)
 
-# Other testing cases:
-           
-def the_teaser(n,letter_set_sorted,letters_dict):
-    output_letter = ''
-    for letter in letter_set_sorted:
-        if n % letters_dict[letter] == 0:
-            output_letter += letter
-    if output_letter:
-        return output_letter
-def teaser_looper(n,letter_set_sorted,letters_dict):
-    outbook_list = []
-    for i in range(1,n):
-        ou = the_teaser(i,letter_set_sorted,letters_dict)
-        if ou:
-             outbook_list.append(ou) 
-    return outbook_list
-
-n=3000
-
-letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
-letters_dict_2 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1502,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
-seq5 = teaser_looper(n,letter_set_sorted,letters_dict_2)
-
-
-
-letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
-letters_dict_3 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1501,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
-seq6 = teaser_looper(n,letter_set_sorted,letters_dict_3)
-
-n=4000
-letter_set_sorted = ['a','b','c']
-letters_dict_4 = {'a':1000,'b':1999,'c':2999}
-seq7 = teaser_looper(n,letter_set_sorted,letters_dict_4)
+# =============================================================================
+# # Other testing cases:
+#            
+# def the_teaser(n,letter_set_sorted,letters_dict):
+#     output_letter = ''
+#     for letter in letter_set_sorted:
+#         if n % letters_dict[letter] == 0:
+#             output_letter += letter
+#     if output_letter:
+#         return output_letter
+# def teaser_looper(n,letter_set_sorted,letters_dict):
+#     outbook_list = []
+#     for i in range(1,n):
+#         ou = the_teaser(i,letter_set_sorted,letters_dict)
+#         if ou:
+#              outbook_list.append(ou) 
+#     return outbook_list
+# 
+# n=3000
+# 
+# letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
+# letters_dict_2 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1502,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
+# seq5 = teaser_looper(n,letter_set_sorted,letters_dict_2)
+# 
+# 
+# 
+# letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
+# letters_dict_3 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1501,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
+# seq6 = teaser_looper(n,letter_set_sorted,letters_dict_3)
+# 
+# n=20
+# letter_set_sorted = ['a','b','c']
+# letters_dict_4 = {'a':2,'b':3,'c':5}
+# seq7 = teaser_looper(n,letter_set_sorted,letters_dict_4)
+# 
+# seq8 = ['a','b','a','c','a']
+# =============================================================================
