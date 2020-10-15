@@ -427,7 +427,7 @@ letter_set_sorted = ['a','b','c','d','e','f','g','h','i','j','k']
 letters_dict_3 = {'a':4,'b':5,'c':9,'d':121,'e':150,'f':1501,'g':2110,'h':2129,'i':2301,'j':2549,'k':2608}
 seq6 = teaser_looper(n,letter_set_sorted,letters_dict_3)
 
-n = 10
+n=4000
 letter_set_sorted = ['a','b','c']
-letters_dict_4 = {'a':3,'b':4,'c':7}
+letters_dict_4 = {'a':1000,'b':1999,'c':2999}
 seq7 = teaser_looper(n,letter_set_sorted,letters_dict_4)
