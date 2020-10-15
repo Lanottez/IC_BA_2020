@@ -40,3 +40,26 @@ def dfs(graph, start):
     # DON'T CHANGE ANYTHING ABOVE
     # YOUR CODE BELOW
     
+    L = [] # Initialize an empty queue
+    L.append(start) # add start to queue
+    
+    # Keep track of explored nodes
+    explored = set() # Initialize explored nodes as an empty set
+    explored.add(start) # Mark starting node explored
+    
+    prev_nodes = {start:None}
+    pop_order = {}
+    count = 1
+    # Main loop
+    while L != []: # Loop while queue not empty
+        v = L.pop(-1) # Pop the first item from the queue 
+        if v not in pop_order:
+            pop_order[v] = count
+            count +=1
+        # Explore all adjacent nodes of v
+        for w in graph.children_of(v): # loop through adjacent nodes
+            if w not in explored: # If w not explored yet
+                explored.add(w) # Mark w explored
+                prev_nodes[w] = v
+                L.append(w) # Add w to queue to explore from in the future
+    return prev_nodes,pop_order
