@@ -9,32 +9,29 @@ test = {
           >>> L = ['mouse', 'cat', 'dog', 'mouse', 'bird', 'cow', 'cow', 'cow']
           >>> s = set(L)
           >>> len(s)
-          b6327f4a1a929de83704ea31cd99a369
-          # locked
+          5
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
           >>> x = 'Hey you'
           >>> s = set(x)
           >>> len(s)
-          853c1ea1f09047f7154bba064ad306e4
-          # locked
+          6
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
           >>> s.update('hey')
           >>> len(s)
-          cb94d8dc0a87951e729160f69ccfcbfd
-          # locked
+          7
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         },
         {
           'code': r"""
@@ -45,11 +42,10 @@ test = {
           ...     if item in s:
           ...         count += 1
           >>> count
-          b85586dbbec62d9e97b5dd3e9dd36d7b
-          # locked
+          3
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         }
       ],
       'scored': False,
@@ -91,11 +87,10 @@ test = {
           >>> Z.add_edge('Dad', 'Me')
           >>> Z.add_edge('Dad', 'John')
           >>> len(Z.children_of('Grandad'))
-          da17f6968ec95643697270c04033b6ec
-          # locked
+          2
           """,
           'hidden': False,
-          'locked': True
+          'locked': False
         }
       ],
       'scored': False,
