@@ -75,7 +75,7 @@ def value(item):
     Returns:
         the value of the item
     """
-    return ...
+    return item.get_value()
 
 
 def weight_inverse(item):
@@ -88,7 +88,7 @@ def weight_inverse(item):
     Returns:
         the inverse of the item's weight
     """
-    return ...
+    return 1/(item.get_weight())
 
 
 def density(item):
@@ -101,9 +101,9 @@ def density(item):
     Returns:
         the ratio of value to weight
     """
-    return ...
+    return item.get_value() / item.get_weight()
 
-
+import pdb
 def greedy(items, max_weight, key_function):
     """
     Greedy knapsack solution
@@ -120,7 +120,6 @@ def greedy(items, max_weight, key_function):
 
     # Sort items by key function to pick into knapsack
     sorted_items = sorted(items, key=key_function, reverse=True)
-
     # result is the list of items we picked
     result = []
     total_value = 0.0  # knapsack value
@@ -129,10 +128,11 @@ def greedy(items, max_weight, key_function):
     # Loop through sorted items
     for index in range(len(sorted_items)):
         cur_item = sorted_items[index]
-        if ____:
+        if cur_item.get_weight() + total_weight <= max_weight:
             # if we can fit the entire item into knapsack, do it, update its weight and value
-            # code: add item to knapsack
-            # code: update knapsack weight and value
+            result.append(cur_item)# code: add item to knapsack
+            total_value += cur_item.get_value()
+            total_weight += cur_item.get_weight()# code: update knapsack weight and value
             pass # replace with your code
     return result, total_value
 
