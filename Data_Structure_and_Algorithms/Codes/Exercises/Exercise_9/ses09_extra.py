@@ -37,7 +37,7 @@ all_shortest_dists = nx.all_pairs_dijkstra_path_length(G)
 # Dijkstra with a heap queue
 
 import heapq as hq
-
+import pdb
 def dijkstra_heap(graph,start):
     """
     Dijkstra's algorithm with a heap 
@@ -86,12 +86,12 @@ def dijkstra_heap(graph,start):
     while len(Q) > 0:
         if len(X) == len(graph.edges.items()): 
             break # stop if visited every node
-        
+        min_dist = float('inf')
         dist, src = hq.heappop(Q) # get node with best priority Dijkstra score (extract-min from heapq)
-        # code: add src node to X
+        X.add(src)# code: add src node to X
         
         for dest, weight in graph.children_of(src):
-            if ...: # condition: check if dest has been visited
+            if dest not in X: # condition: check if dest has been visited
                 if ... :# condition: then check if Dijkstra score of destination
                     # code: update Dijkstra score
                     # code: update prev_nodes
