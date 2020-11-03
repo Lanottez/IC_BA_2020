@@ -1,0 +1,20 @@
+{
+    "name": "Homework 2",
+    "endpoint": "icbs/busi97284/fa20/hw02",
+    "src": [
+        "hw02.py"
+    ],
+    "tests": {
+      "hw02.py:moving_average": "doctest",
+      "hw02.py:cross_overs": "doctest",
+      "hw02.py:make_trades": "doctest",
+      "hw02.py:palindrome": "doctest",
+      "hw02.py:reverse_engineer": "doctest"
+    },
+    "protocols": [
+        "file_contents",
+        "grading",
+        "analytics",
+        "backup"
+    ]
+}
