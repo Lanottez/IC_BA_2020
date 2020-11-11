@@ -1,0 +1,60 @@
+---
+title: "PS2 Report"
+subtitle: Statistics and Econometrics
+author: "Qian Zhang"
+date: "11 November 2020"
+output: html_document
+---
+```{r include=FALSE}
+library(stargazer)
+```
+
+## Question 1
+
+1. The sign for $\beta_2$ is most likely positive. Because a woman with higher income is more possibly able to provide better nutrints for her infant, have less pressure, and go to private clinic which costs more money than woman with lower income do, thus the infant is more likely in better heath status. 
+
+2. $cigs$ and $faminc$ are likely to be negatively correlated. Because a woman with higher income is more likely to be cautious about her health status, thus avoiding smoking or smoking less.  
+
+3. 
+```{r}
+load("bwght.RData")
+with_faminc.m1 <- lm(bwght ~ cigs + faminc,data=data)
+without_faminc.m1 <- lm(bwght ~ cigs,data=data)
+stargazer(with_faminc.m1,without_faminc.m1,align=TRUE,header=FALSE,type='text',title="Question 1")
+```
+The OLS estimator with faminc: $\widehat{bwght}$ = 116.974 - 0.463$cigs$ + 0.093$faminc$ <br />
+The OLS estimator without faminc: $\widehat{bwght}$ = 119.772 - 0.514$cigs$  <br />
+From the result, adding $faminc$ does change the estimated effect of $cigs$ on $bwght$ by making the slope of $cigs$ bigger. Therefore, if we use the OLS estimator with $faminc, each aditional unit of $cigs$ will increase 0.051 unit of $bwght$ additonally, rather than if we use the OLS estimator without $faminc$. Moreover, as Corr($cigs$,$faminc$) is likely to be negative, and the coefficient for $faminc$ is postive, the OLS estimator without $faminc$ is likely to be negative biased. However, the impact is not significant. 
+
+## Question 2
+
+1. $\Delta$ voteA = $\beta_1$$\Delta$log(expendA) + $\beta_2$$\Delta$log(expendB) + $\beta_3$$\Delta$prtystrA $\approx$ ($\beta_1$/100)(%$\Delta$expendA) + ($\beta_2$/100)(%$\Delta$expendB) + $\beta_3$$\Delta$prtystrA <br />
+Therefore,$\beta_1$ could be interpreted as that, when $expendA$ increases/decreases by 1%, $voteA$ increases/decreases by $\beta_1$/100%
+
+2. 
+```{r}
+load("vote1.RData")
+model.1 <- lm(voteA ~ log(expendA)+log(expendB)+prtystrA,data=data)
+stargazer(model.1,header=FALSE,type='text',title="Question 2")
+```
+
+The OLS estimator: $\widehat{voteA}$ = 45.079 + 6.083$log(expendA)$ - 6.615$log(expendB)$ + 0.152$prtystrA$ <br />
+t statistic for $log(expendA)$: $| \frac{6.083}{0.382} |$ = 15.924 <br />
+t statistic for $log(expendB)$: $| \frac{-6.615}{0.379} |$ = 17.453 <br />
+It is obvious that the t statistic for $log(expendA)$ and $log(expendB)$ are significiantly larger than critical value of two-sides test at 1%(2.576), therefore, both A's expenditures and B's expenditures affect the outcome statistically significant at the 1% level.
+
+
+
+3.
+Null Hypothesis: log(expendA) + log(expendB) = 0
+
+4.
+```{r}
+library(car)
+linearHypothesis(model.1,"log(expendA)  + log(expendB) = 0")
+```
+The p-value is 0.3196. Therefore, we could not reject the null hypothesis. 
+
+
+## Question 3 
+When we are testing the joint significance of multiple variables, the number of unknown parameters in this model increases, so the degrees of freedom decreases. Consequently, the F statistic, which is calculated based on degree of freedom, might decrease to a level that we could not reject the null hypothesis, and found them jointly insignificantly, even though one of the unknown parameters is in fact individually significant.  
