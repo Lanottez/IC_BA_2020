@@ -23,7 +23,7 @@ library(ggplot2)
 ### Filtering
 
 Find the number of flights that:
-```{r eval = F}
+```{r eval = TRUE}
 # Had an arrival delay of two or more hours
 # [1] 10200
 nrow(filter(flights,arr_delay>=120))
@@ -46,7 +46,7 @@ nrow(filter(flights,dep_delay>=60 & arr_delay<=(dep_delay-30)))
 ## Sorting
 List the first 3 rows of the resulting dataframe. The outputs shown here only list the first 9 columns and may not show the column that was sorted on. 
 
-```{r eval=F}
+```{r eval=TRUE}
 # Sort flights to find the most delayed flights
 #    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time arr_delay
 #   <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>     <dbl>
@@ -90,7 +90,7 @@ arranged_data[c(1:3),c(1:11)]
 
 ## Grouped summaries
 
-```{r eval = F}
+```{r eval = TRUE}
 
 # Which carrier had the largest mean departure delay?  Smallest?
 # F9       20.2

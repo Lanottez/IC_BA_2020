@@ -443,22 +443,28 @@ summary {
 <p>Find the number of flights that:</p>
 <pre class="r"><code># Had an arrival delay of two or more hours
 # [1] 10200
-nrow(filter(flights,arr_delay&gt;=120))
-# Flew to Houston (IAH or HOU)
+nrow(filter(flights,arr_delay&gt;=120))</code></pre>
+<pre><code>## [1] 10200</code></pre>
+<pre class="r"><code># Flew to Houston (IAH or HOU)
 # [1] 9313
-nrow(filter(flights,dest %in% c(&#39;IAH&#39;,&#39;HOU&#39;)))
-# Were operated by United, American, or Delta
+nrow(filter(flights,dest %in% c(&#39;IAH&#39;,&#39;HOU&#39;)))</code></pre>
+<pre><code>## [1] 9313</code></pre>
+<pre class="r"><code># Were operated by United, American, or Delta
 # [1] 139504
-nrow(filter(flights,carrier %in% c(&#39;AA&#39;,&#39;UA&#39;,&#39;DL&#39;)))
-# Departed in summer (July, August, and September) and have missing departure time values
+nrow(filter(flights,carrier %in% c(&#39;AA&#39;,&#39;UA&#39;,&#39;DL&#39;)))</code></pre>
+<pre><code>## [1] 139504</code></pre>
+<pre class="r"><code># Departed in summer (July, August, and September) and have missing departure time values
 # [1] 1878
-nrow(filter(flights,is.na(dep_time) &amp; month %in% c(7,8,9)))
-# Arrived more than two hours late, but didn’t leave late
+nrow(filter(flights,is.na(dep_time) &amp; month %in% c(7,8,9)))</code></pre>
+<pre><code>## [1] 1878</code></pre>
+<pre class="r"><code># Arrived more than two hours late, but didn’t leave late
 # [1] 29
-nrow(filter(flights,arr_delay&gt;120 &amp; dep_delay&lt;=0))
-# Were delayed by at least an hour, but made up over 30 minutes in flight
+nrow(filter(flights,arr_delay&gt;120 &amp; dep_delay&lt;=0))</code></pre>
+<pre><code>## [1] 29</code></pre>
+<pre class="r"><code># Were delayed by at least an hour, but made up over 30 minutes in flight
 # [1] 2074
 nrow(filter(flights,dep_delay&gt;=60 &amp; arr_delay&lt;=(dep_delay-30)))</code></pre>
+<pre><code>## [1] 2074</code></pre>
 </div>
 </div>
 <div id="sorting" class="section level2">
@@ -471,9 +477,15 @@ nrow(filter(flights,dep_delay&gt;=60 &amp; arr_delay&lt;=(dep_delay-30)))</code>
 # 2  2013     6    15     1432           1935      1137     1607           2120      1127
 # 3  2013     1    10     1121           1635      1126     1239           1810      1109
 arranged_data = arrange(flights,desc(arr_delay))
-arranged_data[c(1:3),c(1:9)]
-
-# Find the flights that left earliest
+arranged_data[c(1:3),c(1:9)]</code></pre>
+<pre><code>## # A tibble: 3 x 9
+##    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+## 1  2013     1     9      641            900      1301     1242           1530
+## 2  2013     6    15     1432           1935      1137     1607           2120
+## 3  2013     1    10     1121           1635      1126     1239           1810
+## # ... with 1 more variable: arr_delay &lt;dbl&gt;</code></pre>
+<pre class="r"><code># Find the flights that left earliest
 
 #    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time arr_delay
 #   &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;
@@ -481,9 +493,15 @@ arranged_data[c(1:3),c(1:9)]
 # 2  2013     1    31        1           2100       181      124           2225       179
 # 3  2013    11    13        1           2359         2      442            440         2
 arranged_data = arrange(flights,dep_time)
-arranged_data[c(1:3),c(1:9)]
-
-# Which flights traveled the longest in terms of distance?
+arranged_data[c(1:3),c(1:9)]</code></pre>
+<pre><code>## # A tibble: 3 x 9
+##    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+## 1  2013     1    13        1           2249        72      108           2357
+## 2  2013     1    31        1           2100       181      124           2225
+## 3  2013    11    13        1           2359         2      442            440
+## # ... with 1 more variable: arr_delay &lt;dbl&gt;</code></pre>
+<pre class="r"><code># Which flights traveled the longest in terms of distance?
 
 #    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time arr_delay carrier flight
 #   &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;int&gt;
@@ -491,9 +509,15 @@ arranged_data[c(1:3),c(1:9)]
 # 2  2013     1     2      909            900         9     1525           1530        -5 HA          51
 # 3  2013     1     3      914            900        14     1504           1530       -26 HA          51
 arranged_data = arrange(flights,desc(distance))
-arranged_data[c(1:3),c(1:11)]
-
-# Which traveled the shortest in terms of distance?
+arranged_data[c(1:3),c(1:11)]</code></pre>
+<pre><code>## # A tibble: 3 x 11
+##    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+## 1  2013     1     1      857            900        -3     1516           1530
+## 2  2013     1     2      909            900         9     1525           1530
+## 3  2013     1     3      914            900        14     1504           1530
+## # ... with 3 more variables: arr_delay &lt;dbl&gt;, carrier &lt;chr&gt;, flight &lt;int&gt;</code></pre>
+<pre class="r"><code># Which traveled the shortest in terms of distance?
 
 #    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time arr_delay carrier flight
 #   &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;int&gt;
@@ -502,6 +526,13 @@ arranged_data[c(1:3),c(1:11)]
 # 3  2013     1     4     1240           1200        40     1333           1306        27 EV        4193
 arranged_data = arrange(flights,distance)
 arranged_data[c(1:3),c(1:11)]</code></pre>
+<pre><code>## # A tibble: 3 x 11
+##    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time
+##   &lt;int&gt; &lt;int&gt; &lt;int&gt;    &lt;int&gt;          &lt;int&gt;     &lt;dbl&gt;    &lt;int&gt;          &lt;int&gt;
+## 1  2013     7    27       NA            106        NA       NA            245
+## 2  2013     1     3     2127           2129        -2     2222           2224
+## 3  2013     1     4     1240           1200        40     1333           1306
+## # ... with 3 more variables: arr_delay &lt;dbl&gt;, carrier &lt;chr&gt;, flight &lt;int&gt;</code></pre>
 </div>
 <div id="grouped-summaries" class="section level2">
 <h2>Grouped summaries</h2>
@@ -512,12 +543,19 @@ flights %&gt;%
   group_by(carrier) %&gt;%
   summarise(mean_delay = mean(dep_delay,na.rm=TRUE)) %&gt;%
   arrange(mean_delay) %&gt;%
-  {. -&gt;&gt; flight_data}
-tail(flight_data,1)
-head(flight_data,1)
-
-
-# Which carrier had the largest difference between their max and min departure delay?
+  {. -&gt;&gt; flight_data}</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>tail(flight_data,1)</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   carrier mean_delay
+##   &lt;chr&gt;        &lt;dbl&gt;
+## 1 F9            20.2</code></pre>
+<pre class="r"><code>head(flight_data,1)</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   carrier mean_delay
+##   &lt;chr&gt;        &lt;dbl&gt;
+## 1 US            3.78</code></pre>
+<pre class="r"><code># Which carrier had the largest difference between their max and min departure delay?
 #   carrier   max   min delta
 #   &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
 # 1 HA       1301   -16  1317
@@ -525,16 +563,25 @@ flights %&gt;%
   group_by(carrier) %&gt;%
   summarise(max =  max(dep_delay), min = min(dep_delay), delta = (max(dep_delay,na.rm=TRUE) -  min(dep_delay,na.rm=TRUE)) ) %&gt;%
   arrange(desc(delta)) %&gt;%
-  head(1)
-
-# Which month has the largest variance for arrival delays? (use standard deviation)
+  head(1)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   carrier   max   min delta
+##   &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 HA       1301   -16  1317</code></pre>
+<pre class="r"><code># Which month has the largest variance for arrival delays? (use standard deviation)
 # July
 flights %&gt;%
   group_by(month) %&gt;%
   summarise(variance =  sd(arr_delay,na.rm = TRUE)) %&gt;%
   arrange(desc(variance)) %&gt;%
-  {. -&gt;&gt; variance_data}
-variance_data[1,1]</code></pre>
+  {. -&gt;&gt; variance_data}</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>variance_data[1,1]</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   month
+##   &lt;int&gt;
+## 1     7</code></pre>
 </div>
 <div id="pipe" class="section level2">
 <h2>Pipe</h2>
