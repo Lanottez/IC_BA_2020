@@ -1,0 +1,132 @@
+---
+title: "In-class Exercise Lecture 8"
+author: "Your CID number here!"
+date: "17/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Load the tidyverse packages
+library(tidyverse)
+library(nycflights13)
+```
+
+## Instruction
+
+* Complete this RMarkdown file and "Knit" the HTML output (saved as **Lecture_8_YOUR_CID_NUMBER.html**) and upload to the Hub before the deadline.
+* Change the author property in the YAML header above to your CID number. 
+
+* For this exercise, we will use `flights` dataset from `nycflights13` package. Install the `nycflights13` if you have not installed yet. This is a dataset of all flights that departed NYC (JFK, LGA or EWR) in 2013. 
+* To complete this exercise, make sure you have installed the tidyverse package. `install.packages("tidyverse")`
+
+### Filtering
+
+Find the number of flights that:
+```{r eval = F}
+# Had an arrival delay of two or more hours
+# [1] 10200
+
+# Flew to Houston (IAH or HOU)
+# [1] 9313
+
+# Were operated by United, American, or Delta
+# [1] 139504
+
+# Departed in summer (July, August, and September) and have missing departure time values
+# [1] 1878
+
+# Arrived more than two hours late, but didn’t leave late
+# [1] 29
+
+# Were delayed by at least an hour, but made up over 30 minutes in flight
+# [1] 2074
+```
+## Sorting
+List the first 3 rows of the resulting dataframe. The outputs shown here only list the first 9 columns and may not show the column that was sorted on. 
+
+```{r eval=F}
+# Sort flights to find the most delayed flights
+
+#    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time arr_delay
+#   <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>     <dbl>
+# 1  2013     1     9      641            900      1301     1242           1530      1272
+# 2  2013     6    15     1432           1935      1137     1607           2120      1127
+# 3  2013     1    10     1121           1635      1126     1239           1810      1109
+
+
+# Find the flights that left earliest
+
+#    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time arr_delay
+#   <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>     <dbl>
+# 1  2013     1    13        1           2249        72      108           2357        71
+# 2  2013     1    31        1           2100       181      124           2225       179
+# 3  2013    11    13        1           2359         2      442            440         2
+
+
+# Which flights traveled the longest in terms of distance?
+
+#    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time arr_delay carrier flight
+#   <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>     <dbl> <chr>    <int>
+# 1  2013     1     1      857            900        -3     1516           1530       -14 HA          51
+# 2  2013     1     2      909            900         9     1525           1530        -5 HA          51
+# 3  2013     1     3      914            900        14     1504           1530       -26 HA          51
+
+# Which traveled the shortest in terms of distance?
+
+#    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time arr_delay carrier flight
+#   <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>     <dbl> <chr>    <int>
+# 1  2013     7    27       NA            106        NA       NA            245        NA US        1632
+# 2  2013     1     3     2127           2129        -2     2222           2224        -2 EV        3833
+# 3  2013     1     4     1240           1200        40     1333           1306        27 EV        4193
+
+
+```
+
+## Grouped summaries
+
+```{r eval = F}
+
+# Which carrier had the largest mean departure delay?  Smallest?
+# F9       20.2
+# US       3.78
+
+
+# Which carrier had the largest difference between their max and min departure delay?
+#   carrier   max   min delta
+#   <chr>   <dbl> <dbl> <dbl>
+# 1 HA       1301   -16  1317
+
+
+# Which month has the largest variance for arrival delays? (use standard deviation)
+# July
+
+
+```
+
+## Pipe
+
+Using the pipe operator follow these steps with the flight data:
+
+* filter out missing values that exist in the tail number and arrival delay variables
+* group the data by tail number
+* calculate the average arrival delay and the number of observations by tail number
+* plot average arrival delay vs. number of observations
+
+```{r}
+# Your code
+
+```
+
+
+Using the pipe operator follow these steps with the flight data:
+
+* group by month and carrier
+* compute the average arrival delay
+* plot a line chart with month on the x-axis, average delay on the y-axis
+* colour-code each line by carrier or try faceting by carrier
+
+```{r}
+# Your code
+
+```
+
