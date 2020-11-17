@@ -1,6 +1,6 @@
 ---
 title: "In-class Exercise Lecture 8"
-author: "Your CID number here!"
+author: "01939418"
 date: "17/11/2020"
 output: html_document
 ---
@@ -9,6 +9,7 @@ output: html_document
 # Load the tidyverse packages
 library(tidyverse)
 library(nycflights13)
+library(ggplot2)
 ```
 
 ## Instruction
@@ -25,34 +26,35 @@ Find the number of flights that:
 ```{r eval = F}
 # Had an arrival delay of two or more hours
 # [1] 10200
-
+nrow(filter(flights,arr_delay>=120))
 # Flew to Houston (IAH or HOU)
 # [1] 9313
-
+nrow(filter(flights,dest %in% c('IAH','HOU')))
 # Were operated by United, American, or Delta
 # [1] 139504
-
+nrow(filter(flights,carrier %in% c('AA','UA','DL')))
 # Departed in summer (July, August, and September) and have missing departure time values
 # [1] 1878
-
+nrow(filter(flights,is.na(dep_time) & month %in% c(7,8,9)))
 # Arrived more than two hours late, but didn’t leave late
 # [1] 29
-
+nrow(filter(flights,arr_delay>120 & dep_delay<=0))
 # Were delayed by at least an hour, but made up over 30 minutes in flight
 # [1] 2074
+nrow(filter(flights,dep_delay>=60 & arr_delay<=(dep_delay-30)))
 ```
 ## Sorting
 List the first 3 rows of the resulting dataframe. The outputs shown here only list the first 9 columns and may not show the column that was sorted on. 
 
 ```{r eval=F}
 # Sort flights to find the most delayed flights
-
 #    year month   day dep_time sched_dep_time dep_delay arr_time sched_arr_time arr_delay
 #   <int> <int> <int>    <int>          <int>     <dbl>    <int>          <int>     <dbl>
 # 1  2013     1     9      641            900      1301     1242           1530      1272
 # 2  2013     6    15     1432           1935      1137     1607           2120      1127
 # 3  2013     1    10     1121           1635      1126     1239           1810      1109
-
+arranged_data = arrange(flights,desc(arr_delay))
+arranged_data[c(1:3),c(1:9)]
 
 # Find the flights that left earliest
 
@@ -61,7 +63,8 @@ List the first 3 rows of the resulting dataframe. The outputs shown here only li
 # 1  2013     1    13        1           2249        72      108           2357        71
 # 2  2013     1    31        1           2100       181      124           2225       179
 # 3  2013    11    13        1           2359         2      442            440         2
-
+arranged_data = arrange(flights,dep_time)
+arranged_data[c(1:3),c(1:9)]
 
 # Which flights traveled the longest in terms of distance?
 
@@ -70,6 +73,8 @@ List the first 3 rows of the resulting dataframe. The outputs shown here only li
 # 1  2013     1     1      857            900        -3     1516           1530       -14 HA          51
 # 2  2013     1     2      909            900         9     1525           1530        -5 HA          51
 # 3  2013     1     3      914            900        14     1504           1530       -26 HA          51
+arranged_data = arrange(flights,desc(distance))
+arranged_data[c(1:3),c(1:11)]
 
 # Which traveled the shortest in terms of distance?
 
@@ -78,7 +83,8 @@ List the first 3 rows of the resulting dataframe. The outputs shown here only li
 # 1  2013     7    27       NA            106        NA       NA            245        NA US        1632
 # 2  2013     1     3     2127           2129        -2     2222           2224        -2 EV        3833
 # 3  2013     1     4     1240           1200        40     1333           1306        27 EV        4193
-
+arranged_data = arrange(flights,distance)
+arranged_data[c(1:3),c(1:11)]
 
 ```
 
@@ -89,16 +95,33 @@ List the first 3 rows of the resulting dataframe. The outputs shown here only li
 # Which carrier had the largest mean departure delay?  Smallest?
 # F9       20.2
 # US       3.78
+flights %>%
+  group_by(carrier) %>%
+  summarise(mean_delay = mean(dep_delay,na.rm=TRUE)) %>%
+  arrange(mean_delay) %>%
+  {. ->> flight_data}
+tail(flight_data,1)
+head(flight_data,1)
 
 
 # Which carrier had the largest difference between their max and min departure delay?
 #   carrier   max   min delta
 #   <chr>   <dbl> <dbl> <dbl>
 # 1 HA       1301   -16  1317
-
+flights %>%
+  group_by(carrier) %>%
+  summarise(max =  max(dep_delay), min = min(dep_delay), delta = (max(dep_delay,na.rm=TRUE) -  min(dep_delay,na.rm=TRUE)) ) %>%
+  arrange(desc(delta)) %>%
+  head(1)
 
 # Which month has the largest variance for arrival delays? (use standard deviation)
 # July
+flights %>%
+  group_by(month) %>%
+  summarise(variance =  sd(arr_delay,na.rm = TRUE)) %>%
+  arrange(desc(variance)) %>%
+  {. ->> variance_data}
+variance_data[1,1]
 
 
 ```
@@ -114,7 +137,11 @@ Using the pipe operator follow these steps with the flight data:
 
 ```{r}
 # Your code
-
+flights %>%
+  filter(!is.na(tailnum),!is.na(arr_delay)) %>%
+  group_by(tailnum) %>%
+  summarise(ave_arr_delay =  mean(arr_delay,na.rm = TRUE),n=n()) %>%
+  ggplot(aes(x = ave_arr_delay, y = n)) + geom_point()
 ```
 
 
@@ -127,6 +154,9 @@ Using the pipe operator follow these steps with the flight data:
 
 ```{r}
 # Your code
-
+flights %>%
+  group_by(month,carrier) %>%
+  summarise(ave_arr_delay =  mean(arr_delay,na.rm = TRUE)) %>%
+  ggplot(mapping=aes(x = month, y = ave_arr_delay,colour=carrier)) + geom_line()
 ```
 
