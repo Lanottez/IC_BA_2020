@@ -1,0 +1,99 @@
+---
+title: "PS3"
+author: "Qian Zhang"
+date: "17/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stargazer)
+library(car)
+```
+
+# Question 1
+
+1. 
+```{r}
+load("kielmc.RData")
+dist_lm.ml <- lm(log(price) ~ log(dist),data = data)
+stargazer(dist_lm.ml,align=TRUE,header=FALSE,type='text',title="Question 1.1")
+
+```
+The OLS estimator: $\widehat{log(price)}$ = 8.258 + 0.317$log(dist)$ <br />
+t-statistic for $log(dist)$: $| \frac{0.317}{0.048} |$ = 6.60 <br />
+This simple regression model explains the causal relationship between the distance from the house to the incinerator and the housing price. I assumed the sign of $\beta_1$ to be positive, because the closer the house to the incrinerator, the house price is more likely to be lower. If we use the OLS estimator with $log(price)$,the sign of $\beta_1$ is indeed positive. Therefore, a 1% increase in the distance from the house to the incinerator is likely to make the house price 0.317% higher. 
+
+2. 
+```{r}
+dist_lm_additional.ml <- lm(log(price) ~ log(dist)+log(intst)+log(area)+log(land)+rooms+baths+age,data = data)
+stargazer(dist_lm_additional.ml,align=TRUE,header=FALSE,type='text',title="Question 1.2")
+
+```
+
+The OLS estimator: $\widehat{log(price)}$ = 6.300 + 0.028$log(dist)$ - 0.044$log(intst)$ + 0.512$log(area)$ +  0.078$log(land)$ + 0.050$rooms$ + 0.107$baths$ - 0.004$age$ + 0.593  <br />
+t-statistic for $log(dist)$: $| \frac{0.028}{0.053} |$ = 0.52 <br />
+From the new linear regression model, the effects of the incinerator is much smaller and more likely statistically insignificant. The result in part 1 and part 2 are different, and the reason might be that the distance from the house to the incinerator is highly related to other variables that are added in part 2. Therefore, the effects of the incinerator is  different in part 1 and part 2 because of multicollinearity. 
+
+
+3. 
+```{r}
+dist_lm_3.ml <- lm(log(price) ~ log(dist)+log(intst)+I(log(intst)^2)+log(area)+log(land)+rooms+baths+age,data = data)
+stargazer(dist_lm_3.ml,align=TRUE,header=FALSE,type='text',title="Question 1.3")
+
+```
+The OLS estimator: $\widehat{log(price)}$ = -3.791 + 0.190$log(dist)$ + 1.9024$log(intst)$ - 0.113$log(intst)^2$ + 0.514$log(area)$ +  0.107$log(land)$ + 0.049$rooms$ + 0.0907$baths$ - 0.004$age$ + 0.618 <br />
+t-statistic for $log(dist)$: $| \frac{0.190}{0.063} |$ = 3.01 <br />
+The t-statistic for $log(dist)^2$ is now 3.01, so it is statisticly significant now after we add $log(intst)^2$ into the regression model. The distance from home to incrinerator and the distance from home to interstate is most dependent. Therefore, when we construct a regression model, we should avoid add dependent variables into regression model. 
+4.
+```{r}
+dist_lm_4.ml <- lm(log(price) ~ log(dist)+I(log(dist)^2)+log(intst)+I(log(intst)^2)+log(area)+log(land)+rooms+baths+age,data = data)
+stargazer(dist_lm_4.ml,align=TRUE,header=FALSE,type='text',title="Question 1.4")
+
+```
+The OLS estimator: $\widehat{log(price)}$ =  -11.105 + 2.110$log(dist)$ - 0.103$log(dist)^2$ + 1.520$log(intst)$ - 0.089$log(intst)^2$ + 0.506$log(area)$ +  0.097$log(land)$ + 0.048$rooms$ + 0.089$baths$ - 0.004$age$ + 0.619 <br />
+t-statistic for $log(dist)^2$: $| \frac{-0.103}{0.093} |$ = 1.10 <br />
+The t-statistic for $log(dist)^2$ is now 1.10, so it is statisticly insignificant
+
+
+# Question 2
+1. 
+```{r}
+load("gpa2.RData")
+colgpa_lm.ml <- lm(colgpa ~ hsize+I(hsize^2)+hsperc+sat+female+athlete,data = data)
+stargazer(colgpa_lm.ml,align=TRUE,header=FALSE,type='text',title="Question 2.1")
+```
+The OLS estimator: $\widehat{colgpa}$ = 1.241 - 0.057$hsize$ + 0.005$hsize^2$ - 0.013$hsperc$  + 0.155$female$ + 0.169$athlete$ + 0.291 <br />
+t-statistic for $athlete$: $| \frac{0.169}{0.042} |$ = 4.02 <br />
+The estimated GPA differential between athletes and nonathletes is approximately 0.169. The t-statistic for $athlete$ is 4.02, so it is statistically significant. 
+
+2. 
+
+```{r}
+load("gpa2.RData")
+colgpa_lm_drop_sat.ml <- lm(colgpa ~ hsize+I(hsize^2)+hsperc+female+athlete,data = data)
+stargazer(colgpa_lm_drop_sat.ml,align=TRUE,header=FALSE,type='text',title="Question 2.2")
+```
+
+The OLS estimator: $\widehat{colgpa}$ = 3.048 - 0.053$hsize$ + 0.005$hsize^2$ - 0.017$hsperc$ + 0.058$female$ + 0.005$athlete$ + 0.189 <br />
+t-statistic for $athlete$: $| \frac{0.005}{0.045} |$ = 0.111 <br />
+The t-statistic for $athlete$ is 0.111, so it is statistically insignificant. The estimate is different than that obtained in part 1 because $Athlete$ and $sat$ might be dependent. Also, $sat$ is statistically significant, therefore, dropping $sat$ might result in omitted variable bias, which make the model inaccurate.   
+
+```{r}
+colgpa_lm.ml <- lm(colgpa ~ hsize+I(hsize^2)+hsperc+sat+female+athlete + female:athlete,data = data)
+stargazer(colgpa_lm.ml,align=TRUE,header=FALSE,type='text',title="Question 2.3")
+linearHypothesis(colgpa_lm.ml,"athlete+female:athlete=0")
+```
+Therefore, at 5% level, we could reject the null hypothesis that there is no difference between women athletes and women nonathletes. 
+
+4. 
+```{r}
+colgpa_lm_4.ml <- lm(colgpa ~ hsize+I(hsize^2)+hsperc+sat+female+athlete + female:sat,data = data)
+stargazer(colgpa_lm_4.ml,align=TRUE,header=FALSE,type='text',title="Question 2.4")
+
+```
+The t-staistic for female:sat is 1, therefore, the effect of $sat$ on $colgpa$ does not differ by gender. 
+
+# Question 3
+
+There are two stratgies to resolve multicollineary, we could try to remove $x_2$, or add $x_1$ and $x_2$ together. 
