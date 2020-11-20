@@ -1,0 +1,188 @@
+---
+title: "In-class Exercise Lecture 9"
+author: "Your CID number here!"
+date: "17/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Load the tidyverse packages
+library(tidyverse)
+```
+
+## Instruction
+
+* Complete this RMarkdown file and "Knit" the HTML output (saved as **Lecture9_YOUR_CID_NUMBER.html**) and upload to the Hub before the deadline.
+* Change the author property in the YAML header above to your CID number. 
+
+* To complete this exercise, make sure you have installed the tidyverse package. `install.packages("tidyverse")`
+* There will be a few valid apporaches to answer these questions. 
+
+
+## Colour Scale
+
+* Apply an appropriate `scale_*_viridis_d()` function to the histogram generated below. 
+* Try applying a non-default viridis pallet.
+```{r}
+# create a new variable by binning by price
+df <- diamonds %>%
+  mutate(price_bin = ntile(price, 10),
+         price_bin_label = factor(price_bin, levels = c(1:10), 
+                                  labels = c("0-10%", "10-20%", "20-30%", "30-40%", "40-50%", 
+                                             "50-60%", "60-70%", "70-80%", "80-90%", "90-100%")))
+ggplot(data = df) +
+  geom_histogram(mapping = aes(x = carat, fill = price_bin_label), binwidth = 0.1) +
+  scale_fill_viridis_d(option="cividis") 
+
+```
+
+
+### Choropleth
+
+* In the lecture, we created a choropleth of the US using the `USArrests` dataset. This time use the `UrbanPop` attribute in the dataset.
+* Pick another colour scheme. You can see palette from `RColorBrewer` package by running `dsiplay.brewer.all()`.
+* Select a sequential colour palette. 
+
+```{r}
+#  The code below will install the package if not installed
+if(!require(RColorBrewer)) {install.packages("RColorBrewer"); library(RColorBrewer)}
+library(maps)
+library(ggplot2)
+library(scales)
+library(cumplyr)
+# using USArrests datasets
+crimes <- data.frame(USArrests) %>% 
+  mutate(state = tolower(rownames(USArrests)))
+
+# get a map by states
+states_map <- map_data("state")
+
+# merge datasets together
+crime_map <- states_map %>% 
+  left_join(crimes, by = c("region" = "state")) %>% 
+  arrange(group, order)
+
+# Your code here
+ggplot(data=crime_map,aes(x=long,y=lat,group=group,fill=UrbanPop))+
+  geom_polygon(colour= "black") +
+  scale_fill_gradientn(colors=brewer.pal(8,"RdPu")) +
+  coord_map("polyconic") +
+  theme_void()
+
+
+```
+### Layering on a Map
+
+* Instead of using the colour to encode the quantitative value, use the circle area to encode the `Assult` values.
+* Complete the code below to reproduce the image below.
+* Hint: use `scale_size_area()`
+
+```{r}
+summary <- crime_map %>% 
+  group_by(region) %>% 
+  summarise(mean_long = mean(long),
+            mean_lat = mean(lat),
+            Assault = first(Assault)) %>% 
+  filter(!is.na(Assault))
+
+# US map
+us_map <- ggplot()+
+  geom_polygon(data = crime_map, aes(x=long, y=lat, group = group), fill = "gray90", colour = "gray30", size = 0.25)+
+  coord_map("albers", lat0=30, lat1=40)+
+  theme_void() 
+
+# draw data points on top. Write your code to layer on top of the map.
+us_map+
+  geom_point(data=summary,mapping=aes(mean_long,mean_lat,size=Assault),color='red',alpha=0.5)+
+  scale_size_area()
+```
+
+
+
+
+## COVID 19 Data data analysis
+
+In the exercise below, you will load data from the European Cenre for Disease Control (ECDC) and create visualisation outputs with annotations. Further information about the data [here](https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide).
+
+We will use the **lubridate** package to parse the date attributes. The code below will show an example to get you started on exercises. 
+
+```{r}
+#  The code below will install the package if not installed
+if(!require(lubridate)) {install.packages("lubridate"); library(lubridate)}
+```
+
+
+```{r}
+# Loading the latest data from ECDC
+raw <- read.csv("F:\\IC_BA_2020\\Second Term\\Visualisation\\In-class Exercises\\Lecture 9\\raw_ECDC_data.csv", na.strings = "", stringsAsFactors = F)
+
+# Parse the date column
+all_data <- raw %>%
+  mutate(date_reaported = mdy(paste0(month, "-", day, "-", year)))
+
+# UK analysis
+uk_data <-  all_data %>% filter(countriesAndTerritories == "United_Kingdom")
+
+uk_data %>%
+  ggplot(aes(x = date_reaported, y = cases)) +
+  geom_line(stat ="identity", color ="royalblue") +
+  theme_minimal() +
+  labs(title ="Daily COVIDd-19 Cases reported in UK", x ="", y ="Number of cases reported")
+
+```
+
+### Annotations
+
+Starting from the code above, annotate when the UK government announced lock-down measures. 
+
+```{r}
+uk_data %>%
+  ggplot(aes(x = date_reaported, y = cases)) +
+  geom_line(stat ="identity", color ="royalblue") +
+  theme_minimal() +
+  labs(title ="Daily COVIDd-19 Cases reported in UK", x ="", y ="Number of cases reported")+
+  geom_vline(xintercept=as.Date("2020-03-23"))+
+  annotate("text",x=as.Date("2020-03-23"),y=30000,hjust=1,label="First Lockdown")+  
+  geom_vline(xintercept=as.Date("2020-10-31")) +
+  annotate("text",x=as.Date("2020-10-31"),y=30000,hjust=1,label="Second Lockdown") 
+
+```
+
+
+### Create a chart to tell as story
+  
+Create a chart with this dataset to tell a story. You may look for an inspiration in the news or social media, and try recreate a similar chart. You may consider the followings as examples:
+
+* Compare between countries. You may find additional data, such as the dates of lockdown announcements.
+* Try different scales, ex. log or square root scales...
+* You may aggregate the data to highlight other aspects of data.
+* You may consider filtering to look at the data from a specific timeframe by filtering the data, ex. the last 3 months.
+* You may choose a country of your choice to analyze further.
+* It is up to you to choose which geometric objects to use. Yo may want to consider layering. 
+
+```{r}
+if(!require(patchwork)) {install.packages("patchwork"); library(patchwork)}
+p1 <- ggplot(uk_data,aes(x = date_reaported, y = cases)) +
+  geom_line(stat ="identity", color ="royalblue") +
+  theme_minimal() +
+  labs(title ="Daily COVIDd-19 Cases reported in UK", x ="", y ="Number of cases reported")+
+  geom_vline(xintercept=as.Date("2020-03-23"))+
+  annotate("text",x=as.Date("2020-03-23"),y=30000,hjust=1,label="First Lockdown")+  
+  geom_vline(xintercept=as.Date("2020-10-31")) +
+  annotate("text",x=as.Date("2020-10-31"),y=30000,hjust=1,label="Second Lockdown") 
+
+australia_data <-  all_data %>% filter(countriesAndTerritories == "Australia")
+
+p2 <- ggplot(australia_data,aes(x = date_reaported, y = cases)) +
+  geom_line(stat ="identity", color ="royalblue") +
+  theme_minimal() +
+  labs(title ="Daily COVIDd-19 Cases reported in Australia_data", x ="", y ="Number of cases reported")+
+  geom_vline(xintercept=as.Date("2020-03-20"))+
+  annotate("text",x=as.Date("2020-03-20"),y=30000,hjust=1,label="First Lockdown")
+p1+p2
+```
+
+Write some comments or insights you gain from the chart you created. <br />
+* insight 1: lockdown has a significant on the spread of Covid-19, though the effect is delayed. <br />
+* insight 2: the second wave is avoidable, because there is no sign of resurge of covid-19 case in Australia, as it has happened in United Kingdom. <br /> 
+
