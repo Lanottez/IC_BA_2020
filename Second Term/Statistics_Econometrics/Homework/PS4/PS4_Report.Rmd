@@ -1,0 +1,109 @@
+---
+title: "PS4 Report"
+author: "Qian Zhang"
+date: "24/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stargazer)
+```
+
+
+```{r}
+jtrain2 <- load("jtrain2.RDATA")
+jtrain2 <- get(jtrain2)
+jtrain3 <- load("jtrain3.RDATA")
+jtrain3 <- get(jtrain3)
+```
+
+# Question 1
+
+a. 
+```{r}
+cat('Man received job training in jtrain2:',length(which(jtrain2$train=='1')),'\n')
+cat('Observations in jtrain2:',nrow(jtrain2),'\n')
+cat('Percentage of man received job training in jtrain2:',length(which(jtrain2$train=='1'))/nrow(jtrain2),'\n\n')
+
+cat('Man received job training in jtrain3:',length(which(jtrain3$train=='1')),'\n')
+cat('Observations in jtrain3:',nrow(jtrain3),'\n')
+cat('Percentage of man received job training in jtrain3:',length(which(jtrain3$train=='1'))/nrow(jtrain3),'\n')
+```
+The fraction of the individuals received job training in jtrain2.RData is much larger than the fraction of the individuals received job training in jtrain3.RData. The reason might be that individuals who determine whether they participate in job training have a low tendency to do so. Therefore, the fraction of the individuals received job training in jtrain2.RData, who are randomly assigned that whether they participate in job training, is higher than the fraction of the men received job training in jtrain3.RData. 
+
+2. 
+```{r}
+rm_re78_q2.ml <- lm(re78 ~ train,data=jtrain2)
+stargazer(rm_re78_q2.ml,align = TRUE,header=FALSE,type='text',title='Question 1.2')
+```
+The OLS estimator: $\widehat{re78}$ = 4.555 + 1.794$train$ <br />
+Based on the regression model, in general a individual who has participate in the job training could increase his real earnings by $1794 more than a individual who has not participated in the job training. 
+
+3. 
+```{r}
+rm_re78_q2_others.ml <- lm(re78 ~ train + re74 + re75 + educ + age + black + hisp,data=jtrain2)
+stargazer(rm_re78_q2_others.ml,align = TRUE,header=FALSE,type='text',title='Question 1.3')
+```
+The OLS estimator: $\widehat{re78}$ = 0.674 + 1.680$train$ + 0.083$re74$ + 0.047$re75$ + 0.404$educ$ + 0.054$age$ - 2.180$black$ +  0.144$hisp$ <br />
+The coefficiency of $train$ is 1.680, which is smaller than 1.794 but not by much. The reason might be that $re78$ is significantly depended on $train$, and $train$ is not strongly correlated with other variables, because in the experimental data, training status was randomly assigned. 
+
+4.
+```{r}
+rm_re78_q3.ml <- lm(re78 ~ train,data=jtrain3)
+rm_re78_q3_others.ml <- lm(re78 ~ train + re74 + re75 + educ + age + black + hisp,data=jtrain3)
+stargazer(rm_re78_q3.ml,rm_re78_q3_others.ml,align = TRUE,header=FALSE,type='text',title='Question 1.4')
+```
+The OLS estimator of $re78$ on $train$: $\widehat{re78}$ = 21.554 - 15.205$train$ <br />
+The OLS estimator of other variables on $train$: $\widehat{re78}$ = 1.648 + 0.213$train$ + 0.281$re74$ + 0.569$re75$ +0.520$educ$ - 0.075$age$ - 0.648$black$ + 2.203$hisp$ <br />
+When only considering the estimated effect of participating in job training on real earnings, in general a individual who has participated in the job training could decrease his/her real earnings by $15205 less than a individual who has not participated in the job training. However, if we consider other variables, in general an individual who has participated in the job training could increase his/her real earnings by $213 more than a individual who has not participated in the job training. <br />
+The conclusion is different from part 2 and part 3. The reason might be that, jtrain3 contains observational data, where individuals themselves largerly determine whether they participate in job training. Therefore, whether an individual chooses to participate or not is strongly correlated to other variables. And when other variables are missing from the regression model, it results in omitted variblae bias. 
+
+5.
+```{r}
+re74_re75_jtrain2 = subset(jtrain2,select = c(re74,re75))
+avgre_jtrain2 = (re74_re75_jtrain2$re74 + re74_re75_jtrain2$re75)/2
+cat('The sample average of avgre in jtrain2:',mean(avgre_jtrain2),'\n')
+cat('The standard deviation of avgre in jtrain2:',sd(avgre_jtrain2),'\n')
+cat('The maximum value of avgre in jtrain2:',max(avgre_jtrain2),'\n')
+cat('The minimum value of avgre in jtrain2:',min(avgre_jtrain2),'\n\n')
+
+re74_re75_jtrain3 = subset(jtrain3,select = c(re74,re75))
+avgre_jtrain3 = (re74_re75_jtrain3$re74 + re74_re75_jtrain3$re75)/2
+cat('The sample average of avgre in jtrain3:',mean(avgre_jtrain3),'\n')
+cat('The standard deviation of avgre in jtrain3:',sd(avgre_jtrain3),'\n')
+cat('The maximum value of avgre in jtrain3:',max(avgre_jtrain3),'\n')
+cat('The minimum value of avgre in jtrain3:',min(avgre_jtrain3),'\n\n')
+
+```
+The sample average, standard deviation, maximum value and minimum value of avgre in jtrain2 is hugely different from those in jtrain3. Therefore, these data sets are not representative of the same populations in 1978. 
+
+6. 
+```{r}
+avgre_less_10_jtrain2 = subset(jtrain2,(subset(jtrain2,select = c(re74,re75))$re74 + subset(jtrain2,select = c(re74,re75))$re75)/2<=10)
+avgre_less_10_jtrain3 = subset(jtrain3,(subset(jtrain3,select = c(re74,re75))$re74 + subset(jtrain3,select = c(re74,re75))$re75)/2<=10)
+rm_avgre_less_10_jtrain2.ml <- lm(re78 ~ train + re74 + re75 + educ + age + black + hisp,data=avgre_less_10_jtrain2)
+rm_avgre_less_10_jtrain3.ml <- lm(re78 ~ train + re74 + re75 + educ + age + black + hisp,data=avgre_less_10_jtrain3)
+stargazer(rm_avgre_less_10_jtrain2.ml,rm_avgre_less_10_jtrain3.ml,align = TRUE,header=FALSE,type='text',title='Question 1.6')
+```
+The OLS estimator for low-income men in $jtrain2$: $\widehat{re78}$ = 1.737 + 1.583$train$ - 0.117$re74$ + 0.173$re75$ + 0.358$educ$ + 0.044$age$ - 2.384$black$ - 0.369$hisp$ <br />
+The OLS estimator for low-income men in $jtrain3$: $\widehat{re78}$ = 3.448 + 1.844$train$ + 0.313$re74$ + 0.774$re75$ + 0.328$educ$ - 0.083$age$ - 1.973$black$ - 1.101$hisp$ <br />
+For the subsample of low-income men, the estimated training effects are similar across the experimental and nonexperimental data sets. The confidence levels are also similar. 
+
+7. 
+```{r}
+avgre_unemployed_jtrain2 = subset(jtrain2,unem74==0 & unem75==0)
+avgre_unemployed_jtrain3 = subset(jtrain3,unem74==0 & unem75==0)
+rm_avgre_unemployed_jtrain2.ml <- lm(re78 ~ train + re74 + re75 + educ + age + black + hisp,data=avgre_unemployed_jtrain2)
+rm_avgre_unemployed_jtrain3.ml <- lm(re78 ~ train + re74 + re75 + educ + age + black + hisp,data=avgre_unemployed_jtrain3)
+stargazer(rm_avgre_unemployed_jtrain2.ml,rm_avgre_unemployed_jtrain3.ml,align = TRUE,header=FALSE,type='text',title='Question 1.7')
+```
+The OLS estimator for umemployed in 1974 and 1975 in $jtrain2$: $\widehat{re78}$ = -2.525 - 0.427$train$ + 0.071$re74$ + 0.157$re75$ + 0.693$educ$ - -0.002$age$ - 0.342$black$ - 2.142$hisp$ <br0.533
+The OLS estimator for umemployed in 1974 and 1975 in $jtrain3$: $\widehat{re78}$ = 1.788 - 4.354$train$ + 0.389$re74$ + 0.455$re75$ + 0.533$educ$ - 0.083$age$ - 0.748$black$ - 1.968$hisp$ <br />
+For men who were unemployed in 1974 and 1975 in $jtrain2$, participating in job training will decrease the real earnings by $427; for men who were unemployed in 1974 and 1975 in $jtrain2$, participatingin job training will decrease the real earnings by $4354. Therefore, the estimated effect of participating in job training are negative in both $jtrain2$ and $jtrain3$, and the effect is larger for men in $jtrain3$.
+
+8.
+The sample chosen in the experimental and nonexperimental data sets are different. Therefore, we need to keep comparable populations, so we could analyze how the different chosen samples affect the different casual relationships between the two data sets. Otherwise, we can't be certain that whether the difference of the causal relationships is caused by the different populations.   
+
+# Question 2
+It is possible that x is statistically insignificant even at 10% level in the model if there are variables in the error term that will affect y, for example, x might be multicollinear with the existing variables. Also, AIC does not measure the accurancy but the model fitting, so it is possible that x is statistically insignificant at 10% even the AIC for the model is low. 
