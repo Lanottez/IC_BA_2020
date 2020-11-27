@@ -10,10 +10,8 @@ output: html_document
 library(tidyverse)
 library(plotly)
 library(viridis)
-library(hrbrthemes)
 library(ggplot2)
-library(dplyr)
-library(babynames)
+library(d?lyr)
 library(ggrepel)
 library(tidyr)
 ```
@@ -21,24 +19,24 @@ library(tidyr)
 ## Instruction
 
 * Complete this RMarkdown file and "Knit" the HTML output (saved as **Lecture10_YOUR_CID_NUMBER.html**) and upload to the Hub before the deadline.
-* Change the author property in the YAML header above to your CID number. 
+* Change the author property in the YAML header abo?e to your CID number. 
 * Your task is to create static/interactive charts based on 3 different datasets, and refine the charts.
 
 
 ## Plot 1
-Examine the `ggplot2::economics` dataset first, and come up with a hypothesis, or an idea for which attributes or patterns to compare. Then, go to [from Data to Viz website](https://www.data-to-viz.com) for an inspiration and recreate a chart using this dataset. Document your thought process below in Markdown.
+Examine the `ggplot2::economics` dataset first, and come up with a hypothesis, or an idea for which attributes or pa?terns to compare. Then, go to [from Data to Viz website](https://www.data-to-viz.com) for an inspiration and recreate a chart using this dataset. Document your thought process below in Markdown.
 
 ```{r}
 coeff <- 500
 
 # A few constants
-temperatureColor <- "#69b3a2"
+temperatureColor <- "?69b3a2"
 priceColor <- rgb(0.2, 0.6, 0.9, 1)
 ggplot(head(economics, 80), aes(x=date)) +
   geom_bar(aes(y=unemploy/coeff), stat="identity", size=.1, color="black", alpha=.4) + 
   geom_line( aes(y=psavert), size=2) +
   scale_y_continuous(
-    # Features of the first axis
+    # Features of th? first axis
     name = "Personal Savings Rate",
     # Add a second axis and specify its features
     sec.axis = sec_axis(~.*coeff, name="number of unemployed in thousands")
@@ -46,23 +44,23 @@ ggplot(head(economics, 80), aes(x=date)) +
   theme_ipsum() +
   theme(
     axis.title.y = element_text(size=13),
-    axis.title.y.right = element_text(size=13)
+    axi?.title.y.right = element_text(size=13)
   ) 
 ```
 
 #### Hypothesis
-The number of unemployed has a positive correlation with the personal savings rate. That is to say, when the number unemployed increases, the personal savings rate should increase as well, because people are saving more money because they lose the job. 
+The number of unemployed has a positive correlation with the personal savings rate. That is to say, when the number unemployed increases, the personal savings rate should increase as well, be?ause people are saving more money because they lose the job. 
 
 #### Insights
 * To comparing the unemployment and personal savings rate, I created a plot with two y-axis to observe the correlation between the two variables.
-* When the number of unemployed increased, the positive correlation exist: in 1970, when the number of unemployed increases, the personal savings rate increased as well. 
-* But the positive correlation does not exist in all circumstance: when the number of unemployed stabilized in 1972, the personal savings rate started to fall. Also, when the number of unemployed decreased in 1973, the personal savings rate fell in turn. 
+* When the number of unemployed i?creased, the positive correlation exist: in 1970, when the number of unemployed increases, the personal savings rate increased as well. 
+* But the positive correlation does not exist in all circumstance: when the number of unemployed stabilized in 1972, th? personal savings rate started to fall. Also, when the number of unemployed decreased in 1973, the personal savings rate fell in turn. 
 
 ## Plot 2
-Examine the `ggplot2::diamonds` dataset first, and come up with a hypothesis, or an idea for which attributes or patterns to compare. Then, create a static `ggplot2` chart of your choice. Then, apply `plotly::ggplotly()` function to convert ggplot object to plotly graph. Document your thought process below in Markdown
+Examine the `ggplot2::diamonds` dataset first, and come up with a hypothesis, or an idea for which attributes?or patterns to compare. Then, create a static `ggplot2` chart of your choice. Then, apply `plotly::ggplotly()` function to convert ggplot object to plotly graph. Document your thought process below in Markdown
 
 ```{r}
-p <- ggplot(diamonds, aes(x=depth, y=price, color=color)) + 
+p <- ggplot(diamonds, aes(x=depth, y=p?ice, color=color)) + 
     geom_point(size=6) +
     theme_ipsum()
 ggplotly(p)
@@ -77,15 +75,15 @@ ggplotly(p)
 *
 
 ## Plot 3 
-Examine the `ggplot2::txhousing` dataset first, and come up with a hypothesis, or an idea for which attributes or patterns to compare. Then, go to [plotly website](https://plotly.com/r/) for an inspiration and recreate an **interactive** chart using this dataset. Document your thought process below in Markdown.
+Examine the `ggplot2::txhousing` dataset first, and come up with a hypothesis, or an idea for which attributes or patterns ?o compare. Then, go to [plotly website](https://plotly.com/r/) for an inspiration and recreate an **interactive** chart using this dataset. Document your thought process below in Markdown.
 
 
 ```{r}
-p <- plot_ly(txhousing, x = ~year, y = ~median, type = 'scatter', mode = 'markers',
+p <- plot_ly(txhousing, x = ~year, y = ~median, type = 'sc?tter', mode = 'markers',
         marker = list(size = ~inventory, opacity = 0.5, color = 'rgb(255, 65, 54)'))
 p <- p %>% layout(title = 'Gender Gap in Earnings per University',
          xaxis = list(showgrid = FALSE),
-         yaxis = list(showgrid = FALSE))
+         yaxis = list(showgrid = FALSE?)
 ggplotly(p)
 ```
 
