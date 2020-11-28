@@ -1,6 +1,6 @@
 ---
 title: "In-class Exercise Lecture 10"
-author: "Your CID number here!"
+author: "01939418"
 date: "26/11/2020"
 output: html_document
 ---
@@ -60,37 +60,61 @@ The number of unemployed has a positive correlation with the personal savings ra
 Examine the `ggplot2::diamonds` dataset first, and come up with a hypothesis, or an idea for which attributes?or patterns to compare. Then, create a static `ggplot2` chart of your choice. Then, apply `plotly::ggplotly()` function to convert ggplot object to plotly graph. Document your thought process below in Markdown
 
 ```{r}
+<<<<<<< HEAD
 p <- ggplot(diamonds, aes(x=depth, y=p?ice, color=color)) + 
     geom_point(size=6) +
     theme_ipsum()
 ggplotly(p)
+=======
+diamonds %>% 
+  group_by(cut) %>% 
+  summarise(Maxprice = max(price),Minprice = min(price)) %>% 
+  plot_ly(x = ~Maxprice, y = ~cut, name = "Highest Price", type = 'scatter',mode = "markers", marker = list(color = "blue")) %>% 
+  add_trace(x = ~Minprice, y = ~cut, name = "Lowest Price",type = 'scatter',mode = "markers", marker = list(color = "pink")) %>% 
+  layout(xaxis = list(title = "Price"),margin = list(l = 100)) %>%
+  ggplotly()
+>>>>>>> 01f6a93a2b083a7c5ffad5168a18700d054d13f3
 ```
 
 #### Hypothesis
-*
+The lowest price and highest price of diamonds is related to the cut of diamonds.
 
 #### Insights
-*
-*
-*
+* To determine whether there is a clear trend that the lowest price of fair diamond is significantly higher than the lowest price of ideal diamond, I draw a Dot Plots for the lowest and highest price of different cut of diamond. 
+* The lowest price of different cut of diamond are mostly the same.
+* The better the cut of diamond, the higher the highest price of diamond. However, the difference is not significant. 
 
 ## Plot 3 
 Examine the `ggplot2::txhousing` dataset first, and come up with a hypothesis, or an idea for which attributes or patterns ?o compare. Then, go to [plotly website](https://plotly.com/r/) for an inspiration and recreate an **interactive** chart using this dataset. Document your thought process below in Markdown.
 
 
 ```{r}
+<<<<<<< HEAD
 p <- plot_ly(txhousing, x = ~year, y = ~median, type = 'sc?tter', mode = 'markers',
         marker = list(size = ~inventory, opacity = 0.5, color = 'rgb(255, 65, 54)'))
 p <- p %>% layout(title = 'Gender Gap in Earnings per University',
          xaxis = list(showgrid = FALSE),
          yaxis = list(showgrid = FALSE?)
 ggplotly(p)
+=======
+year_group <- txhousing %>%
+  group_by(year) 
+year_group[is.na(year_group)] <- 0
+
+year_group_by <- year_group %>%
+  summarise(sales_sum=sum(sales),listings_sum=sum(listings))
+
+plot_ly(year_group_by, x = ~year, y = ~sales_sum, type = 'bar', name = 'Sales Sum') %>% 
+  add_trace(y = ~listings_sum, name = 'Listings Sum') %>%
+  layout(yaxis = list(title = 'Count'), barmode = 'stack')
+
+>>>>>>> 01f6a93a2b083a7c5ffad5168a18700d054d13f3
 ```
 
 #### Hypothesis
-*
+The sum values of listings and sum values of sales should follow stable ratio. 
 
 #### Insights
-*
-*
-*
+* The listings sum fluctuated over the years.
+* The Sales sum is mostly stable.
+* The sum values of listings and sum values of sales does not have a stable ratio. 
