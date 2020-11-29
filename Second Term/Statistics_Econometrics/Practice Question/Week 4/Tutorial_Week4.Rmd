@@ -1,0 +1,23 @@
+---
+title: "Tutorial Questions - Week 4"
+subtitle: Statistics and Econometrics
+output:
+  pdf_document: default
+---
+
+## Question 1
+Consider a model where the return to education depends upon the amount of work experience (and vice versa): $$\log(wage)=\beta_0+\beta_1 educ+\beta_2 exper +\beta_3 educ\cdot exper +u$$
+
+1. What is the return to another year of education?
+2. State the null hypothesis that the return to education does not depend on the level of $exper$. What do you think is the appropriate alternative?
+3. Use the data in wage2.RData to test the null hypothesis in part 2 against your stated alternative.
+4. Predict the expected wage for an average person with $educ=12$ and $exper=10$.
+
+## Question 2
+Use the data from jtrain.RData for this exercise.
+
+1. Consider the simple regression model $$\log(scrap)=\beta_0+\beta_1 grant +u,$$ where $scrap$ is the firm scrap rate (percentage of failed assemblies or material that cannot be repaired or restored, and is therefore condemned and discarded), and $grant$ is a dummy variable indicating whether a firm received a job training grant. Can you think of some reaons why the unobserved factors in $u$ might be correlated with $grant$?
+2. Estimate the simple regression model using the data for 1988. (You should have 54 observations) Does receiving a job training grant significantly lower a firm's scrap rate?
+3. Now, add as an explanatory variable $\log(scrap_{87})$. How does this change the estimated effect of $grant$? Interpret the coefficient on $grant$. Is it statistically significant at the 5% level against the one-sided alternative $H_1: \beta_{grant}<0$?
+4. Test the null hypothesis that the parameter on $\log(scrap_{87})$ is one against the two-sided alternative. Report the $p$-value for the test.
+5. Repeats parts 3 and 4, using heteroskedasticity-robust standard errors, and briefly discuss any notable differences.
