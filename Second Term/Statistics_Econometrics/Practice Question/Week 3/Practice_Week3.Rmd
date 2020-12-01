@@ -1,0 +1,28 @@
+---
+title: "Extra Practice Questions - Week 3"
+subtitle: Statistics and Econometrics
+output:
+  pdf_document: default
+---
+
+## Question 1
+Use the data in apple.RData to answer this question.
+
+1. Define binary variable as $ecobuy=1$ if $ecolbs>0$ and $ecobuy=0$ if $ecolbs=0$. In other words, $ecobuy$ indicates whether, at the prices given, a family would buy any ecologically friendly apples. What fractions of families claim they would buy eco-labeled apples?
+2. Estimate the linear probability model $$ecobuy=\beta_0+\beta_1 ecoprc+\beta_2 regprc+\beta_3 faminc+\beta_4hhsize+\beta_5 educ+\beta_6 age+u,$$ and report the results. Carefully interpret the coefficients on the price variables.
+3. Are the nonprice variables significant in the LPM? Which explanatory variable other than the price variables seems to have the most important effect on the decision to buy eco-labeled apples? Does this make sense to you?
+4. In the estimation in part 2, how many estimated probabilities are negative? How many are bigger than one? Should you be concerned?
+
+
+## Question 2
+The variable $smokes$ is a binary variable equal to one if a person smokes, and zero otherwise. We estimate a linear probability model for smokes: 
+\begin{eqnarray*}
+	\widehat{smokes} & = &\underset{\substack{(.855)\\ [.856]}}{.656} - \underset{\substack{(.204)\\ [.207]}}{.069}\log(cigpric) + \underset{\substack{(.026)\\ [.026]}}{.012}\log(income) - \underset{\substack{(.006)\\ [.006]}}{.029} educ \\
+	&& +\underset{\substack{(.006)\\ [.005]}}{.020} age - \underset{\substack{(.00006)\\ [.00006]}}{.00026} age^2- \underset{\substack{(.039)\\ [.038]}}{.101} restaurn - \underset{\substack{(.052)\\ [.050]}}{.026} white,
+\end{eqnarray*}
+$n=807,R^2=.062$. $income$ is the person's annual income; $cigpric$ indicates the per pack price of cigarettes; $educ$ indicates years of schooling the person received; $age$ is measured in years; $restaurn$ is a dummy variable which equals one if the person lives in a state with restaurant smoking restrictions; $white$ equals to one if the person is Caucasian. Both the usual and heteroskedasticity-robust standard errors are reported.
+
+1. Are there any important differences between the two sets of standard errors?
+2. Holding other factors fixed, if education increases by four years, what happens to the estimated probability of smoking?
+3. Interpret the coefficient on the binary variable $restaurn$.
+4. A person in the data set has the following characteristics: $cigpric=67.44, income=6,500$, $educ=16, age=77, restaurn=0, white=0,$ and $smokes=0$. Compute the predicted probability of smoking for the observation in the data set.
