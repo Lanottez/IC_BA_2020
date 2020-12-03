@@ -1,0 +1,84 @@
+---
+title: "Regression Analysis: Inference"
+author: Jiahua Wu
+subtitle: Statistics and Econometrics
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+library(ggplot2)
+library(car)
+```
+
+# Testing hypotheses about a single population parameter
+## Example 4.1
+Testing a simple null hypothesis is straightforward in R, as the default R output provides the t statistic and p-value for $H_0: \beta_j=0$ in the columns of "t value" and "Pr>|t|", respectively, assuming a two-sided alternative.
+```{r}
+load("wage1.RData")
+wage.m1 <- lm(log(wage) ~ educ + exper + tenure, data = data)
+summary(wage.m1)
+```
+
+If we ever need to run the hypothesis testing manually, then remember that the t statistic is the ratio between point estimate and standard error for the simple null hypothesis. We can find critical value using $qt$ or $qnorm$ functions. For instance,
+```{r}
+# find the critical value for 99.5th percentile from a standard norm distribution
+qnorm(0.995)
+
+# find the critical value for 99.5th percentile from a t distribution with df = 522
+qt(0.995, df = 522)
+```
+
+In general, $linearHypothesis$ in the $car$ package is the function to use for hypothesis testing in R. For instance, if we want to test the simple null hypothesis that $H_0: \beta_{exper} = 0$, we can type the following command
+```{r}
+linearHypothesis(wage.m1, "exper = 0")
+```
+$linearHypothesis$ is implemented based on $F$ test, rather than the usual $t$ test for the simple null hypothesis testing. However, p-value from $linearHypothesis$ is the same as the p-value from a standard $t$ test, assuming a two-sided alternative. In this test, p-value is 0.01714, so we can reject null at 5\% significance level but not at 1\% significance level.
+
+We can also use $linearHypothesis$ to test a more general form of t test, where the null is $H_0:\beta_j = a_j$.
+```{r}
+linearHypothesis(wage.m1, "exper = 1")
+```
+
+# Confidence interval
+The built-in function for calculating confidence interval is $confint$. 
+```{r}
+# calculate 95% confidence interval for the variable educ
+confint(wage.m1, 'educ', level = 0.95)
+
+# calculate 95% confidence interval for all parameters in the linear model wage.m1
+confint(wage.m1, level = 0.95)
+```
+
+# Testing a linear combination of parameters
+Again, $linearHypothesis$ function can help us to test a linear combination of parameters. For instance to test the hypothesis $H_0: \beta_{educ}-\beta_{exper}=0$ on slide 33, we can use the following code.
+```{r}
+linearHypothesis(wage.m1, "educ - exper = 0")
+```
+
+# Testing multiple linear restrictions (Online Material Session 2.6)
+## Example 4.9
+We can use $F$ test for testing exclusion restrictions. $SSR$s from both restricted and unrestricted models will be used to calculate $F$ statistic. One thing to keep in mind is that we need to take care of missing values in the sample. The exact same sample shall be used to estimate both restricted and unrestricted models for a valid $F$ statistic. For instance, there are missing values for $motheduc$ and $fatheduc$ in this example. Thus we need to remove the observations with missing values before running regressions.
+```{r}
+load("bwght.RData")
+summary(data)
+
+# remove observations with missing motheduc and fatheduc
+data.new <- na.omit(data)
+bwght.ur <- lm(bwght ~ cigs + parity + faminc + motheduc + fatheduc, data = data.new)
+ur.res <- sum(bwght.ur$residuals^2)
+
+bwght.r <- lm(bwght ~ cigs + parity + faminc, data = data.new)
+r.res <- sum(bwght.r$residuals^2)
+
+# calculate F statistic
+F.stat <- (r.res - ur.res)/2 / (ur.res/(bwght.ur$df.residual))
+F.stat
+
+# calculate p value
+pf(F.stat, 2, bwght.ur$df.residual, lower.tail = FALSE)
+
+# Alternatively, we can test it using linearHypothesis
+linearHypothesis(bwght.ur, c("motheduc = 0", "fatheduc = 0"))
+```

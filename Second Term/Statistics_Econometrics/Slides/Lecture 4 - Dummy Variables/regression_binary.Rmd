@@ -1,0 +1,44 @@
+---
+title: "Regression Analysis: Dummy Variables"
+author: Jiahua Wu
+subtitle: Statistics and Econometrics
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+library(ggplot2)
+library(car)
+library(dplyr)
+library(stargazer)
+```
+
+## The example on page 23 - Interaction between a dummy and a quatitative variable
+In this example, we seek to determine whether there exists any gender wage gap. As such, we construct a flexible model, where both the intercept and slope of $educ$ (which measures returns to education) are allowed to differ between males and females.
+```{r, results = 'asis'}
+load("wage1.RData")
+wage.m1 <- lm(log(wage) ~ female + educ + female:educ, data = data)
+wage.m2 <- lm(log(wage) ~ female*educ, data)
+stargazer(wage.m1, wage.m2, header = FALSE, type = 'latex', 
+          title = "A model to study gender differences in wage")
+```
+
+$female:educ$ in $lm()$ indicates that the model includes an interaction term between $female$ dummy and $educ$ as an independent variable. Based on $t$ tests, $female$ is only weakly significant, and the interaction term is insignificant at all. But we knew that variables could be individually insignificant, but jointly they might have an impact on the dependent variable. To test whether there is any gender gap in wages, we want to test the null hypothesis $H_0:\delta_0=0, \delta_1=0$ (that is we want to test the null hypothesis: Expected wages are the same for men and women who have
+the same level of education).
+```{r}
+linearHypothesis(wage.m1, c("female = 0", "female:educ = 0"))
+```
+From the F test, we observe that the two variables are jointly very significant. This is typically a consequence of multicollinearity, i.e., two variables are highly correlated. We verify this conjecture by investigating the correlation between the two, and the result indeed shows that the correlation is as high as 0.96.
+```{r}
+data$female.educ <- data$female * data$educ
+cor(data$female.educ, data$female)
+```
+Remember that one variable is a dummy, and the other one is the interaction of this dummy with another quantitative variable. Correlation between the two depends on variations in females' educational levels in the sample. The less variation in females' educational levels, the higher the correlation between the two variables. Inspecting summary statistics and histogram, we observe that more than half of female individuals have 12-13 years of education. The distribution of females' educational level is highly clustered in the sample.
+```{r}
+data.female <- data %>% filter(female == 1)
+
+# distribution of females' education in the sample
+summary(data.female$educ)
+ggplot(data = data.female, aes(x = educ)) + geom_histogram()
+```
