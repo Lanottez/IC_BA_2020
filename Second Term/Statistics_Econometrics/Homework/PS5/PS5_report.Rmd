@@ -1,0 +1,103 @@
+---
+title: "PS5_Report"
+author: "Qian Zhang"
+date: "2020年12月1日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stargazer)
+library(car)
+library(sandwich)
+library(lmtest)
+library(plm)
+```
+
+# Question 1
+
+1 <br />
+If the spread incorporates all relevant information, the spread will be a value that an equal number of wagers is bet on both the winning or losing side. The variable $spread$ will be 0, and the chances of winning this spread wll be 50-50. Therefore, we expect $\beta_0$ to be 50%, or 0.5.
+
+2
+
+Usual standard errors:
+```{r}
+load("pntsprd.RData")
+fitted.favwin.ml <- lm(favwin ~ spread,data=data)
+stargazer(fitted.favwin.ml,align = TRUE,header=FALSE,type='text',title='Question 1.2')
+linearHypothesis(fitted.favwin.ml,"(Intercept)=.5")
+
+```
+The LPM estimator: $\widehat{favwin}$ = 0.577 + 0.019$spread$ <br />
+The standard error is 0.402. <br />
+Therefere, at 1% level, we could reject the null hypothesis that $\beta_0$ = 0.5.
+
+Heteroskedasticity-rebust standard errors:
+```{r}
+load("pntsprd.RData")
+fitted.favwin.ml <- lm(favwin ~ spread,data=data)
+vcov.robust <- vcovHC(fitted.favwin.ml,"HC1")
+
+coeftest(fitted.favwin.ml,vcov=vcov.robust)
+linearHypothesis(fitted.favwin.ml,"(Intercept)=.5",white.adjust="hc1")
+
+```
+The LPM estimator: $\widehat{favwin}$ = 0.577 + 0.019$spread$ <br />
+Therefere, at 5% level, we could reject the null hypothesis that $\beta_0$ = 0.5.
+
+3
+
+```{r}
+load("pntsprd.RData")
+favwin.probit <- glm(favwin ~ spread,family = "binomial"(link = "probit"),data)
+stargazer(favwin.probit,align = TRUE,header=FALSE,type='text',title='Question 1.3')
+linearHypothesis(favwin.probit,"(Intercept)=0")
+```
+Probit estimator: $\widehat{favwin}$ = $\Phi$(-0.011 + 0.092$spread$) <br />
+$H_0$: $\beta_0 = 0$
+$H_1$: $\beta_0 \neq 0$
+The p-value corresponding to the t-statistic is 0.9185. Therefore, we could not reject the null hypothesis. 
+
+4 <br />
+
+Probit model estimate: $\widehat{favwin}$ = $\Phi$(-0.011 + 0.092*10) = $\Phi$(0.909) = 0.8186
+LPM estimate: $\widehat{favwin}$ = 0.577 + 0.019$spread$ = 0.577 + 0.019*10 = 0.767
+Therefore, under the probit model, the percentage of winning is 0.8186;under the LPM, the percentage of winning is 0.767.
+
+5
+```{r}
+load("pntsprd.RData")
+favwin.probit <- glm(favwin ~ spread+favhome+fav25+und25,family = "binomial"(link = "probit"),data)
+stargazer(favwin.probit,align = TRUE,header=FALSE,type='text',title='Question 1.5')
+cat("critical value for df = 3 at 10% confidence level:", qchisq(0.1,3,lower.tail=FALSE))
+```
+Null Hypothesis: $\beta_2$ = 0, $\beta_3$ = 0, $\beta_4$ = 0 <br />
+L(ur) = -262.642 <br />
+L(r) = -263.562 <br />
+LR = 2($L_{ur}$ - $L_{r}$) = 2(-262.642 - (-263.562)) = 1.84 <br />
+The degree of freedom in the chi-square distribution is 3, which is equal to the number of restrictions. <br />
+At this degree of freedom, the critical value at 10% confidence level is 6.251. Since LR is not larger than the critical value, we could not reject the null hypothesis, and $\beta_2$ = 0, $\beta_3$ = 0, $\beta_4$ = 0. Therefore, we could reach the conclusion that $favhome$,$fav25$ and $und25$ are jointly insignificant, and the spread incorporates all observable information prior to a game.  
+
+
+# Question 2
+
+1. 
+```{r}
+load("jtrain.RDATA")
+hrsemp.fe <- plm(hrsemp ~ d88+d89+grant+grant_1+lemploy,index=c("fcode","year"),efffect="individual",model="within",data=data)
+stargazer(hrsemp.fe,align = TRUE,header=FALSE,type='text',title='Question 2')
+summary(hrsemp.fe)
+```
+Therefore are 135 firms that are used in the estimation. However, if each firm has data on all variables for all three time period, there will be 135*3 = 405 observations in total. 
+
+2. The coefficent on $grant_{it}$ is 34.228 and it is statistically significant at 1% level. Therefore, if a firm receives a job training grant, the average number of hours training per employee in this firm will increase for 34.228 hours in the same time period.  
+
+3. No, because the grant provided to firm is used for training worker in the current year instead of the next year, therefore, the grant received last year should have zero impact on the average number of hours training per employee this year. 
+
+4. The coefficient for $lemplo$ is -0.176, which means that if the number of employees increases by $\alpha$, the average number of hours training per employee will decrease by $\alpha$/100. Therefore, larger firm train their employees less on average, while the differences in training is not big, and the conclusion is statistically insignificant.    
+
+
+
+# Question 3
+Whether choosing the one with higher Precision or the one with higher Recall depends on what the model is predicting. If we want to model to have less false negative, for example, we are using the model to find patients who might have cancer from a dataset of patients and we want to avoid any false negative(patient who has cancer but labeled as not), we should use the model with higher Recall. On the other hand, if false negative is not a concern, for example, we are using model to predict how many tourists will travel to London during christmas, and false negative(who did not travel to London but labeled as he/she will) here is not a concern, we could chooise the model with higher Pecision.   
