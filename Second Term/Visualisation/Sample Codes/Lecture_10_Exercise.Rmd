@@ -1,0 +1,69 @@
+---
+title: "In-class Exercise Lecture 10"
+author: "Your CID number here!"
+date: "26/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Load the tidyverse packages
+library(tidyverse)
+library(plotly)
+```
+
+## Instruction
+
+* Complete this RMarkdown file and "Knit" the HTML output (saved as **Lecture10_YOUR_CID_NUMBER.html**) and upload to the Hub before the deadline.
+* Change the author property in the YAML header above to your CID number. 
+* Your task is to create static/interactive charts based on 3 different datasets, and refine the charts.
+
+
+## Plot 1
+Examine the `ggplot2::economics` dataset first, and come up with a hypothesis, or an idea for which attributes or patterns to compare. Then, go to [from Data to Viz website](https://www.data-to-viz.com) for an inspiration and recreate a chart using this dataset. Document your thought process below in Markdown.
+
+```{r}
+# your code here
+
+```
+
+#### Hypothesis
+*
+
+#### Insights
+*
+*
+*
+
+## Plot 2
+Examine the `ggplot2::diamonds` dataset first, and come up with a hypothesis, or an idea for which attributes or patterns to compare. Then, create a static `ggplot2` chart of your choice. Then, apply `plotly::ggplotly()` function to convert ggplot object to plotly graph. Document your thought process below in Markdown
+
+```{r}
+# your code here
+
+```
+
+#### Hypothesis
+*
+
+#### Insights
+*
+*
+*
+
+## Plot 3 
+Examine the `ggplot2::txhousing` dataset first, and come up with a hypothesis, or an idea for which attributes or patterns to compare. Then, go to [plotly website](https://plotly.com/r/) for an inspiration and recreate an **interactive** chart using this dataset. Document your thought process below in Markdown.
+
+
+```{r}
+# your code here
+
+
+```
+
+#### Hypothesis
+*
+
+#### Insights
+*
+*
+*

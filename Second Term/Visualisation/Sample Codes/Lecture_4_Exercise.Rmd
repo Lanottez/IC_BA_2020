@@ -1,0 +1,91 @@
+---
+title: "In-class Exercise Lecture 4"
+author: "12345"
+date: "05/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Load the tidyverse packages
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+```
+
+## Instruction
+
+* Complete this RMarkdown file and `Knit` the HTML output (saved as **Lecture4_YOUR_CID_NUMBER.html**) and upload to the Hub before the end of the day.
+* Change the author property in the YAML header above to your CID number. 
+
+## Looking up data documentation
+
+For this exercise, we will use `midwest` dataset that comes with `ggplot2` package. This is a dataset of demographic information from midwest counties. 
+
+### Exercise 1
+
+Look up what each of variables mean and complete the bullet lists below. Hint: look up the documentation by `?midwest`
+
+Example: 
+**poptotal** : total population
+
+**popdensity** : [your answer here]
+
+**popwhite** : [your answer here]
+
+**popother** : [your answer here]
+
+**percprof** : [your answer here]
+
+**percollege** : [your answer here]
+
+### Exercise 2
+Use `kable` and `kableExtra` package to print first 5 rows of the `midwest` data frame. Visit [this website](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html) to learn more information on how to apply `kable_styling`.
+
+```{r}
+# your code here
+midwest <- midwest
+
+```
+
+
+### Exercise 3
+
+The code below generates a scatter plot of total population vs. population density. However, the graph is not shown when you "knit".  Change the code chunk options so that the graph is included in the HTML output. 
+
+```{r eval=FALSE}
+ggplot(data = midwest, mapping = aes(x = poptotal, y = popdensity)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  geom_point(alpha = 0.5)
+```
+
+### Exercise 4
+
+The code below creates a scatter plot of **percent college educated** vs. **percent of below poverty**. Use `facet_wrap()` or `facet_grip()` to facet the scatter plot by `state`.
+
+
+```{r}
+ggplot(data = midwest, mapping = aes(x = percollege, y = percbelowpoverty, color = state)) +
+  geom_point()
+```
+
+
+
+```{r}
+# Your code here
+```
+
+
+### Exercise 5
+
+Make another scatter plot. You can choose the variables of your choice. Make a scatter plot and comment on insights you gain from the graph.
+
+```{r}
+# Your code for a scatter plot here
+```
+
+#### Insights
+
+*
+*
+
