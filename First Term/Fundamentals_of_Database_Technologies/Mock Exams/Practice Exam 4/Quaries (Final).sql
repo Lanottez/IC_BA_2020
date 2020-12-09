@@ -52,5 +52,4 @@ from users inner join user_blocks
 on users.id = user_blocks.user_id inner join opinions
 on users.id = opinions.user_id 
 group by users.id
-where opinions.opinion = FALSE
-order by count()
+where opinions.opinion is FALSE
