@@ -1,0 +1,107 @@
+---
+title: "Cheetsheet_2"
+author: "Qian Zhang"
+date: "2020年12月10日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+### ggplot: Continuous univariate
+```{r}
+ggplot(data = mpg, mapping = aes(x = hwy)) +
+geom_histogram()
+ggplot(data = mpg, mapping = aes(x = hwy)) +
+geom_freqpoly()
+ggplot(data = mpg, mapping = aes(x = hwy)) +
+geom_density()
+```
+
+### ggplot: density and area
+```{r}
+ggplot(data = mpg, aes(x = hwy)) +
+geom_density(alpha = .2, fill= "#00BFC4", color = 0,adjust = 1) +
+geom_line(stat='density') 
+```
+
+### ggplot: comparing distribution
+```{r}
+mpg %>%
+filter(manufacturer %in% c("dodge", "toyota", "volkswagen")) %>%
+ggplot(aes(x = hwy, color = manufacturer)) +
+geom_density(adjust = 0.5)
+```
+
+## ggplot: categorical univariate
+```{r}
+ggplot(data = mpg, mapping = aes(x = class)) +
+geom_bar()
+```
+
+## ggplot: categorical univariate with forcats funcions
+fct_reorder() reordering a factor by another variable
+fct_infreq() reodering a factor by the frequency of value
+fct_relevel() changing the order of a factor by hand
+fct_lump() collapsing the least/most frequent values of a facotr into “other”
+fct_rev() reverse order of factor levels
+```{r}
+ggplot(data = mpg, mapping = aes(x = fct_infreq(class))) +
+geom_bar()
+```
+
+## ggplot: scatter plot for continuous bivariate
+```{r}
+ggplot(data = mpg) +
+geom_point(mapping = aes(x = displ, y = hwy))
+```
+
+## ggplot: scatter plot for continuous bivariate
+```{r}
+ggplot(data = mpg) +
+geom_point(mapping = aes(x = displ, y = hwy))
+```
+
+## ggplot: smooth line for continuous bivariate 
+```{r}
+ggplot(data = mpg) +
+geom_smooth(mapping = aes(x = displ, y = hwy))
+```
+
+## ggplot: box plot for continuous bivariate 
+```{r}
+ggplot(data = mpg, aes(x = class, y = hwy)) +
+geom_boxplot()
+```
+
+## ggplot: violin plot for continuous bivariate 
+```{r}
+ggplot(data = mpg, aes(x = class, y = hwy)) +
+geom_violin()
+```
+
+## ggplot: scatter plot and violin plot for continuous bivariate 
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+geom_point() +
+geom_smooth()
+```
+
+## ggplot: Grid of plots
+```{r}
+library(gridExtra)
+p1 <- ggplot(data = mpg) + geom_bar(aes(x = hwy))
+p2 <- ggplot(data = mpg) + geom_point(aes(x = hwy, y = displ), alpha = 0.5)
+grid.arrange(p1, p2, ncol = 2)
+```
+
+## ggplot: patchwork package
+```{r}
+library(patchwork)
+p1 <- ggplot(data = mpg) + geom_bar(aes(x = hwy))
+p2 <- ggplot(data = mpg) + geom_point(aes(x = hwy, y = displ), alpha = 0.5)
+p1 + p2
+```
+
