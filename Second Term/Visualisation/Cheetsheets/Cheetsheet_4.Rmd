@@ -1,0 +1,176 @@
+---
+title: "Cheetsheet_4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(viridis)
+library(ggplot2)
+library(RColorBrewer)
+library(dplyr)
+```
+
+## Fill & colour scale - Discrete
+scale_*_discrete(): Colours evenly spaced around the colour wheel (same as hue)
+scale_*_hue(): Colours evenly spread around the colour wheel
+scale_*_grey(): Greyscale palette
+scale_*_viridis_d(): Viridis palettes
+scale_*_brewer(): ColorBrewer palettes
+scale_*_manual(): Manually specified colours
+
+## Fill & colour scale - Continuous
+scale_*_gradient(): Two-colour gradient
+scale_*_gradient2(): Gradient with a middle colour and tow colours that diverge from it
+scale_*_gradientn(): Gradient with n colour, equally spaced
+scale_*_viridis_c(): Viridis pale:es
+
+
+
+# Exploratory data analysis: Organ data
+
+## Organ data: 
+```{r}
+organdata <- socviz::organdata
+ggplot(data = organdata, mapping = aes(x = year, y = donors)) +
+ geom_point()
+```
+
+## Organ data: remove empty data
+```{r}
+ggplot(data = organdata, mapping = aes(x = year, y = donors)) +
+ geom_point(na.rm = T)
+```
+
+## Organ data: draw lines by every group of countries
+```{r}
+ggplot(data = organdata, mapping = aes(x = year, y = donors)) +
+ geom_point(na.rm = T) +
+ geom_line(aes(group = country), na.rm = T)
+```
+
+## Organ data: draw lines by every group of countries in different plots
+```{r}
+ggplot(data = organdata, mapping = aes(x = year, y = donors)) +
+  geom_point(na.rm = T, size = 0.5) +
+  geom_line(aes(group = country), na.rm = T) +
+  facet_wrap(~ country)
+```
+
+## Organ data: boxplot
+```{r}
+ggplot(data = organdata, mapping = aes(x = country, y = donors)) +
+  geom_boxplot(na.rm = T)
+```
+
+## Organ data: boxplot flipped
+```{r}
+ggplot(data = organdata, mapping = aes(x = country, y = donors)) +
+  geom_boxplot(na.rm = T) +
+  coord_flip()
+```
+
+## Organ data: boxplot ordered
+```{r}
+ggplot(data = organdata,
+       mapping = aes(x = reorder(country, donors, na.rm = T), y = donors)) +
+  geom_boxplot(na.rm = T) +
+  coord_flip()
+```
+
+## Organ data: Data transforma8on
+```{r}
+by_country <- organdata %>%
+  group_by(consent_law, country) %>%
+  summarize(donors_mean= mean(donors, na.rm = TRUE),
+            donors_sd = sd(donors, na.rm = TRUE),
+            gdp_mean = mean(gdp, na.rm = TRUE),
+            health_mean = mean(health, na.rm = TRUE),
+            roads_mean = mean(roads, na.rm = TRUE),
+            cerebvas_mean = mean(cerebvas, na.rm = TRUE))
+```
+
+## Organ data: Cleveland dotplot
+```{r}
+ggplot(data = by_country,
+       mapping = aes(x = donors_mean, y = reorder(country, donors_mean),
+                     color = consent_law)) +
+  geom_point(size=3) +
+  labs(x = "Donor Procurement Rate", y = "", color = "Consent Law") +
+  theme(legend.position="top")
+```
+
+## Organ data: plot texts
+```{r}
+library(ggrepel)
+ggplot(data = by_country,mapping = aes(x = roads_mean, y = donors_mean)) +
+  geom_point() +
+  geom_text_repel(mapping = aes(label = country))
+```
+
+## Organ data: label outliers
+```{r}
+ggplot(data = by_country,mapping = aes(x = roads_mean, y = donors_mean)) +
+  geom_point() +
+  geom_text_repel(data = subset(by_country, roads_mean > 140 | donors_mean < 15),
+                  mapping = aes(label = country))
+```
+
+# Exploratory data analysis: Movie data
+```{r}
+movies<-ggplot2movies::movies
+```
+
+## Movie Data: Assessing the distribution
+```{r}
+ggplot(data = movies, mapping = aes(x = length))+
+  geom_histogram()
+```
+
+## Movie Data: limit the x axis
+```{r}
+ggplot(data = movies, mapping = aes(x = length))+
+  geom_histogram(binwidth = 5) +
+  coord_cartesian(xlim = c(0, 60*4))
+```
+
+## Movie Data: Defining “long” and find how many long movies
+```{r}
+movies %>%
+  count(cut_width(length, 5)) %>%
+  mutate(cum_pct = cumsum(n)/sum(n)) %>%
+  filter(cum_pct > .95) %>%
+  summarise(sum(n))
+```
+
+## Movie Data: Top 5 longest 
+```{r}
+movies %>%
+  arrange(desc(length)) %>%
+  top_n(5, wt = length)
+```
+
+## Movie Data: Labelling long movies
+```{r}
+movies %>%
+  select(1:3) %>%
+  mutate(Long = length >= 122.5)
+```
+
+# Exploratory data analysis: Short films
+
+## Movie Data: Defining short movies
+```{r}
+ggplot(data = movies, mapping = aes(length)) +
+  geom_histogram(binwidth = 2) +
+  coord_cartesian(xlim = c(0, 122.5),
+                  ylim = c(0, 3000))
+```
+
+## Movie Data: how many short films?
+```{r}
+movies %>%
+  filter(length <= 40) %>%
+  summarise(n())
+```
+

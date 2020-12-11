@@ -105,3 +105,89 @@ p2 <- ggplot(data = mpg) + geom_point(aes(x = hwy, y = displ), alpha = 0.5)
 p1 + p2
 ```
 
+## density plot for different classes
+```{r}
+mpg %>%
+ggplot(aes(x = hwy, color = class)) +
+geom_density(aes(y = ..count..)) +
+facet_wrap(vars(class), nrow = 2)
+```
+
+## four options for geom_bar
+1. stack : default op5on to create a stacked barcharts
+2. identity : un-stacked, draws each object exactly where it falls in the context of the graph. This op5on is not very helpful as bars overlap
+3. dodge : avoids overlapping bars by placing beside one another
+4. fill : works like stack but visualise the propor5ons across groups
+```{r}
+library(patchwork)
+p1 <- ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = clarity), position = "stack")
+p2 <- ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = clarity), position = "identity")
+p3 <-  ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge")
+p4 <- ggplot(data = diamonds) +  geom_bar(mapping = aes(x = cut, fill = clarity), position = "fill")
+p1 + p2 + p3 + p4
+ 
+```
+
+## avoiding overploeng by adding small amount of random noise to each point to spread the overlapping points out e.g. scatter plot
+```{r}
+library(patchwork)
+p1 <- ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy), position = "jitter", alpha = 0.5)
+p2 <- ggplot(data = mpg) + geom_jitter(aes(x = displ, y = hwy), alpha = 0.5)
+p1 + p2
+```
+
+## Practice 1
+```{r}
+ggplot(mpg,aes(displ,hwy))+
+  geom_point()+
+  geom_smooth(method='loess',formula = 'y~x')
+```
+
+## Practice 2
+```{r}
+ggplot(mpg,aes(displ,hwy))+
+  geom_point()+
+  geom_smooth(aes(group=drv),method='loess',formula = 'y~x',se=F)
+```
+
+## Practice 3
+```{r}
+ggplot(mpg,aes(displ,hwy))+
+  geom_point(aes(color=drv))+
+  geom_smooth(aes(group=drv,color=drv),method='loess',formula = 'y~x',se=F)
+```
+
+## Practice 4
+```{r}
+ggplot(mpg,aes(displ,hwy))+
+  geom_point(colour="white",size=4)+
+  geom_point(aes(colour=drv))
+```
+
+## Practice 5
+```{r}
+ggplot(mpg,aes(x=displ))+
+  geom_density(aes(y=..count..,fill=drv),alpha=0.2,color=0)+
+  geom_line(aes(y=..count..,group=drv),stat="density")
+```
+
+## Practice 6
+```{r}
+ggplot(mpg,aes(class,hwy))+
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(aes(group=class),width=0.25,color="blue")
+```
+
+## Practice 7
+```{r}
+p1 <- ggplot(mpg) +
+  geom_point(aes(x = hwy, y = displ), alpha = 0.5) 
+p2 <- ggplot(mpg) +
+  geom_histogram(aes(x = hwy), binwidth = 2, na.rm = T) 
+
+p3 <- ggplot(mpg) +
+  geom_histogram(aes(x = displ), binwidth = 0.5, na.rm = T) 
+
+p1+p2+p3
+```
+
