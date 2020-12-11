@@ -1,0 +1,72 @@
+---
+title: "Cheetsheet_3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(nycflights13)
+library(tidyverse)
+```
+
+## information about variables
+```{r}
+str(flights)
+dim(flights)
+```
+
+## select()
+```{r}
+head(select(flights, year:day))
+```
+
+## de-select()
+```{r}
+head(select(flights, -(year:day)))
+```
+
+## select by name patterns
+```{r}
+head(select(flights, c(carrier, ends_with("time"), contains("delay"))))
+```
+
+## filter()
+```{r}
+head(jan1 <- head(filter(flights, month == 1, day == 1, dep_delay > 0)))
+```
+
+## summarise():  collapses a data frame into a single row
+```{r}
+summarise(flights, delay = mean(dep_delay,na.rm = TRUE))
+```
+
+
+## group_by()
+```{r}
+by_dest <- group_by(flights, dest) # grouping by destination
+head(summarise(by_dest,count = n(),dist = mean(distance, na.rm = TRUE),delay = mean(arr_delay, na.rm = TRUE))) # summarising count, distance and arrival delay
+```
+
+
+
+## arrange()
+```{r}
+head(arrange(flights, desc(dep_delay), desc(arr_delay)))
+```
+
+
+## join()
+
+## mutate(): add new variables
+```{r}
+flights_sml <- select(flights,year:day,ends_with("delay"),distance,air_time)
+head(mutate(flights_sml,gain = dep_delay - arr_delay,speed = distance / air_time * 60))
+
+```
+
+## only the new variables
+```{r}
+head(transmute(flights,gain = dep_delay - arr_delay,hours = air_time / 60,gain_per_hour = gain / hours))
+```
+
+
