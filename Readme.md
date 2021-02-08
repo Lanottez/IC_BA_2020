@@ -1,7 +1,3 @@
-12:20 8/2/2021 Network Analytics Quiz 2
-
-17:00 8/2/2021 Network Analytics Homework 2
-
 17:00 14/2/2021 Analytics in Business Heat Smart Orkney report
 
 17:00 14/2/2021 Analytics in Business Heat Smart Orkney video presentation
