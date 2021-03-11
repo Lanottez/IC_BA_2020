@@ -1,0 +1,66 @@
+---
+title: "Assignment 2: SCANPRO Model"
+output: html_document
+---
+
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(readxl)
+library(kableExtra)
+
+```
+
+<br/>
+<br/>
+
+
+Now it is time to apply what you’ve learned to some exciting, real-world data!
+
+In file scanpro_beauty.xlsx, you will be able to get access to monthly sales data of a world leading beauty product in a regional market in Asia for a 51-month period. 
+
+In the dataset you will find the following variables:
+
+* **month**: monthly index (1 to 51)
+
+* **sales**: regional monthly sales volume (in thousands) of the beauty product within a specific month.
+
+* **price**: monthly average price (in cents) of the beauty product across all retailers in the region.
+
+* **presence**: monthly retailer shelf presence index (i.e., a measure of shelf visibility developed by the brand internally; the higher the value, the higher the shelf visibility).
+
+* **media**: monthly media coverage index (i.e., a comprehensive measure of overall intensity of media exposure across all marketing channels of the brand; the higher the value, the more intensive the media exposure)
+
+<br/>
+
+Here is a pre-view of part of the dataset:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+setwd("~/Downloads/scanpro")
+
+scanpro_beauty <- read_excel("scanpro_beauty.xlsx")
+
+kable(head(scanpro_beauty[,1:5]),caption = "Table 1 Sample Monthly Sales Data")%>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+  
+```
+
+<br/>
+
+### Task:
+
+<br/>
+
+* Assess the effectiveness of various types of marketing efforts in driving up monthly sales by fitting a SCAN*PRO model.
+
+* Interpret model parameters with marketing insights.
+
+* Comment on possible ways to improve model performance.
+  
+<br/>
+<br/>
+
+

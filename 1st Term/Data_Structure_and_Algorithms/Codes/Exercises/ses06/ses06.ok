@@ -1,0 +1,30 @@
+{
+    "name": "Session 6",
+    "endpoint": "icbs/busi97284/fa20/ses06",
+    "src": [
+        "ses06.py",
+        "ses06_extra.py",
+        "trump_tweets.ipynb",
+        "web_scraping.ipynb"
+    ],
+    "tests": {
+      "tests/recap.py": "ok_test",
+      "tests/dicts.py": "ok_test",
+      "tests/sets.py": "ok_test",
+      "tests/tuples.py": "ok_test",
+      "tests/comprehensions.py": "ok_test",
+      "ses06.py:print_dict_values": "doctest",
+      "ses06.py:count_characters": "doctest",
+      "ses06.py:divide": "doctest",
+      "ses06.py:count_words": "doctest",
+      "ses06_extra.py:caesar_cipher_encrypt": "doctest",
+      "ses06_extra.py:caesar_cipher_decrypt": "doctest"
+    },
+    "protocols": [
+        "file_contents",
+        "grading",
+        "analytics",
+        "backup"
+    ]
+}
+

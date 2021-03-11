@@ -1,0 +1,548 @@
+---
+title: "Using Neural Networks to Forecast Sales"
+output:
+html_document: default
+---
+
+
+```{r include=FALSE}
+# If you are using Windows and cannot proceed with the installation and package loading, you might need to run the following codes in this chunk:
+
+#install.packages("installr",repos = "http://cran.us.r-project.org")
+#library(installr)
+
+#install.rtools()
+#install.pandoc()
+```
+
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+
+install.packages("knitr", repos = "http://cran.us.r-project.org")
+install.packages("dplyr", repos = "http://cran.us.r-project.org")
+install.packages("readxl", repos = "http://cran.us.r-project.org")
+install.packages("lme4", repos = "http://cran.us.r-project.org")
+install.packages("stats", repos = "http://cran.us.r-project.org")
+install.packages("neuralnet", repos = "http://cran.us.r-project.org")
+
+
+library(knitr)
+library(dplyr)
+library(readxl)
+library(lme4)
+library(stats)
+library(neuralnet)
+
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(123)
+```
+
+<br/>
+<br/>
+
+
+## Preparations and Set Up
+
+
+Before we start, let us do some preparation work to get ready!
+
+We need to: 
+
+* Create a folder and set working directory to that folder on your device,
+
+* Download datasets needed for this tutorial onto your working directory, and
+
+* Load datasets for analysis later as we proceed
+
+
+The two datasets of this tutorial are made available to you. The files are *Europe* and *Neural_network* and are stored in an *xlsx* format. 
+
+To save these two datasets and for the convenience of analysis, let us create a folder on your computer and name the folder *forecasting*. And then let us download the two files to the folder (*forecasting*) that you just created. 
+
+To load the datasets to R, we need to run only **part** of the following chunk of codes, depending on the **operating system** of your device. Please add a "#" before each line of non-applicable codes in the chunk below to avoid executing unnecessary or redundant codes and receiving error messages. For example, if you are using a Mac, you need to put "#" before code *setwd("H:/downloads/forecasting")*.
+
+
+
+```{r}
+# Please run the following codes depending on the operating system on your laptop/PC. 
+
+# if you are using iOS, and your *forecasting* folder is created under "Downloads" on your Mac: you will need to first set your working directory to *forecasting* folder:
+
+setwd("~/Downloads/forecasting")
+
+# if you are using Windows, and your *forecasting* folder is created in your H drive: you will need to first set your working directory to *forecasting* folder:
+
+#setwd("H:/downloads/forecasting")
+
+# load the datasets
+Europe <- read_excel("Europe.xlsx")
+NeuralPriceAdsData <-read_xlsx("Neural_network.xlsx")
+
+```
+
+</br>
+</br>
+
+**Now we are ready to go!**
+
+</br>
+</br>
+
+
+SSales forecasting seems not a cutting-edge technique to most of us since you have already learned to perform basic forecasting using some standard tools like regression. However, in the context of retailing, sales forecasting is far more complicated than what you would expect. What would you do if a firm introduces a brand-new product that has no historical records at all? What if the product is new to the firm but not for the market? What if product demand shows seasonality? What if product demand is rather random with no obvious patterns to be detected? What if the situation is a mix of two or more of those mentioned above? 
+
+Marketing analysts need to consider all these possibilities to perform forecasting in the right way. In this session, we are going to explore some forecasting techniques anchoring in a real-world retailing context. At the end of the session, you will be able to: 
+
+* Recall your knowledge and techniques in basic forecasting using multiple linear regression
+
+* Explore forecasting with the help of Artificial Intelligence (AI), using neural network
+
+* Pick the right forecasting tool under different real business world circumstances
+
+</br>
+</br>
+
+**Let's start!**
+
+</br>
+</br>
+
+
+## 1. Using Multiple Linear Regression for Forecasting 
+
+<br/>
+
+A common need in retailing analytics is forecasting the sales of a product. This session continues the discussion of forecasting as it pertains to this need. In forecasting, you try and predict a dependent variable (usually called y) from one or more independent variables (usually referred to as $x_1$, $x_2$, ..., $x_n$). 
+
+To gain better and more accurate insights about the often complex relationships between a variable of interest and its predictors, as well as to better forecast, one needs to move towards multiple regression in which more than one independent variable is used to forecast y. Utilizing multiple regression may lead to improved forecasting accuracy along with a better understanding of the variables that actually cause y.
+
+<br/>
+
+### A Quick Look Back
+
+<br/>
+
+To remind you of how to use multiple linear regression, let us explore an example of a fictitious computer sales company, HAL Computer. HAL sets sales quotas for all salespeople based on their territory. To set fair quotas, HAL needs a way to accurately forecast computer sales in each person’s territory. 
+
+</br>
+
+### 1.1 Data
+<br/>
+
+In this particular section, we are going to use *Europe.xlsx* file as the dataset. Since we have already loaded the data onto our Global Environment, we can take a pre-view of part of the dataset.
+
+```{r}
+
+head(Europe)
+
+```
+
+</br>
+
+In the dataset you will see the following variables:
+
+- sales_per_capita: Sales per capita (in U.S. dollars)
+
+- gnp_per_head: GNP per head
+
+- unemploy: Average Unemployment Rate 2014-2019
+
+- education_spending: Percentage of GNP spent on education
+
+This data is cross-sectional data because the same dependent variable is measured in different locations at the same point in time. (Note that in time series data, the same dependent variable is measured at different times.)
+
+In order to apply the multiple linear regression model to the example, y = Computer Spending per Capita, $x_1$ = GNP per Capita, $x_2$ = Unemployment Rate, and $x_3$ = Percentage of GNP Spent on Education.
+
+</br>
+</br>
+
+### 1.2 Model Fitting
+
+<br/>
+
+```{r, warning=FALSE, message=FALSE}
+fit<- lm(sales_per_capita~gnp_per_head+unemploy+education_spending, data = Europe)
+summary(fit)
+```
+
+Here in the above line of R code, *lm* refers to a linear model, which is the type of model that we are adopting for this specific task. Inside the bracket, our dependent variable is written on the left-hand side of "~", and our three independent variables are written on the right-hand side of the "~". data=Europe means that we are using the European dataset for this regression analysis.  
+
+<br/>
+
+
+To interpret the output, you must analyze a variety of elements listed in the output. Each element of the output affects the output in a unique manner. The following sections explain how to interpret the important elements of the regression output.
+
+
+
+### 1.3 Coefficients
+
+After getting all the coefficients, we can tell now that the predicted Computer Sales per Capita = –114.84 + .002298 * (GNP per Capita) + 4.22 * (Unemployment Rate) + 21.42(Percentage GNP Spent on Education)
+
+R found this equation by the values that minimize the sum over all observations of $(Actual Dependent Variable – Predicted Value)^2$. The coefficients are called the least squares estimates. You square the errors so positive and negative values do not cancel. Note that if the equation perfectly fits each observation, then the sum of squared errors is equal to 0.
+
+<br/>
+
+---
+
+**Question**: Can you comment on the model performance? How well does this multiple linear regression model work in terms of helping with sales forecasting? 
+
+---
+ 
+<br/>
+
+Some of you might argue that such a model makes too strict an assumption that the relationship between all the predictors (in this case, gnp per capita, educational spending, and unemployment rate) and predicted value (in this case, sales) is restricted to be linear, or additive, which is not necessarily the case. For example, could educational spending have a non-linear (e.g., multiplicative) impact on sales? 
+
+Having said so, it is actually still hard for us to speculate on the exact functional form of the forecasting equation since, after all, there can be so many types of possibilities. However, thanks to several exciting advancements in analytical technologies, we can rely on artificial intelligence to figure this myth out for us.
+
+<br/>
+<br/>
+
+
+## 2. Regression and Neural Networks
+
+<br/>
+
+Neural nets are a fantastic form of artificial intelligence that can capture complex relationships between dependent and independent variables. Essentially a neural network is a “black box” that searches many models (including nonlinear models involving interactions) to find a relationship involving the independent variables that best predict the dependent variable. In a neural network, the independent variables are called input cells, and the dependent variable is called an output cell (more than one output is OK).
+
+As in regression, neural nets have a certain number of observations (say, N). Each observation contains a value for each independent variable and dependent variable. Also, similar to a regression, the goal of the neural network is to make accurate predictions for the output cell or dependent variable. 
+
+As you will see, the usage of neural networks is increasing rapidly because neural networks are great at finding patterns. In regression, you only find a pattern if you know what to look for. 
+
+For example, if $y = ln(x)$ and you simply use x as an independent variable, you cannot predict y very well. A neural network does not need to be “told” the nature of the relationship between the independent variables and the dependent variable. If a relationship or pattern exists and you provide the neural network enough data, it can find the pattern on its own by “learning” it from the data. 
+
+A major advantage of neural networks over regression is that this method requires no statistical assumptions about your data. For example, unlike regression, you do not assume that your errors are independent and normally distributed.
+
+
+---
+
+**Question**: After knowing the basic concepts, now do you think neural networks will be able to outperform or will underperform multiple linear model in forecasting? Why do you think so? 
+
+---
+
+</br>
+
+### 2.1 Using Neural Nets to Predict Sales
+
+<br/>
+
+To demonstrate how neural networks can find patterns in data, let us use the data in the *Neuralpriceads* file. We are going to fit a multiple linear model and use neural network to do forecasting and then compare the model performance. 
+
+Here in the data, you are given the weekly price of the product, and advertising amount (in hundreds of dollars). 
+
+You can construct sales under the assumption that when the price is high, advertising has no effect. More specifically, let's say that you can create weekly sales with the following rules:
+
+* If Price is less than or equal to `$`8,then $Sales = 500 – 15 * Price + 0.1 * Advertising$.
+
+* If Price is greater than `$`8, then $Sales = 500 – 15 * Price$. In this case advertising has no effect on sales.
+
+
+```{r message=FALSE, warning=FALSE}
+
+NeuralPriceAdsData <- NeuralPriceAdsData %>% 
+  mutate(Sales = ifelse(Price <= 8, 500 -15*Price + 0.1*Advertising, 500 - 15*Price))
+
+
+head(NeuralPriceAdsData)
+
+```
+
+<br/>
+
+Now we start processing the data as we planned above:
+
+<br/>
+
+### 2.2 Multiple Linear Regression
+
+<br/>
+
+After these initiail processing, we can now start by first running a multiple linear regression to predict Sales from Price and Advertising. Then we can apply neural network to repeat the same task and compare model performances under the two methods.
+
+
+At this point we use 80 percent of the data set to estimate the linear model. There are 334 data points in the *NeuralPriceAds* data. You can find that 267 data points were used for model estimation, and 67 data points were used to forecast sales and test model accuracy. 
+
+There are many ways to divide the data into training and testing set. Here the observations used for the testing and training sets are *randomly* chosen. That is, each observation has an 80 percent chance of being in the training set and a 20 percent chance of being in the testing set. We are going to use the test dataset to obtain the error later. 
+
+
+```{r}
+train_ind_mlr <- sample(seq_len(nrow(NeuralPriceAdsData)), size = floor(nrow(NeuralPriceAdsData) * 0.8))
+
+train_mlr <- NeuralPriceAdsData[train_ind_mlr,]
+test_mlr <- NeuralPriceAdsData[-train_ind_mlr,]
+
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+
+lm_neural <- lm(Sales ~ Price + Advertising, data = train_mlr)
+summary(lm_neural)
+
+```
+
+Reading from the results, the regression has a high $R^2$ and a standard error of 2.02 units. 
+
+After estimating a MLR model using the training set, now we forecast sales in the testing set using *predict* function. 
+
+```{r, message=FALSE, warning=FALSE}
+
+lm_predict_neural_train <- predict(lm_neural , data = train_mlr)
+lm_predict_neural_test <- predict(lm_neural , newdata = test_mlr)
+
+# We name predicted sales using MLR method "Predict_MLR", and add that column into our dataset:
+NeuralPriceAdsData[train_ind_mlr,'Predict_MLR'] <- lm_predict_neural_train
+NeuralPriceAdsData[-train_ind_mlr,'Predict_MLR'] <- lm_predict_neural_test
+
+#N Now take a look at the first few rows of the updated data
+head(NeuralPriceAdsData[-train_ind_mlr,])
+
+```
+
+
+The first and last column in the table above lists original and predicted sales using MLR method, respectively. 
+
+Now we proceed to evaluate prediction accuracy by calculating the Root Mean Squared Error, or RMSE.
+
+```{r}
+#use the index to get the original value of sales in testing dataset. 
+test_mlr.r <- NeuralPriceAdsData$Sales[-train_ind_mlr]
+
+#use the index to get the predicted value of sales (using MLR method) in testing dataset. 
+test_mlr_predict.r <- NeuralPriceAdsData$Predict_MLR[-train_ind_mlr]
+
+#calculate the Root Mean Squared Error of testing dataset
+rmse.test_mlr <- (sum((test_mlr.r - test_mlr_predict.r )^2)/67)^0.5
+
+rmse.test_mlr
+
+```
+
+We get that the RMSE of sales forecasting using MLR method is 2.04. 
+
+<br/>
+
+### 2.3 Neural Networks
+
+<br/>
+
+Now it's time for us to apply neural network to repeat the analysis above. 
+
+<br/>
+
+#### 2.3.1 Normalise the data
+<br/>
+
+As a first step, we are going to address data pre-processing.
+It is good practice to normalize your data before training a neural network. This step is critical as, depending on your dataset, avoiding normalization may lead to useless results or to a very difficult training process (most of the time, the algorithm will not converge before the number of maximum iterations allowed). 
+
+You can choose different methods to scale the data (z-normalization, min-max scale, etc.). Here we chose to use the min-max method and scale the data in the interval [0,1]. Usually, scaling in the intervals [0,1] or [-1,1] tends to give better results.
+
+
+<br/>
+
+```{r}
+#normalise data
+maxs <- apply(NeuralPriceAdsData, 2, max) 
+mins <- apply(NeuralPriceAdsData, 2, min)
+scaled <- as.data.frame(scale(NeuralPriceAdsData, center = mins, scale = maxs - mins))
+
+```
+
+<br/>
+
+#### 2.3.2 Split the data into training and testing set
+
+<br/>
+
+At this point we use 80 percent of the data set to train the network. There are 334 data points in the *NeuralPriceAds* data. You can find that 267 data points were used to train the network, and 67 data points were used to test the network. The observations used for the testing and training sets are randomly chosen. That is, each observation has an 80 percent chance of being in the training set and a 20 percent chance of being in the testing set. We are going to use the test dataset to obtain the error later. 
+
+**Note** that we use *"_mlr"* and *"_nn"* to distinguish two methods examined in this section.
+
+```{r}
+## set the seed to make your partition reproducible
+#set.seed(123)
+
+train_ind_nn <- sample(seq_len(nrow(NeuralPriceAdsData)), size = floor(nrow(NeuralPriceAdsData) * 0.8))
+
+train_nn <- scaled[train_ind_nn,]
+test_nn <- scaled[-train_ind_nn,]
+
+```
+
+<br/>
+
+#### 2.3.3 Train the model
+
+<br/>
+
+The package we use is the the *neuralnet* library. 
+
+<br/>
+
+```{r}
+nn = neuralnet(formula = Sales ~ Price + Advertising, 
+               data = train_nn,
+               hidden = 2, 
+               linear.output=TRUE, 
+               err.fct = 'sse')
+```
+
+\bigbreak
+
+It requires the following input into the function: 
+
+* *formula*: Sales ~ Price + Advertising, Sales is the output and Price and Advertising are features. This is the same formula used in linear regression (lm library).
+
+* *data*: the data frame containing the variables specified in the formula is train
+
+* *hidden*: a vector of integers specifying the number of hidden neurons (vertices) in each layer. One could specify the number of hidden layers and the number of neurons in each layer. It is beyond the scope of this book to discuss how neural networks create predictions. It is sufficient at this point to know that (i) one hidden layer gets decent performance for most problems, including this case of sales prediction; (ii) the number of neurons in that layer is the mean of the number of features in the independent variables and dependent variables, which is 1 or 2 in this case. We could test it out to compare the performance of 1 neuron vs 2 neurons and decide. 
+
+* *linear.output*: we are solving a linear regression problem so it's True. 
+
+* *err.fct* is the error function. *sse* standas for Sum of Squared Error. 
+
+<br/>
+
+The output the nn contains the following:
+
+```{r}
+summary(nn)
+```
+
+<br/>
+
+It is the *net.result* and *result.matrix* that we are most interested in. *net.result* contains the fitted value of Sales, and *result.matrix* contains the error value. However at this point both the fitted sales value and error value are computed on the normalised scale. 
+
+We need one more step to revert back to the original scale, and calculate the errors using the correct scale. We will calculate the Root Mean Squared Error (RMSE) so that it's comparable to the error generated by linear regression model. 
+
+<br/>
+
+```{r}
+nn$result.matrix['error',]
+```
+
+<br/>
+
+```{r}
+#revert the fitted value back to original scale
+fitted.train_nn <- nn$net.result[[1]] * (max(NeuralPriceAdsData$Sales)-min(NeuralPriceAdsData$Sales))+min(NeuralPriceAdsData$Sales)
+
+#use the index to get the original value of sales in train dataset. 
+train_nn.r <- NeuralPriceAdsData$Sales[train_ind_nn]
+
+#calculate the Root Mean Squared Error of train dataset
+rmse.train_nn <- (sum((train_nn.r - fitted.train_nn )^2)/nrow(fitted.train_nn))^0.5
+
+rmse.train_nn
+```
+
+<br/>
+
+The RMSE is `r round(rmse.train_nn, 2)` which is lower than that of the linear regression of 2.02. 
+
+Now we will predict the sales in test dataset. 
+
+<br/>
+
+#### 2.3.4 Compute Prediction Error and Compare Model Performance Using MLR vs. NN
+
+<br/>
+
+```{r}
+#fit model using test dataset
+Predict.nn <- compute(nn,test_nn)
+
+#get the predicted sales in original scale
+Predict.nn_ <- Predict.nn$net.result*(max(NeuralPriceAdsData$Sales)-min(NeuralPriceAdsData$Sales))+min(NeuralPriceAdsData$Sales)
+
+#gather test data
+test.r_nn <- NeuralPriceAdsData$Sales[-train_ind_nn]
+
+rmse.test_nn <- (sum((test.r_nn - Predict.nn_)^2)/67)^0.5
+#print(paste(MSE.lm,MSE.nn))
+
+rmse.test_nn
+
+```
+
+<br/>
+
+The RMSE for test data is is `r round(rmse.test_nn, 2)` which is still lower than that of the linear regression of 2.03 and pretty impressive.
+
+Below we print the predicted sales (Predict) from the testing set, together with actual sales data (Sales). You can observe that the two columns are nearly identify, indicating that the neural net figured out the pattern in the data.
+
+<br/>
+
+
+```{r}
+NeuralPriceAdsData[train_ind_nn,'Predict_NN'] <- fitted.train_nn
+NeuralPriceAdsData[-train_ind_nn,'Predict_NN'] <- Predict.nn_
+
+head(NeuralPriceAdsData[-train_ind_nn,])
+
+```
+
+<br/>
+
+Here in the table above, we can directly inspect the difference in predicted sales using MLR vs. NN method.
+
+To further visualize and assess our prediction accuracy, a good way is to plot the testing dataset (i.e., the other 20% of the dataset consists of 67 observations and are used for prediction rather than model fitting) as you can see that the plotted actual sales (curve in red) and the predicted sales (curve in green) co-move nicely with each other. This means that our predicted sales are rather accurate.
+
+
+```{r}
+week <- c(1:67)
+
+## NN method
+actual_sales <- NeuralPriceAdsData[-train_ind_nn,'Sales']
+predicted_sales_nn <-NeuralPriceAdsData[-train_ind_nn,'Predict_NN']
+
+plot_data_nn <-data.frame(week, actual_sales, predicted_sales_nn)
+
+
+plot(plot_data_nn$week, plot_data_nn$Sales, col="red")
+lines(plot_data_nn$week, plot_data_nn$Sales, col="red")
+points(plot_data_nn$week, plot_data_nn$Predict_NN, col="green")
+lines(plot_data_nn$week, plot_data_nn$Predict_NN,col="green")
+
+
+```
+
+<br/>
+<br/>
+
+We can plot the same graph for MLR method if you would like to see the contrast.
+
+```{r}
+week <- c(1:67)
+
+## MLR method
+actual_sales <- NeuralPriceAdsData[-train_ind_mlr,'Sales']
+predicted_sales_mlr <-NeuralPriceAdsData[-train_ind_mlr,'Predict_MLR']
+
+plot_data_mlr <-data.frame(week, actual_sales, predicted_sales_mlr)
+
+
+plot(plot_data_mlr$week, plot_data_mlr$Sales, col="red")
+lines(plot_data_mlr$week, plot_data_mlr$Sales, col="red")
+points(plot_data_mlr$week, plot_data_mlr$Predict_MLR, col="blue")
+lines(plot_data_mlr$week, plot_data_mlr$Predict_MLR,col="blue")
+
+
+```
+
+
+
+
+<br/>
+<br/>
+
+
+** **THE END OF THIS TUTORIAL**  **
+
+<br/>
+<br/>
+
+
+
+
+

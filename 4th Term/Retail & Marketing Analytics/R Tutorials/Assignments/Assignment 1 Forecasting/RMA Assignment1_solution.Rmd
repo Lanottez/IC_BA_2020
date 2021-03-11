@@ -1,0 +1,641 @@
+---
+title: "Assignment 1 Solution"
+---
+
+
+<br/>
+
+## 1. Introduction
+
+Promotions are designed to improve firms' sales, revenue and market share. They can be divided into price (e.g. temporary discounts) and non-price promotions (e.g. bundling packages, bonuses, coupons). Analysing promotional data is integral to understand the effectiveness of these tools in driving the desired performance metric and forecast the effects going forward. Promotions have wider implications for the supply chain, logistics and financial management of businesses as adjustments may be necessary to match the increased demand and production.
+
+This assignment addresses two key questions. This first asks *what is the difference in effectiveness of price and non-price promotions in improving firms' sales performance?* A multivariate linear regression (MLR) model is deployed to fit the dataset and question of interest. The price elasticities and cross-price elasticities of demand are estimated, as well as the promotional-elasticity of price and non-price promotions. The model also estimates the cross-effects of competitors' promotional activities on sales to capture the wider implications of aggressive competitor promotions. 
+
+The second question asks *what methods are best to predict the effect of promotions on future sales?* This paper compares the use of multilinear regression, a traditional parametric technique, with the use of Neural Networks, a non-parametric technique, and discusses the key benefits and limitations of both.
+
+
+```{r include=FALSE}
+library(knitr)
+library(dplyr)
+library(kableExtra)
+library(readxl)
+library(forecast)
+library(tseries)
+library(vars)
+library(lme4)
+library(lubridate)
+library(ggplot2)
+library(readr)
+library(stargazer)
+library(neuralnet)
+```
+
+<br/>
+
+## 2. Data 
+
+### 2.1 Dataset
+This report uses weekly store-level scanner data provided by an anonymous beer brand in the US. The analysis focuses on the Top 3 brands of beer sold between 14th September 2015 to 19th January 2020, covering 227 weeks (4.4 years). 
+
+The dataset includes price level data, average weekly retail price ($price_i$) and wholesale prices ($wprice_i$) for each brand; performance metrics, sales ($sales_i$) and retail margin ($retailmargin_i$); and promotional activity, feature ($feature_i$) and display ($display_i$) variables. $feature_i$ measures the fraction of a brand's stock keeping units (SKU) placed on a "price special" during the week (i.e. a temporary price reduction such as 15% off). Comparatively, $display$ represents the fraction of all SKUs sold as a "Bonus Buy" (e.g. volume discounts such as "buy one, get one free"). Therefore, $feature_i$ is an example of price promotions and $display_i$ an example of non-price promotions. 
+
+Table 1 shows a sample of the data. 
+
+
+```{r}
+# Please run the following codes depending on the operating system on your laptop/PC. 
+
+# if you are using iOS, and your *forecasting* folder is created under "Downloads" on your Mac: you will need to first set your working directory to *forecasting* folder:
+
+setwd("~/Downloads/assignment_1")
+
+# if you are using Windows, and your *forecasting* folder is created in your H drive: you will need to first set your working directory to *forecasting* folder:
+
+#setwd("H:/downloads/assignment_1")
+
+# load the datasets
+beer <- read_excel("beer.xlsx")
+
+```
+
+```{r, echo = FALSE}
+
+# Rename dataset variables
+beer <- beer %>% rename(
+          total_sales = "Category Sales",
+          price_1 = PRICEBRAND1,
+          price_2 = PRICEBRAND2,
+          price_3 = PRICEBRAND3, 
+          display_1 = display_brand1,
+          display_2 = display_brand2,
+          display_3 = display_brand3,
+          feature_1 = FEATUREBRAND1,
+          feature_2 = FEATUREBRAND2,
+          feature_3 = FEATUREBRAND3, 
+          retailmargin_1 = RETAILERMARGINBRAND1,
+          retailmargin_2 = RETAILERMARGINBRAND2,
+          retailmargin_3 = RETAILERMARGINBRAND3,
+          sales_1 = SALESBRAND1,
+          sales_2 = SALESBRAND2,
+          sales_3 = SALESBRAND3,
+          wprice_1 = WHOLESALEPRICE1,
+          wprice_2 = WHOLESALEPRICE2,
+          wprice_3 = WHOLESALEPRICE3)
+
+beer <- na.omit(beer, cols=c("price_1", "price_2", "price_3", "display_1", "display_2", "display_3", "feature_1", "feature_2", "feature_3"))
+
+# display sample
+kable(head(beer[,1:11]), caption = "Table 1 Original Dataset")%>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+cols <- c(1, 12:20)
+
+# display sample
+kable(head(beer[,cols]),caption = "Sample Data")%>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+
+### 2.2 Descriptive Analysis
+Most of the time, these brands deploy some form of feature or display (97% of the time for Brand 1, 100% of the time for Brand 2, and 92% for Brand 3). Figures 1 and 2 show the most common form of promotion across all three brands is display, which is used more often and on a larger fraction of goods compared to feature.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height=5, fig.width=5}
+library(gridExtra)
+p1 <- beer %>% ggplot() + geom_histogram(aes(x=feature_1), fill="darkblue", alpha=0.8) + labs(title = "Figure 1: Distribution of Featured Products by Brand", y = "Count", x="% of Brand 1 SKU on feature") + xlim(-0.004, 0.15) +
+theme(text = element_text(size=9))
+
+p2 <- beer %>% ggplot() + geom_histogram(aes(x=feature_2), fill="blue", alpha=0.8) + labs(y = "Count", x="% of Brand 2 SKU on feature")+ xlim(-0.004, 0.15) +
+theme(text = element_text(size=9))
+
+p3 <- beer %>% ggplot() + geom_histogram(aes(x=feature_3), fill="skyblue") + labs(y = "Count", x="% of Brand 3 SKU on feature")+ xlim(-0.004, 0.15) +
+theme(text = element_text(size=9))
+
+grid.arrange(p1,p2,p3,nrow=3)
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height=5, fig.width=5}
+p1 <- beer %>% ggplot() + geom_histogram(aes(x=display_1), fill="darkblue", alpha=0.8) + labs(title = "Figure 2: Distribution of Displayed Products by Brand", y = "Count", x="% of Brand 1 SKU on display") + xlim(-0.004, 0.50) +
+theme(text = element_text(size=9))
+
+p2 <- beer %>% ggplot() + geom_histogram(aes(x=display_2), fill="blue", alpha=0.8) + labs(y = "Count", x="% of Brand 2 SKU on display")+ xlim(-0.004, 0.50) +
+theme(text = element_text(size=9))
+
+
+p3 <- beer %>% ggplot() + geom_histogram(aes(x=display_3), fill="skyblue") + labs(y = "Count", x="% of Brand 3 SKU on display")+ xlim(-0.004, 0.50) +
+theme(text = element_text(size=9))
+
+grid.arrange(p1,p2,p3,nrow=3)
+```
+
+
+In Figure 3, the relationship between price and sales suggests demand is relatively price-sensitive, with price changes almost always matched by a larger movement in sales.
+
+```{r, fig.height=5, fig.width=5, echo = FALSE, message = FALSE, warning = FALSE}
+p1 <- beer %>% ggplot() + geom_line(aes(x=Week, y=sales_1), colour="blue") + geom_line(aes(x = Week, y = price_1*10000), colour="red") + scale_y_continuous(limits = c(0,75000), sec.axis = sec_axis(~. / 10000 , name="Brand 1 Price")) + labs(y="Brand 1 Sales", title = "Figure 3: Sales and Price Relationship", x = NULL) +
+theme(text = element_text(size=9))
+
+p2 <- beer %>% ggplot() + geom_line(aes(x=Week, y=sales_1), colour="blue") + geom_line(aes(x = Week, y = price_1*10000), colour="red") + scale_y_continuous(limits = c(0,75000), sec.axis = sec_axis(~. / 10000 , name="Brand 2 Price")) + labs(y="Brand 2 Sales", x=NULL) +
+theme(text = element_text(size=9))
+
+p3 <- beer %>% ggplot() + geom_line(aes(x=Week, y=sales_1), colour="blue") + geom_line(aes(x = Week, y = price_1*10000), colour="red") + scale_y_continuous(limits = c(0,75000), sec.axis = sec_axis(~. / 10000 , name="Brand 3 Price")) + labs(y="Brand 3 Sales") +
+theme(text = element_text(size=9))
+
+grid.arrange(p1,p2,p3,nrow=3)
+```
+
+<br/>
+
+## 3. Effectiveness of Promotions
+
+This section addresses the first question: *what is the difference in effectiveness of price and non-price promotions in improving sales performance?*
+
+### 3.1 Traditional MLR Model
+
+Multivariate Linear Regression (MLR) Model is a parametric approach that assumes a linear relationship between promotional activity and performance. It has the clear advantage of being a “white-box” model that is easy to understand and interpret. However, MLRs impose stringent assumptions, such as specific functional forms and independently and normally distributed errors, which may not fit the data at hand.
+
+
+Conceptually, we would like to estimate a model of sales of brand $j$ at week $t$ as a function of price of own brand and competing brands, and feature and display advertising: 
+
+$$ Sales_{jt} = \sum_{r=1}^{3} \beta_{rj}Price_{rt} + \sum_{r=1}^{3} \gamma_{rj}Feature_{rt}+ \sum_{r=1}^{3} \omega_{rj}Display_{jt} + \epsilon_{jt}\ $$
+
+
+
+
+### 3.2 Adjusted MLR Model
+
+The basic MLR model was adjusted to account for specific features of this dataset and address limitations of the original model. As this dataset provides granular insight into the percentage of SKUs featured/displayed in a given week, the final model uses this percentage, rather than a binary variable, to allow for richer analysis into the effect of promotion size. A feature/display multiplicative term is not included as the cross-over between featured products and displayed products is unknown.
+
+Seasonality leads to large sales volatility and often informs promotional planning. The grey bar on the right-hand side of Figure 4 indicates the relative significance of the trend, seasonality and random components in explaining the variation in total sales. Seasonality explains a significant portion of the change in sales. This appears monthly and therefore monthly dummies were included.
+
+**Figure 4: Decomposition of Sales**
+
+```{r,  echo = FALSE, message = FALSE, warning = FALSE}
+ts_beer <- ts(beer, frequency = 52, start=c(0,1))
+plot_sales <- ts_beer[,2]
+plot_sales %>% stl(s.window = "period") %>% autoplot(title = "Time Series Decomposition for Sales")
+
+#plot_profit <- ts_beer[,30]
+#plot_profit %>% stl(s.window = "period") %>% autoplot
+
+# Create monthly dummies
+beer <- beer %>% mutate(
+  sept = ifelse(Week %in% c(1,2,3,52,53,54,55,104,105,106,107,156,157,158,159,208,209,210,211,212),1,0),
+  oct = ifelse(Week %in% c(4,5,6,7,56,57,58,59,108,109,110,111,112,160,161,162,163,164,213,214,215,216),1,0),
+  nov = ifelse(Week %in% c(8,9,10,11,12,60,61,62,63,64,113,114,115,116,165,166,167,168,217,218,219,220),1,0),
+  decem = ifelse(Week %in% c(13,14,15,16,65,66,67,68,117,118,119,120,169,170,171,172,173,221,222,223,224,225),1,0),
+  jan = ifelse(Week %in% c(17,18,19,20,69,70,71,72,73,121,122,123,124,125,174,175,176,177,226,227),1,0),
+  feb = ifelse(Week %in% c(21,22,23,24,74,75,76,77,126,127,128,129,178,179,180,181),1,0),
+  mar = ifelse(Week %in% c(25,26,27,28,29,78,79,80,81,130,131,132,133,182,183,184,185),1,0),
+  apr = ifelse(Week %in% c(30,31,32,33,82,83,84,85,134,135,136,137,138,186,187,188,189,190),1,0),
+  may = ifelse(Week %in% c(34,35,36,37,38,86,87,88,89,90,139,140,141,142,191,192,193,194),1,0),
+  june = ifelse(Week %in% c(39,40,41,42,91,92,93,94,143,144,145,146,195,196,197,198),1,0),
+  july = ifelse(Week %in% c(43,44,45,46,95,96,97,98,147,148,149,150,151,199,200,201,202,203),1,0),
+  aug = ifelse(Week %in% c(47,48,49,50,51,99,100,101,102,103,152,153,154,155,204,205,206,207),1,0),
+  )
+
+# Check correctly added
+#beer %>% filter(sept == 0 & oct == 0 & nov == 0 & decem == 0 & jan == 0 & feb == 0 & mar == 0 & apr == 0 & may == 0 & june == 0 & july == 0 & aug == 0)
+```
+
+Holidays and celebrations also lead to large changes in sales particularly in the Fast Moving Consumer Goods (FMCG) industry. Therefore, a dummy variable $holiday$ was created, taking a value of 1 if the week includes Halloween, Thanksgiving, Christmas, New Year or the 4th July.
+
+```{r,  echo = FALSE, message = FALSE, warning = FALSE}
+# Adding holiday dummies - incl. Halloween, Thanksgiving, Christmas, New Year, 4th July)
+beer <- beer %>% mutate(holiday = ifelse(Week %in% c(7,11,15,16,42,59,63,67,68,95,112,116,119,120,147,164,168,172,173,199,216,220,224,225,251), 1, 0))
+```
+
+
+Therefore, the final MLR model used for brands $j = 1,2,3$ is:
+
+
+$$Q_{jt}=\sum_{r=1}^{3} \beta_{rj}{P_{rt}} + \sum_{r=1}^{3} \gamma_{rj}F_{rt} + \sum_{r=1}^{3} \omega_{rj}D_{rt} + \sum_{q=1}^{12}M_{q}\delta_{jt} + H\kappa_{jt} +\epsilon_{jt} $$
+
+
+for $t = 1,...,227$ where
+
+* $Q_{jt}$ = unit sales of brand r in week t
+* $P_{rt}$ = average weekly price of brand r in week t
+* $F_{rt}$ = percentage of SKUs featured by brand r in week t
+* $D_{rt}$ = percentage of SKUs displayed by brand r in week t
+* $M_{q}$ = 1 if the week observation is in month q
+* $H$ = 1 if the week observation includes a holiday
+
+
+### 3.3 Application & Results
+
+To estimate the linear model, it is typically necessary to log-transform the data to reduce skewness. We use 80% of the data for training and estimate the following model:
+
+$$\log(Q_{jt})=\sum_{r=1}^{3} \beta_{rj}\log({P_{rt}}) + \sum_{r=1}^{3} \gamma_{rj}\log(F_{rt}) + \sum_{r=1}^{3} \omega_{rj}\log(D_{rt}) + \sum_{q=1}^{12}M_{q}\log(\delta_{jt}) + H\log(\kappa_{jt}) +\epsilon_{jt} $$
+The remaining 20% was used to compare the performance of MLR to the neural networks in Section 4. 
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+#Log transformation
+
+beer$lsales_1 <- log(beer$sales_1)
+beer$lsales_2 <- log(beer$sales_2)
+beer$lsales_3 <- log(beer$sales_3)
+
+beer$lprice_1 <- log(beer$price_1)
+beer$lprice_2 <- log(beer$price_2)
+beer$lprice_3 <- log(beer$price_3)
+```
+
+The regression results are shown in Table 2.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+train_ind <- round(nrow(beer)*0.8,0)
+beer_train <- beer[1:train_ind,]
+beer_test <- beer[(train_ind+1):227,]
+```
+
+<div style="line-height: 2em;"> 
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, results='asis'}
+mlr_1 <- lm(lsales_1 ~ lprice_1 + lprice_2 + lprice_3  + feature_1 + feature_2 + feature_3 + display_1 + display_2 + display_3 + oct + nov + decem + jan + feb + mar + apr + may + june + aug + sept + holiday, data=beer_train)
+
+mlr_2 <- lm(lsales_2 ~ lprice_1 + lprice_2 + lprice_3 + feature_1 + feature_2 + feature_3 + display_1 + display_2 + display_3 + oct + nov + decem + jan +feb + mar + apr + may + june + aug + sept + holiday, data=beer_train)
+
+mlr_3 <- lm(lsales_3 ~ lprice_1 + lprice_2 + lprice_3 + feature_1 + feature_2 + feature_3 + display_1 + display_2 + display_3 + oct + nov + decem + jan +feb + mar + apr + may + june + aug + sept + holiday, data=beer_train)
+
+stargazer(mlr_1, mlr_2, mlr_3, header = FALSE, title="Table 2: Adjusted MLR Model Regression Results", type = "html")
+```
+<br/>
+
+### 3.4 Insights & Implications
+
+<div style="line-height: 3em;"> 
+
+
+With consistently high $R^2$ values of approximately 78%, this model has effectively identified the highly informative factors driving sales performance, which can be used to guide pricing and promotional decisions. 
+
+*Price Elasticities*
+
+All three brands exhibit highly elastic demand, where a 1% decrease in prices (relative to the non-promoted median) is expected to lead to a 3.36%, 2.65% and 3.76% increase in sales for Brands 1, 2 and 3 holding all else constant. 
+
+The magnitude of coefficients, and extremely low p-values, signal price is an important lever for these brands. The significant cross-elasticities between brands are surprisingly all negative, implying that a price increase by one brand is expected to deter purchases from another. 
+
+Perhaps as these brands represent the Top 3 brands in the store, a price increase from a dominant player may signal to consumers that this alcoholic beverage category is generally becoming more expensive, causing consumers to switch to cheaper alternatives (e.g. cider, wine, or the "less-well-known" brands of beer). These results are particularly insightful for Brand 2, whose demand is highly elastic to the price of Brand 1 (almost matching 1-1) making it essential to closely monitor price movements of Brand 1.
+
+*Feature Promotions*
+
+Feature has mixed results across the three brands. Increasing the number of "price specials" is only significant for Brand 1 at the 10% level and highly insignificant for Brand 2, implying price promotions are relatively ineffective for Brands 1 and 2.
+
+Comparatively, "price specials" are extremely lucrative for Brand 3. Figure 5 (repeated from Section 2.2) shows only small fractions of SKUs are featured at a time by Brand 3. The largest percentage point increase in the fraction of featured SKUs was 0.1, which is expected to boost sales by 3.18%. Price promotions are therefore a particularly promising tool for Brand 3, as just a small increase in featured products can generate significant sales growth.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height=3, fig.width=7}
+beer %>% ggplot() + geom_histogram(aes(x=feature_3), fill="skyblue") + labs(y = "Count", x="% of SKU on feature", title = "Figure 5: Distribution of Featured Products by Brand 3")+ xlim(-0.004, 0.15)  +
+theme(text = element_text(size=9))
+```
+
+Interestingly, the model also predicts that a 0.1 percentage point increase in Brand 3's featured products is expected to boost Brand 1's sales by 3.63% and Brand 2's by 2.62% (holding all else constant). Therefore, both brands incur positive spill-over effects from the discount of Brand 3's products. Intentional price reductions attract more store traffic and so consumers may choose to spend extra "savings" on competitor's products or consumers may simply be drawn to this section of the store by the sales, and then swap to competitors' products. Brand 3 must remain aware of these cross-competitor effects during implementation.
+
+```{r, echo=FALSE}
+feature <- beer %>% 
+  mutate(diff_f1 = (feature_1 - lag(feature_1)),
+  diff_f2 = (feature_2 - lag(feature_2)),
+  diff_f3 = (feature_3 - lag(feature_3)))
+
+feature[is.na(feature)] <- 0
+feature[feature == Inf] <- 0
+
+#summary(feature$diff_f3)
+```
+
+*Display Promotions*
+
+Although feature was largely meritless for Brands 1 and 2, display is a much stronger stimulator for both. A 1% increase in the fraction of SKUs on display is expected to increase sales by 0.71% for Brand 1 and 1.66% for Brand 2. This implies non-price promotions are much more effective for these brands, and therefore volume discounts, bundles, coupons and loyalty schemes are examples of strategies that should be considered. Contrastingly, display is very ineffective for Brand 3, which should instead continue to focus on price discounts. There are also very minimal cross-effects between competitors' display strategies and performance.
+
+
+*Seasonality and Holiday Effects*
+
+Given the base month is *July*, it is clear that beer consumption is significantly lower in Summer months and higher for Winter months. Interesting, the holiday coefficients are significant and negative for all brands. Perhaps significant purchases are done in the weeks prior to these celebrations (and hence captured by the Month variables) and closures of stores due to public holidays may cause sales drops in these weeks.
+
+*Summary*
+
+Based on these results, it is clear that all brands face highly price-elastic demand. Price promotions are the most effective tool for Brand 3, however they must consider the positive spill-over effects this provides to Brands 1 and 2. Brand 1 and 2 should remain focused on non-price promotions. Given the seasonal changes of demand, the timing and size of such promotions should also be taken into consideration (e.g. larger promotions may be needed to overcome seasonal downturns and achieve desired result).
+
+
+<br/>
+
+## 4. Predicting Future Performance
+
+```{r, echo = FALSE, results = 'asis'}
+# Get predictions
+pred_mlr_1 <- predict(mlr_1, beer_test)
+pred_mlr_1 <- exp(pred_mlr_1)
+act_mlr_1 <- beer_test$sales_1
+
+pred_mlr_2 <- predict(mlr_2, beer_test)
+pred_mlr_2 <- exp(pred_mlr_2)
+act_mlr_2 <- beer_test$sales_2
+
+pred_mlr_3 <- predict(mlr_3, beer_test)
+pred_mlr_3 <- exp(pred_mlr_3)
+act_mlr_3 <- beer_test$sales_3
+
+# Calculate RMSE
+rmse_mlr_1 <- (sum((act_mlr_1 - pred_mlr_1)^2)/nrow(beer_test))^0.5
+rmse_mlr_2 <- (sum((act_mlr_2 - pred_mlr_2)^2)/nrow(beer_test))^0.5
+rmse_mlr_3 <- (sum((act_mlr_3 - pred_mlr_3)^2)/nrow(beer_test))^0.5
+```
+
+
+Having drawn actionable insights from the model above, now we proceed to answer: *what methods are best to predict the effect of promotions on future sales?* Accurate forecasts are crucial for the wider firm as promotional activities have ripple effects across the sales team, financial managers and entire supply chain. This paper compares the use of multilinear regression (MLR) with neural networks.
+
+Compared with MLR, i.e., a parametric approach, non-parametric approaches, such as neural networks, have much greater flexibility, as the models are designed to fit the shape of the data, rather than imposing the strict parametric assumptions. However, they often can over-fit the data and lose the same level of model interpretability. 
+
+Neural networks are one of these non-parametric approaches. They are a "black box" that uses artificial intelligence to "learn" from the data and find the optimal relationship between dependent and independent variables to make the most accurate predictions.
+
+
+### 4.1 MLR Model Predictions
+
+Using the MLR model developed in Section 3, a sample of the predictions for each brand is shown below (full predictions in Appendix 1).
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+# Make into dataframe
+mlr_predictions <- data.frame(beer_test$Week, act_mlr_1, pred_mlr_1,
+                                  act_mlr_2, pred_mlr_2,
+                                  act_mlr_3, pred_mlr_3)
+
+
+# Calculate RMSE
+rmse_mlr_1 <- (sum((act_mlr_1 - pred_mlr_1)^2)/nrow(beer_test))^0.5
+rmse_mlr_2 <- (sum((act_mlr_2 - pred_mlr_2)^2)/nrow(beer_test))^0.5
+rmse_mlr_3 <- (sum((act_mlr_3 - pred_mlr_3)^2)/nrow(beer_test))^0.5
+
+# Make into dataframe
+mlr_predictions <- data.frame(beer_test$Week, act_mlr_1, pred_mlr_1,
+                                  act_mlr_2, pred_mlr_2,
+                                  act_mlr_3, pred_mlr_3)
+
+# Rename
+mlr_predictions <- mlr_predictions %>% rename(Week = "beer_test.Week",
+                                                      "Actual Sales Brand 1" = act_mlr_1,
+                                                      "Predicted Sales Brand 1" = pred_mlr_1,
+                                                      "Actual Sales Brand 2" = act_mlr_2,
+                                                      "Predicted Sales Brand 2" = pred_mlr_2,
+                                                      "Actual Sales Brand 3" = act_mlr_3,
+                                                      "Predicted Sales Brand 3" = pred_mlr_3,
+                                                      )
+
+# Display dataframe
+kable(head(mlr_predictions), row.names = NA, caption = "Table 3 Sample of MLR Model Predictions")%>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+### 4.2 Neural Network Predictions
+
+To compare these against the results of a non-parametric technique, a neural network is created for each of the three brands. All numeric data is normalised using the min-max norm. The number of hidden layers was set to 1. In order to select the optimal number of neurons, the data was split into training (60% of the data), validation (20%) and test (20%) sets. Various neural networks with between 7-16 neurons were created and the optimal number was chosen based on the performance on the validation set (See Appendix 2). Brands 1 and 2 use 7 neurons and Brand 3 uses 8.
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# Normalise the data
+max_ls1 <- max(beer$lsales_1)
+min_ls1 <- min(beer$lsales_1)
+max_lp1 <- max(beer$lprice_1)
+min_lp1 <- min(beer$lprice_1)
+  
+max_ls2 <- max(beer$lsales_2)
+min_ls2 <- min(beer$lsales_2)
+max_lp2 <- max(beer$lprice_2)
+min_lp2 <- min(beer$lprice_2)
+
+max_ls3 <- max(beer$lsales_3)
+min_ls3 <- min(beer$lsales_3)
+max_lp3 <- max(beer$lprice_3)
+min_lp3 <- min(beer$lprice_3)
+
+beer <- beer %>% mutate(lsales_1_scal = scale(beer$lsales_1, center = min_ls1, scale = max_ls1 - min_ls1),
+                lsales_2_scal = scale(beer$lsales_2, center = min_ls2, scale = max_ls2 - min_ls2),
+                lsales_3_scal = scale(beer$lsales_3, center = min_ls3, scale = max_ls3 - min_ls3),
+                lprice_1_scal = scale(beer$lsales_1, center = min_ls1, scale = max_ls1 - min_ls1),
+                lprice_2_scal = scale(beer$lsales_2, center = min_ls2, scale = max_ls2 - min_ls2),
+                lprice_3_scal = scale(beer$lsales_3, center = min_ls3, scale = max_ls3 - min_ls3))
+
+# Re-split the data
+train_ind <- round(nrow(beer)*0.6,0)
+valid_ind <- round(nrow(beer)*0.8,0)
+beer_train <- beer[1:train_ind,]
+beer_valid <- beer[(train_ind+1):valid_ind,]
+
+beer_nn <- beer[1:valid_ind,]
+beer_test <- beer[(valid_ind+1):227,]
+```
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+set.seed(123)
+
+# Fit Sales 1
+l <- c()
+for (k in c(7,8,9,10,11,12,13,14,15,16)) {
+  # Create NN with k neurons
+  t_1 = neuralnet(formula = lsales_1_scal ~ lprice_1_scal + lprice_2_scal + lprice_3_scal + display_1 + display_2 + display_3 + feature_1 + feature_2 + feature_3 + jan + oct + nov + decem + feb + mar + apr + may + june + sept + aug + holiday, 
+               data = beer_train,
+               hidden = k, 
+               linear.output=TRUE, 
+               err.fct = 'sse')
+  # Fit the model using test data
+  predict.t_1 <- compute(t_1,beer_valid)
+  # Get predicted sales (unnormalised)
+  predict.t_1_normalised <- predict.t_1$net.result*(max(beer$lsales_1)-min(beer$lsales_1))+min(beer$lsales_1)
+  # Convert predicted sales
+  predictfinal.t_1 <- exp(predict.t_1_normalised)
+  # Get actual sales 
+  act.t_1 <- beer_valid$sales_1
+  # Predict RMSE
+  rmse_t_1 <- (sum((act.t_1 - predictfinal.t_1)^2)/nrow(beer_test))^0.5
+  # Append to list
+  l<-c(l,rmse_t_1)
+}
+
+nn_1 = neuralnet(formula = lsales_1_scal ~ lprice_1_scal + lprice_2_scal + lprice_3_scal + display_1 + display_2 + display_3 + feature_1 + feature_2 + feature_3 + jan + oct + nov + decem + feb + mar + apr + may + june + sept + aug + holiday, 
+               data = beer_nn,
+               hidden = (which.min(1)+6), 
+               linear.output=TRUE, 
+               err.fct = 'sse')
+```
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+set.seed(123)
+# Fit Sales 2
+p <- c()
+for (k in c(7,8,9,10,11,12,13,14,15,16)) {
+  # Create NN with k neurons
+  t_2 = neuralnet(formula = lsales_2_scal ~ lprice_1_scal + lprice_2_scal + lprice_3_scal + display_1 + display_2 + display_3 + feature_1 + feature_2 + feature_3 + jan + oct + nov + decem + feb + mar + apr + may + june + sept + aug + holiday, 
+               data = beer_train,
+               hidden = k, 
+               linear.output=TRUE, 
+               err.fct = 'sse')
+  # Fit the model using test data
+  predict.t_2 <- compute(t_2,beer_valid)
+  # Get predicted sales (unnormalised)
+  predict.t_2_normalised <- predict.t_2$net.result*(max(beer$lsales_2)-min(beer$lsales_2))+min(beer$lsales_2)
+  # Convert predicted sales
+  predictfinal.t_2 <- exp(predict.t_2_normalised)
+  # Get actual sales 
+  act.t_2 <- beer_valid$sales_2
+  # Predict RMSE
+  rmse_t_2 <- (sum((act.t_2 - predictfinal.t_2)^2)/nrow(beer_test))^0.5
+  # Append to list
+  p<-c(p,rmse_t_2)
+}
+
+nn_2 = neuralnet(formula = lsales_2_scal ~ lprice_1_scal + lprice_2_scal + lprice_3_scal + display_1 + display_2 + display_3 + feature_1 + feature_2 + feature_3 + jan + oct + nov + decem + feb + mar + apr + may + june + sept + aug + holiday, 
+               data = beer_nn,
+               hidden = (which.min(p)+6), 
+               linear.output=TRUE, 
+               err.fct = 'sse')
+```
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+set.seed(123)
+# Fit Sales 3
+d <- c()
+for (k in c(7,8,9,10,11,12,13,14,15,16)) {
+  # Create NN with k neurons
+  t_3 = neuralnet(formula = lsales_3_scal ~ lprice_1_scal + lprice_2_scal + lprice_3_scal + display_1 + display_2 + display_3 + feature_1 + feature_2 + feature_3 + jan + oct + nov + decem + feb + mar + apr + may + june + sept + aug + holiday, 
+               data = beer_train,
+               hidden = k, 
+               linear.output=TRUE, 
+               err.fct = 'sse')
+  # Fit the model using test data
+  predict.t_3 <- compute(t_3,beer_valid)
+  # Get predicted sales (unnormalised)
+  predict.t_3_normalised <- predict.t_3$net.result*(max(beer$lsales_3)-min(beer$lsales_3))+min(beer$lsales_3)
+  # Convert predicted sales
+  predictfinal.t_3 <- exp(predict.t_3_normalised)
+  # Get actual sales 
+  act.t_3 <- beer_valid$sales_3
+  # Predict RMSE
+  rmse_t_3 <- (sum((act.t_3 - predictfinal.t_3)^2)/nrow(beer_test))^0.5
+  # Append to list
+  d<-c(d,rmse_t_3)
+}
+
+nn_3 = neuralnet(formula = lsales_3_scal ~ lprice_1_scal + lprice_2_scal + lprice_3_scal + display_1 + display_2 + display_3 + feature_1 + feature_2 + feature_3 + jan + oct + nov + decem + feb + mar + apr + may + june + sept + aug + holiday, 
+               data = beer_nn,
+               hidden = (which.min(d)+6), 
+               linear.output=TRUE, 
+               err.fct = 'sse')
+```
+
+A sample of the sales predictions using the neural networks is shown in Table 4 (full predictions in Appendix 3).
+
+```{r, echo=FALSE}
+# Fit the model using test data
+predict.nn_1 <- compute(nn_1,beer_test)
+predict.nn_2 <- compute(nn_2,beer_test)
+predict.nn_3 <- compute(nn_3,beer_test)
+
+# Get predicted sales (unnormalised)
+predict.nn_1_unnorm <- predict.nn_1$net.result*(max(beer$lsales_1)-min(beer$lsales_1))+min(beer$lsales_1)
+predict.nn_2_unnorm <- predict.nn_2$net.result*(max(beer$lsales_2)-min(beer$lsales_2))+min(beer$lsales_2)
+predict.nn_3_unnorm <- predict.nn_3$net.result*(max(beer$lsales_3)-min(beer$lsales_3))+min(beer$lsales_3)
+
+# Get actual sales
+act_nn_1 <- beer_test$sales_1
+act_nn_2 <- beer_test$sales_2
+act_nn_3 <- beer_test$sales_3
+
+# Transform both
+pred_nn_1 <- exp(predict.nn_1_unnorm)
+#act_nn_1 <- exp(act.nn_1)
+pred_nn_2 <- exp(predict.nn_2_unnorm)
+#act_nn_2 <- exp(act.nn_2)
+pred_nn_3 <- exp(predict.nn_3_unnorm)
+#act_nn_3 <- exp(act.nn_3)
+
+
+# Make into dataframe
+nn_predictions <- data.frame(beer_test$Week, act_nn_1, pred_nn_1,
+                                  act_nn_2, pred_nn_2,
+                                  act_nn_3, pred_nn_3)
+
+nn_predictions <- nn_predictions %>% rename(Week = "beer_test.Week",
+                                                      "Actual Sales Brand 1" = act_nn_1,
+                                                      "Predicted Sales Brand 1" = pred_nn_1,
+                                                      "Actual Sales Brand 2" = act_nn_2,
+                                                      "Predicted Sales Brand 2" = pred_nn_2,
+                                                      "Actual Sales Brand 3" = act_nn_3,
+                                                      "Predicted Sales Brand 3" = pred_nn_3,
+                                                      )
+
+# display dataframe
+kable(head(nn_predictions), row.names = NA, caption = "Table 4: Sample of Neural Networks Model Predictions")%>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+# Calculate RMSE
+rmse_nn_1 <- (sum((act_nn_1 - pred_nn_1)^2)/nrow(beer_test))^0.5
+rmse_nn_2 <- (sum((act_nn_2 - pred_nn_2)^2)/nrow(beer_test))^0.5
+rmse_nn_3 <- (sum((act_nn_3 - pred_nn_3)^2)/nrow(beer_test))^0.5
+```
+
+### 4.3 Model Comparisons & Implications
+To evaluate the models, their out-of-sample performance were compared using the test data. Performance is measured by the root mean squared error (RMSE), as this metric provides severe penalisation for outliers, which is very important in the case of sales forecasts where production costs, inventory charges and logistical constraints make incorrect forecasts very costly. 
+
+Table 5 shows the RSME of the MLR and Neural Network Models.
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+rmse_performance <- matrix(c(rmse_mlr_1, rmse_mlr_2, rmse_mlr_3, rmse_nn_1, rmse_nn_2, rmse_nn_3), ncol=2, byrow=FALSE)
+colnames(rmse_performance) <- c("RMSE of MLR", "RMSE of Neural Networks")
+rownames(rmse_performance) <- c("Brand 1", "Brand 2", "Brand 3")
+
+kable(head(rmse_performance), caption = "Table 5: MLR and Neural Networks Out-of-Sample Performance")%>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+It is clear from the tremendous improvement in RMSE that the neural networks significantly outperform the MLR method, suggesting the relationship between sales and these explanatory variables is much better approximated by removing the stringent linear assumptions made in the MLR model. This would imply that for predictive purposes, the neural networks provide a more accurate and robust model for forecasts.
+
+<br/>
+
+## 5. Limitations & Extensions of Analysis
+
+When drawing conclusions from these models, numerous limitations must be considered. Both models lack dynamism, failing to account for long-term effects of promotions, spill-over/lagged effects across time and potential stockpiling/hold-out effects of consumer purchases. There may also be issues of endogeneity with prices, feature and display.
+
+Some wider-effects of actioning these insights are not incorporated. For instance, consistently lowering the price or providing regular promotions can affect the "price image" of the brand and re-shape consumer expectations. Similarly, cannibalisation effects cannot be estimated as data is given at a brand-level, so one cannot isolate the effects of product switching among a brand's products. Likewise, data on other potential substitutes (outside the Top 3 brands) is not available. 
+
+Whilst the methodology in this paper could likely be applied to other food/beverage goods, the quantitative insights may vary. Similarly, these insights may be applicable to other mature markets similar to the beverages sector, but generalising to new-products should be done with caution.
+
+Extensions could address the discrepancies  between the short-term and long-term effects of promotions; re-apply the models with alternative performance metrics (e.g. retail margins, profits); or deploy an adjusted MLR model as an optimisation model.
+
+<br/>
+
+## 6. Conclusions
+
+Overall we discuss the various opportunities of using promotional tools to drive sales performance. It compares and quantifies the effectiveness of price and non-price promotions, highlighting how the optimal strategy is brand-specific and must be adapted at an idiosyncratic level in real-life situations. 
+
+We also discuss the practical issues of forecasting performance for implementing these strategies. Contrasting parametric and non-parametric approaches illustrates how more flexible, but less "intuitive", non-parametric models are often more accurate in generating predictions. 
+
+
+<br/>
+
+## 7. Appendices
+
+### Appendix 1: Predictions from the MLR Model
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+# display dataframe
+kable(mlr_predictions, row.names = NA, caption = "MLR Model Predictions")%>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+### Appendix 2: RMSE of Neural Networks with between 7-16 Neurons for Each Brand
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+df <- do.call(rbind.data.frame, Map('c', l, p, d))
+library(data.table)
+df <- transpose(df)
+colnames(df) <- c("7N", "8N", "9N", "10N", "11N", "12N", "13N", "14N", "15N", "16N")
+rownames(df) <- c("Brand1", "Brand2", "Brand3")
+
+kable(head(df), caption = "RMSE for Neural Networks with Various Neuron Numbers")%>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+### Appendix 3: Predictions from Neural Networks
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+# display dataframe
+kable(nn_predictions, row.names = NA, caption = "Neural Networks Model Predictions")%>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```

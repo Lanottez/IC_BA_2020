@@ -1,0 +1,23 @@
+{
+    "name": "Session 1",
+    "endpoint": "icbs/busi97284/fa20/ses01",
+    "src": [
+	"tests/submission.py"
+	],
+    "tests": {
+        "tests/q1.py": "ok_test",
+        "tests/q2.py": "ok_test",
+        "tests/q3.py": "ok_test",
+        "tests/q4.py": "ok_test",
+        "tests/q5.py": "ok_test",
+        "tests/q6.py": "ok_test",
+	"tests/q7.py": "ok_test",
+        "tests/q8.py": "ok_test"
+    },
+    "protocols": [
+        "file_contents",
+        "grading",
+        "analytics",
+        "backup"
+    ]
+}

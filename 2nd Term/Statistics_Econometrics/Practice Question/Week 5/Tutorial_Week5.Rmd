@@ -1,0 +1,21 @@
+---
+title: "Tutorial Questions - Week 5"
+subtitle: Statistics and Econometrics
+output:
+  pdf_document: default
+---
+
+## Question 1
+Use the data in loanapp.RData for this exercise. The binary variable to be explained is $approve$, which is equal to one if a mortgage loan to an individual was approved. The key explanatory variable is $mortno$, a dummy variable equal to one if the applicant had no mortgage history.
+
+1. Estimate a probit model of $approve$ on $mortno$. Find the estimated probability of loan approval for those with no mortgage history and those who had mortgage before.
+2. Now, add the variables $hrat$, $obrat$, $loanprc$, $unem$, $male$, $married$, $dep$, $sch$, $cosign$, $chist$, $pubrec$, and $vr$ to the probit model. Is $mortno$ still statistically significant?
+3. Estimate the model from part 2 by logit.
+4. Estimate the partial effects of $mortno$ for probit and logit.
+
+
+## Question 2
+Using the data in rental.RData for this exercise. The data on rental prices and other variables for college towns are for the years 1980 and 1990. The idea is to see whether a stronger presence of students affects rental rates. The fixed effects model is $$\log(rent_{it})=\beta_0+\delta_0 y90+\beta_1\log(pop_{it})+\beta_2\log(avginc_{it})+\beta_3pctstu_{it}+a_i+u_{it}, $$ where $pop$ is city population, $avginc$ is average income, and $pctstu$ is student population as a percentage of city population (during the school year).
+
+1. Estimate the equation as if we have a cross sectional data set (i.e., without $a_i$) and report the results. What do you make of the estimate on the $1990$ dummy variable? What do you get for $\hat{\beta}_{pctstu}$?
+2. Now estimate the equation using first-difference estimation. Compare your estimate of $\beta_{pctstu}$ with that from part 1. Does the relative size of the student population appear to affect rental prices?

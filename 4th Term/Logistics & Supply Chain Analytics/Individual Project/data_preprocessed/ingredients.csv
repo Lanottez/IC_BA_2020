@@ -1,0 +1,674 @@
+IngredientName,IngredientId,PortionUOMTypeId
+Bread                                              ,1,11
+Bacon                                              ,2,11
+Chicken Strips                                     ,3,15
+Chicken. oven roasted patty                        ,4,15
+Cold Cut Combo                                     ,5,15
+Salami                                             ,6,15
+Ham                                                ,7,15
+Meatballs                                          ,8,15
+Pepperoni                                          ,9,15
+Roast Beef                                         ,10,15
+"Steak, Shaved                                      ",11,15
+Tuna                                               ,12,15
+Turkey                                             ,13,15
+"Cheese, Sliced cheese                              ",14,15
+Cookies                                            ,15,11
+Flatbread                                          ,16,11
+Olives                                             ,17,15
+Pickles                                            ,18,15
+Jalapeno Peppers                                   ,19,15
+Banana Peppers                                     ,20,15
+Apples                                             ,21,11
+Chips                                              ,22,11
+"Yogurt, cup single serve                           ",23,11
+DELETE Cucumbers                                   ,24,11
+Green Peppers                                      ,25,15
+Onions                                             ,26,15
+Lettuce                                            ,27,15
+Tomatoes                                           ,28,15
+Bottled Beverages                                  ,29,11
+"Cheese, Shredded Monterey Cheddar                  ",30,15
+Parmesan Cheese                                    ,31,15
+Oregano                                            ,32,11
+Mayonnaise                                         ,33,15
+DELETE Mustard                                     ,34,12
+Ranch Dressing                                     ,35,15
+Buffalo Sauce                                      ,36,15
+Chipotle Southwest Sauce                           ,37,15
+Honey Mustard Sauce                                ,38,15
+Sweet Onion Sauce                                  ,39,15
+Teriyaki Glaze                                     ,40,15
+DELETE Olive Oil Blend                             ,41,NA
+Salt and Pepper                                    ,42,15
+Vinegar                                            ,43,15
+"Milk, bottle                                       ",44,11
+"Cold Cup, 21 oz.                                   ",45,11
+"Cold Cup & Lid, 32 oz.                             ",46,11
+Avocado                                            ,47,15
+Bagels                                             ,48,NA
+Biscuits                                           ,49,11
+BBQ Rib Patty                                      ,50,11
+BBQ Sauce                                          ,51,15
+Bologna                                            ,52,15
+Brownie                                            ,53,11
+Burger Patty                                       ,54,11
+Cinnamon Rolls                                     ,55,NA
+"Carrots, Shredded                                  ",56,15
+BBQ Chicken                                        ,57,15
+Croissant                                          ,58,11
+Chicken Fritters                                   ,59,15
+Chicken Salad                                      ,60,15
+Deli Rolls                                         ,61,11
+Cinnamon Roll                                      ,62,11
+Corned Beef                                        ,63,15
+Crackers                                           ,64,NA
+"Hot Drink Cups, 12 oz.                             ",65,NA
+"Egg, breakfast precooked                           ",66,11
+"Egg, liquid                                        ",67,15
+"Cup, Hot Cup, 16 oz.                               ",68,11
+English Muffin                                     ,69,11
+Gravy                                              ,70,15
+Hash Browns                                        ,71,15
+Muffin Batter                                      ,72,15
+Pastry Bites                                       ,73,11
+Sausage Patties                                    ,74,15
+Fruit cup                                          ,75,NA
+Croutons                                           ,76,11
+Crushed Red Pepper                                 ,77,NA
+"Fish Patty, Breaded                                ",78,NA
+Guacamole                                          ,79,15
+"Muffins, bakery                                    ",80,11
+"Juice, Bottle                                      ",81,11
+"Pastrami, beef                                     ",82,15
+Pepperoncini                                       ,83,NA
+Pulled Pork                                        ,84,15
+Salad Dressing Packet                              ,85,11
+Red Wine Vinaigrette Sauce                         ,86,15
+"Caesar, Savory Caesar Sauce                        ",87,15
+"Italian, Zesty Italian Sauce                       ",88,15
+"Seafood Sensation, Seafood & Crab Blend            ",89,15
+"Spinach, Baby Spinach                              ",90,15
+Veggie Patty                                       ,91,11
+Marinara Sauce                                     ,92,15
+Bread Toppings                                     ,93,15
+"Cheese, crumbled                                   ",94,15
+"Cups, cold                                         ",95,11
+"cups, hot                                          ",96,11
+"Cups, Cold 21 oz                                   ",97,11
+"Cups, Cold, 16 oz./.4L                             ",98,11
+"Cups, Cold, 32 oz./940ml-950ml                     ",99,11
+"Lid, cold cup 16/21 oz                             ",100,11
+"Lid, cold, cup 32 oz./940ml-950ml                  ",101,11
+"Lid, cold cup 44 oz.                               ",102,NA
+"Pizza, pre-made                                    ",103,11
+"Cheese,Shredded, Mozzarella                        ",104,15
+Sausage Pizza crumble                              ,105,15
+Pepperoni for Pizza                                ,106,15
+"Soup, Frozen                                       ",107,15
+"Crackers, soup crackers                            ",108,11
+"Bowl, Salad Bowl & Lid                             ",109,11
+Fountain Beverage syrup                            ,110,12
+"DELETE Beverage, Juice Box                         ",111,12
+"Cheese, sliced optional cheeses                    ",112,15
+"Bread, Wrap Tortilla                               ",113,11
+"Cups, Hot Cup & Lid 16 oz                          ",114,11
+"Cups, Hot Cup 12 oz.                               ",115,11
+Soup Bowl                                          ,116,11
+Olive Vinaigrette Sauce                            ,117,15
+"Cups, Cold 44 oz                                   ",118,11
+Cucumber                                           ,119,15
+Cucumber2                                          ,120,15
+Olive Oil Blend                                    ,121,NA
+"Olive Oil Blend, Sauce                             ",122,15
+Mustards                                           ,123,15
+"Cilantro, fresh                                    ",124,15
+"Sausage, Italian Style                             ",125,15
+Baja Sauce                                         ,126,15
+"Yogurt, Bulk                                       ",127,15
+"Green Chili, Roasted                               ",128,NA
+Balsamic Vinegar                                   ,129,NA
+"Iced Tea, Fresh Brewed                             ",130,NA
+Salt                                               ,131,15
+"Pepper, Black                                      ",132,15
+DELETE - Coffee                                    ,133,NA
+"Cup, Courtesy                                      ",134,11
+Napkins                                            ,135,11
+"Cup & lid, Souffle Portion Control,2oz.            ",136,11
+"Tray, Prep, Portion Control                        ",137,11
+"Bag, Sub bag                                       ",138,11
+"Bag, T-shirt Bag                                   ",139,11
+"Bag, Specialty Bag                                 ",140,11
+"Bag, Catering Bag                                  ",141,NA
+"Board, 3 foot sub                                  ",142,11
+"Board, 6 foot sub                                  ",143,11
+"Box, Giant Sub                                     ",144,11
+"Tray, Catering Sandwich Tray                       ",145,11
+"Sub Wrap, Paper Wrap                               ",146,11
+Straw                                              ,147,11
+Gloves                                             ,148,11
+"Lid, Hot Cup                                       ",149,11
+"Lid, Soup bowl                                     ",150,11
+"Box, Subway To Go! Meal                            ",151,11
+"Box, Pizza                                         ",152,11
+"Cutlery, Knife & Fork Kit                          ",153,11
+"Cutlery, Spoon                                     ",154,11
+Mints                                              ,155,11
+"Lid, Cold Cup 30 oz                                ",156,11
+Deli Paper                                         ,157,11
+"Chicken Salad, Orchard Chicken Salad               ",158,15
+"Seasoning, Herb Chicken                            ",159,11
+"Cup, Cold 30 oz.                                   ",160,11
+"Cup, Cold, 40 oz.                                  ",161,11
+"Lid, Cold Cup 40 oz                                ",162,11
+"Beverage, Juice Box                                ",163,11
+"Gravy, Biscuit Gravy, Sausage                      ",164,15
+BBQ Sauce Packet                                   ,165,NA
+Apple Pie                                          ,166,11
+"Water, Bottle                                      ",167,11
+Bagel                                              ,168,11
+Green Chile                                        ,169,15
+"Box, Specialty - Small                             ",170,11
+"Box, Specialty- Large                              ",171,11
+Coffee                                             ,172,15
+"Chicken, Oven Crisp                                ",173,15
+"Smoothie, Strawberry Concentrate                   ",174,15
+"Smoothie, Mango Concentrate                        ",175,15
+"Smoothie, Non Fat Vanilla Yogurt                   ",176,15
+"Fruit Blend, Parfait                               ",177,15
+"Granola, Parfait                                   ",178,11
+"Cup & Lid,  7 oz Parfait                           ",179,11
+"Lid, Hot Cup 12 & 16 oz                            ",180,11
+"Toy, Kids Meal Premium                             ",181,11
+Golden Italian Sauce                               ,182,15
+Hummus                                             ,183,15
+"Mayonnaise Packets, PC Packets                     ",184,11
+Creamy Italian Sauce                               ,185,12
+"Mustard Packets, PC Packets                        ",186,11
+"Vinegar Packets, PC Packets                        ",187,11
+"Oil Packets, PC Packets                            ",188,11
+Hot Chocolate powder                               ,189,11
+"Tea bag, single serve                              ",190,11
+"Ice Tea, Brewed bulk                               ",191,11
+"Chicken, Shaved                                    ",192,15
+"Cups, Cold, 12 oz./350ml-360ml                     ",193,11
+"Bag, Catering Tray carry bag                       ",194,11
+"Cleaner, Coffee Pot Cleaner                        ",195,11
+"Cream Cheese, Portion Control pack                 ",196,11
+Drink Carrier                                      ,197,11
+"Cleaner, Acrylic Cleaner                           ",198,11
+"Cup, Clear 7 oz.                                   ",199,11
+"Cleaning, Board Bright Cutting Board Cleaner       ",200,11
+"Cleaner, Liquid Drain cleaner                      ",201,11
+"Cleaning, Trash Can Liner                          ",202,11
+"Cleaner, Degreaser                                 ",203,11
+"Lid, Cold  Cup 7 oz.                               ",204,11
+House Sandwich Sauce - Metric                      ,205,15
+Greek Vinaigrette Sauce Dressing - Metric          ,206,NA
+Lobster                                            ,207,15
+Fruit Roll-up                                      ,208,11
+"Cleaner, De-Limer & Scale Remover                  ",209,11
+"Cleaner, Dish Detergent                            ",210,11
+"Cleaning, Towels - Paper                           ",211,11
+Distributor Fee                                    ,212,11
+Distributor Credit / Discount                      ,213,NA
+"Cleaner, Floor                                     ",214,11
+"Cleaner, Freezer                                   ",215,11
+"Cleaner, Glass                                     ",216,11
+"Cleaner, Graffiti Remover                          ",217,11
+"Cleaner, Hand Sanitizer                            ",218,11
+"Cleaner, Kleer Wash                                ",219,11
+Apple Snapz                                        ,220,NA
+"Cleaner, Oven                                      ",221,11
+"Cleaner, Hand Soap                                 ",222,11
+"Cleaner, Restroom Cleaner                          ",223,11
+Distributor Credit                                 ,224,11
+SUBWAY Card                                        ,225,11
+"Cleaner, Ice Machine                               ",226,11
+"Cleaner, Fountain Machine Drain                    ",227,11
+"Cleaner, Spot Remover                              ",228,11
+"Cleaner, Stainless Steel Polish                    ",229,11
+"Cleaning, Deck Brush                               ",230,11
+"Cleaning, Broom Handle                             ",231,11
+"Cleaning, Wiper                                    ",232,11
+"Cleaning, Grease Trap Maintainer                   ",233,11
+"Cleaning, Mop Head                                 ",234,11
+"Cleaning, Mop Bucket                               ",235,11
+"Cleaning, Broom                                    ",236,11
+"Cleaning, Mini Mop Refills                         ",237,11
+"Cleaning, Mini Mop Starter Kit                     ",238,11
+"Cleaning, Restroom Bowl Brush                      ",239,11
+"Cleaning, Power Eraser Supplies                    ",240,11
+"Cleaning, Squeegee                                 ",241,11
+Coffee Filters                                     ,242,11
+Pan Liner                                          ,243,11
+"Pan Liner, Soup                                    ",244,11
+Baking Paper                                       ,245,11
+"Register Roll, Thermal                             ",246,11
+"Register Roll, Bond                                ",247,11
+PVC Film                                           ,248,11
+Pan Coating Spray                                  ,249,11
+Coffee Stirrer                                     ,250,11
+"Sweetner, Splenda                                  ",251,11
+"Tissue, Roll                                       ",252,11
+"Cleaner, Surface Sanitizer                         ",253,11
+"Cleaner, Sanitizer                                 ",254,NA
+"Tray & Lid , Aluminum Catering 1/3 size            ",255,11
+Paper Products                                     ,256,NA
+Falafel                                            ,257,15
+"Sauce, Zesty Tzatziki Cucumber                     ",258,15
+Gluten-Free Bread                                  ,259,11
+"Sauce, Gorganzola                                  ",260,15
+"Sauce, Wasabi                                      ",261,15
+"Smoothie, Pomagranate Berry Concentrate            ",262,15
+"Cup, Smoothie 16 oz. clear                         ",263,11
+"Lid, Smoothie                                      ",264,11
+"Juice, Chilled Orange                              ",265,11
+"Chicken Salad, Southwest Style                     ",266,15
+"Eggplant, Breaded Peel-On Eggplant                 ",267,15
+Braised Beef with Vegetables & Gravy               ,268,15
+"Jug, 1 Gallon                                      ",269,11
+"Sweet Peppers, Topping                             ",270,15
+"Chicken Fritter Patty, No-Fry Crisp                ",271,15
+Horseradish Mayonnaise Sauce                       ,272,15
+"Creamers, individual portions                      ",273,11
+Sweetener packets                                  ,274,11
+Chicken Strips - Metric                            ,275,13
+"Chicken, Oven Roasted Patty - Metric               ",276,13
+Salami - Metric                                    ,277,13
+Ham - Metric                                       ,278,13
+Meatballs - Metric                                 ,279,13
+Pepperoni - Metric                                 ,280,13
+Roast Beef - Metric                                ,281,13
+"Steak, Shaved - Metric                             ",282,13
+Tuna - Metric                                      ,283,13
+"Cheese, Sliced - Metric                            ",284,13
+Olives - Metric                                    ,285,13
+Pickles - Metric                                   ,286,13
+Jalapeno Peppers - Metric                          ,287,13
+Banana Peppers - Metric                            ,288,13
+Green Peppers - Metric                             ,289,13
+Onions - Metric                                    ,290,13
+Lettuce - Metric                                   ,291,13
+Tomatoes - Metric                                  ,292,13
+"Cheese, Shredded - Metric                          ",293,13
+Parmesan Cheese - Metric                           ,294,13
+Mayonnaise - Metric                                ,295,13
+Ranch - Metric                                     ,296,13
+Buffalo Sauce - Metric                             ,297,13
+Honey Mustard Sauce - Metric                       ,298,13
+Sweet Onion Sauce - Metric                         ,299,13
+Teriyaki Glaze - Metric                            ,300,13
+Salt & Pepper Blend - Metric                       ,301,13
+"Vinegar, sauce - Metric                            ",302,13
+BBQ Rib Patty - Metric                             ,303,NA
+BBQ Sauce - Metric                                 ,304,13
+Burger Patty - Metric                              ,305,NA
+"Carrots, Shredded - Metric                         ",306,13
+BBQ Chicken - Metric                               ,307,NA
+Chicken Fritter - Metric                           ,308,13
+Chicken Salad - Metric                             ,309,NA
+"Sauce, Lemon Olive Oil                             ",310,15
+Hash Browns - Metric                               ,311,13
+Sausage Patties - Metric                           ,312,13
+Falafel - Metric                                   ,313,13
+"Cheese, Shredded, Mozzarella - Metric              ",314,13
+Pepperoni For Pizza - Metric                       ,315,13
+Sausage Pizza Crumble - Metric                     ,316,13
+"Protein, Pork, Pulled Applewood                    ",317,15
+"Sauce, Poblano Caesar Sauce                        ",318,15
+"Yogurt, Bulk - Metric                              ",319,13
+"Sauce, Italian Dressing - Metric                   ",320,13
+Turkey - Metric                                    ,321,13
+Bologna - Metric                                   ,322,13
+"Sauce, Green Chili                                 ",323,15
+Pastrami - Metric                                  ,324,13
+Pulled Pork - Metric                               ,325,13
+Cold Cut Combo - Metric                            ,326,13
+Hot Pepper Relish                                  ,327,15
+"Egg, Hard Cooked                                   ",328,11
+Hot Chocolate                                      ,329,15
+"Yogurt, Parfait (Pre-made)                         ",330,11
+Giardiniera Topping                                ,331,15
+"Sauce, Zesty Avocado Sauce                         ",332,15
+Ketchup - Metric                                   ,333,13
+Fountain Bev Syrup - Metric                        ,334,14
+Balsamic Vinaigrette Sauce                         ,335,15
+"Ketchup Packets, PC Packets                        ",336,11
+"Lemon Juice Packets, PC Packets                    ",337,11
+"Sauce, Cheddar Cheese Sauce                        ",338,15
+"Chicken, Sliced Chicken  - Metric                  ",339,NA
+"Bag, Small Pre-Pack Cookie                         ",340,11
+"Bag, Large Pre-Pack Cookie                         ",341,11
+"Box, Catering Bulk Box                             ",342,11
+Beef Brisket - Metric                              ,343,13
+"Soup, Frozen - Metric                              ",344,13
+"Sauce, Thousand Island - Metric                    ",345,13
+Bread Topping - Metric                             ,346,13
+Toothpicks                                         ,347,11
+"Sauce, Zesty Tzatziki  Cucumber - Metric           ",348,13
+"Steak, Diced - Metric                              ",349,13
+"Milk, Chocolate, Bottle                            ",350,11
+v cbvbdfb                                          ,351,11
+"Sauce, Chilli Sauce - Metric                       ",352,13
+"Sauce, Tomato - Metric                             ",353,13
+"Bakery, Baked Bar                                  ",354,11
+"Egg, Whole Sanitized                               ",355,NA
+"Smoothie, Caramel Concentrate                      ",356,15
+"Smoothie, Mocha Concentrate                        ",357,15
+"Sauce, Smoky Chili Lime Sauce                      ",358,15
+"Olives, Green Olives Sliced                        ",359,NA
+"Cleaner, Rinse Dry                                 ",360,11
+"Sauce, Creamy Sriracha                             ",361,15
+Mustard Glaze                                      ,362,15
+"Seasoning, BBQ                                     ",363,11
+"Salt, Portion Control Packet                       ",364,11
+"Pepper, Portion Control Packet                     ",365,11
+"Chili, Bowl                                        ",366,15
+"Sauce, Creamy Pesto                                ",367,NA
+"Coffee, Single Serve portion                       ",368,11
+"Tray, Catering Flat Tray                           ",369,11
+"Bag, Reusable Grocery                              ",370,11
+"Beef, Beef Chili Colorado                          ",371,15
+"Cup, Smoothie 12 oz. clear                         ",372,11
+"Chicken, Enchilada Chicken                         ",373,15
+"Beef, Prime Rib Steak                              ",374,15
+Chips as Sandwich Topping                          ,375,11
+"Sauce, Caesar -  Metric                            ",376,13
+"Sauce, Hot Sauce - Metric                          ",377,13
+Mustards - Metric                                  ,378,13
+Marinara -  Metric                                 ,379,13
+Chipotle Sauce - Metric                            ,380,13
+Coffee - Metric                                    ,381,13
+Sugar Packet                                       ,382,11
+"Sauce, Tikka - Metric                              ",383,13
+Relish Packet                                      ,384,11
+Beef Strip                                         ,385,11
+"Seafood, Seafood Sensation - Metric                ",386,13
+"Chicken, Chicken Schnitzel - Metric                ",387,13
+"Sauce, Horseradish Sauce                           ",388,15
+Cucumber - Metric                                  ,389,13
+"Lid, 16 oz/470ml-475ml                             ",390,11
+"Cup, Cold,  24 oz/700ml-710ml                      ",391,11
+"Lid, Cold, 12 oz./350ml-360ml                      ",392,11
+Smoked Turkey Thigh                                ,393,13
+"Walmart, Pretzel                                   ",394,11
+"Walmart, Hot Dog, Regular                          ",395,15
+"Walmart, Tray, Hot Dog Tray                        ",396,11
+"Walmart, Popcorn kit 1.4 oz                        ",397,11
+"Walmart, Hot Dog Jumbo                             ",398,15
+"Bag, Paper Sub Bag                                 ",399,NA
+"Lid, Cold, 24 oz/700ml-710ml                       ",400,11
+"Walmart, Popcorn kit 8 oz.                         ",401,11
+"Bag, Paper, Kids                                   ",402,11
+"Raisin, Single Serve                               ",403,11
+Avocado - Metric                                   ,404,13
+Pineapple - Metric                                 ,405,13
+Beetroot - Metric                                  ,406,13
+"Sauce, Sweet Chili - Metric                        ",407,NA
+"Sauce, Hot Chilli - Metric                         ",408,13
+"Sauce, Tomato Relish - Metric                      ",409,13
+"Sauce, Garlic Aioli - Metric                       ",410,13
+"Egg, Poached                                       ",411,NA
+"Olive Oil blend, Sauce - Metric                    ",412,13
+"Dip, Pre-Portion for chips                         ",413,11
+"Walmart, Hot Dog Roll                              ",414,11
+"Chicken, Classic Fillet - Metric                   ",415,13
+"Fit Chips, Chips (Fries)                           ",416,13
+Dried Fruit Medley                                 ,417,11
+Bottle Beverage 390ml                              ,418,11
+Mango Smoothie Pack                                ,419,11
+Strawberry Smoothie Pack                           ,420,11
+Banana Smoothie Pack                               ,421,11
+Caribbean Smoothie Pack                            ,422,11
+"Cup, Smoothie Foam                                 ",423,11
+"Bottle, Iced Coffee - Premade                      ",424,11
+"Coffee, Single Serve Small                         ",425,11
+"Cups, Hot Cup 8 oz.                                ",426,11
+"Walmart, Icee Syrup                                ",427,12
+"Dip Cup, Portion Control Fit Chips dips            ",428,11
+"Box, Fit Chips                                     ",429,11
+Seasoning salt                                     ,430,13
+"Walmart, Popcorn Cleaning kit                      ",431,11
+"Sauce, Sweet Chili                                 ",432,13
+"Sauce, Tomato                                      ",433,13
+Promotional Cup - 32 oz.                           ,434,11
+Hot Chocolate - Metric                             ,435,13
+"Water, Large Bottle                                ",436,11
+"Fruit Scroll, Pastry                               ",437,11
+Crisps (Australia)                                 ,438,11
+"Water, Sparkling                                   ",439,11
+Bottle Beverage 600ml                              ,440,11
+"Water, Bottle 400ml                                ",441,11
+"Milk, Mini                                         ",442,11
+"Bottle, Iced Tea                                   ",443,11
+"Bottle, Sports Drink                               ",444,11
+Pastry                                             ,445,11
+"Salt, Bulk - Metric                                ",446,13
+"Pepper, Black, Bulk - Metric                       ",447,13
+Oregano - Metric                                   ,448,13
+"Spread, Garlic Dairy Base                          ",449,15
+"Sauce, Butter Glaze                                ",450,15
+"Bottle, Flavoured Water                            ",451,11
+Mushrooms                                          ,452,15
+"Butter, single portion                             ",453,11
+Bacon - Metric                                     ,454,11
+"Pouch, Flatbread 6 inch portion paper pouch        ",455,11
+"Chicken, Three Pepper                              ",456,13
+"Chicken, Lemon and Herb                            ",457,13
+"Jam or Jelly, Portion Control                      ",458,11
+"Sauce, Caramelised Onion                           ",459,13
+"Spread, Skagen                                     ",460,13
+"Apple, Whole                                       ",461,13
+"Cups, Cold, 12 oz /.3 L                            ",462,11
+Smoothie mix                                       ,463,11
+Auntie Annes                                       ,464,11
+Subway Cafe                                        ,465,11
+"Coffee, whole bean, SC                             ",466,15
+"Coffee, Sauces, SC                                 ",467,15
+"Coffee, syrups, SC                                 ",468,15
+"Tea bag, single serve, SC                          ",469,11
+"Cup, 16 oz, cold, SC                               ",470,11
+"Cup, 20 oz, cold, SC                               ",471,11
+"Cup, 3.5 oz, cold, sample, SC                      ",472,11
+"Lid, cold, dome, 16 oz, SC                         ",473,11
+"Lid, cold, flat, 16 oz, SC                         ",474,11
+"Lid, hot, 12/16 oz, SC                             ",476,11
+"Sleeve, 12/16 oz, hot cup, SC                      ",477,11
+"Cup, hot, 12 oz, SC                                ",478,11
+"Cup, hot, 16 oz, SC                                ",479,11
+"Cup, hot, 4 oz, sample, SC                         ",480,11
+"Frozen Drink, Concentrate, SC                      ",481,15
+"Whipped Cream, SC                                  ",482,12
+"Danish, SC                                         ",483,11
+Honey Sesame Sauce                                 ,484,15
+Vidalia French Onion Sauce                         ,485,15
+Kung Pao Glaze                                     ,486,15
+Creamy Cilantro Lime Sauce                         ,487,12
+Chili Ginger Coconut Glaze                         ,488,15
+"Cheese, mozzarella, fresh, sliced                  ",489,15
+Sauerkraut                                         ,490,15
+Thousand Island Sauce                              ,491,15
+Mini R&D Ingredients (Unit Cost)                   ,492,11
+Mini R&D Ingredients (Drink Cost)                  ,493,11
+Mini R&D Ingredients (Misc Cost)                   ,494,11
+"Protein, Beef Shredded                             ",495,13
+Ice Cream                                          ,496,12
+4 oz Ice Cream dish                                ,497,11
+8 oz Ice Cream dish                                ,498,11
+Ice Cream Cone                                     ,499,11
+"Ice Cream Bowl, Waffle                             ",500,11
+"Ice Cream, 16 oz. Cup, Shakes                      ",501,11
+"Ice Cream, 20 oz Cup, Shakes                       ",502,11
+"Ice Cream, Lid, 4 & 8oz dish                       ",503,11
+"Ice Cream, Lid, 16 & 20 oz cup, shakes             ",504,11
+"Ice Cream, milk                                    ",505,12
+Delivery Fee                                       ,506,11
+"Box, Pizza, Flatizza                               ",507,11
+"Spinach,Baby Spinach - Metric                      ",508,13
+"Nontrad, beverage, beer                            ",509,12
+"Nontrad, pizza, 14 inch                            ",510,11
+"Tray, Catering, 18 inch                            ",511,11
+Syrup Flavoring                                    ,512,12
+"Walmart, Popcorn Kit, 22 oz.                       ",513,15
+"Protein, Chicken, Golden Herb Schnitzel            ",514,13
+Red Wine Vinegar                                   ,515,15
+Hot Pepper Mix                                     ,516,15
+Nontraditional Mango Fruit Cup                     ,517,11
+Nontraditional Pineapple Fruit Cup                 ,518,11
+Nontraditional Grape Fruit Cup                     ,519,11
+Nontraditional Watermelon Fruit Cup                ,520,11
+Nontraditional Honeydew Fruit Cup                  ,521,11
+Nontraditional Strawberries & Blueberries Fruit Cup,522,11
+Nontraditional Veggie Cup                          ,523,11
+Nontraditional Hand Fruit                          ,524,11
+"Sauce, Garlic                                      ",525,13
+"Sauce, Curry                                       ",526,13
+"Nontradtional, Yogurt 6 oz.                        ",527,11
+House Sandwich Sauce                               ,528,15
+"Tabasco Packets, PC Packets                        ",529,11
+"Picante Packets, PC packets                        ",530,11
+Ketchup                                            ,531,15
+"Sauce, Cole Slaw                                   ",532,15
+"Produce, cole slaw                                 ",533,15
+"Protein,Chicken,Breaded                            ",534,13
+GR Toppings Chocolate                              ,535,15
+"GR Toppings Fruit, liquid                          ",536,15
+GR Toppings Fruit                                  ,537,15
+GR Toppings RTU                                    ,538,15
+GR Topping Banana                                  ,539,11
+GR Toppings Hot Fudge PC Packets                   ,540,11
+GR Topping Whipped Cream                           ,541,15
+GR Ice Cream Milk                                  ,542,12
+GR Ice Cream Icing Brownie                         ,543,11
+GR Ice Cream Malted Milk Mix                       ,544,15
+GR Ice Cream Dipping Chocolate                     ,545,15
+Ice Cream Bowl 12 oz                               ,546,11
+Ice Cream Bowl 16 oz                               ,547,11
+Ice Cream Lid 5 oz/12 oz bowl                      ,548,11
+"Ice Cream, 22 oz cup, Shakes                       ",549,11
+"Ice Cream, Lid, 16 oz/22 oz cup, shakes            ",550,11
+"Ice Cream, 32 oz cup, shakes                       ",551,11
+"Ice Cream, Lid, 32 oz cup, Shakes                  ",552,11
+"Ice Cream, 5 oz bowl                               ",553,11
+"Ice Cream, Spoon                                   ",554,11
+"Ice Cream, Straw                                   ",555,11
+Thin Sliced Turkey                                 ,556,15
+Thin Sliced Ham                                    ,557,15
+Thin Sliced Roast Beef                             ,558,15
+Fish Fillet 3 oz                                   ,559,15
+Protein - Cold Cut Combo Metric                    ,560,13
+Lid Soup Bowl 12 oz                                ,561,11
+"Baked Fries, Box                                   ",562,11
+Baked Fries                                        ,563,15
+Peri-Peri Seasoning                                ,564,13
+Lemons                                             ,565,15
+Poblano Lime Glaze                                 ,566,15
+"Dairy Base, Cream Cheese                           ",567,15
+Muffaletta                                         ,568,15
+Ranchero Seasoning                                 ,569,15
+Smoky Hickory Sauce                                ,570,15
+Jerk Sauce                                         ,571,15
+Smokey BBQ Sauce                                   ,572,NA
+"Side, Fruit Crisps                                 ",573,11
+Cranberry Sauce                                    ,574,15
+"Smoothie Cup 20 oz., nontrad                       ",575,11
+"Smoothie cup 32 oz., nontrad                       ",576,11
+"Smoothie Lid 20 oz., nontrad                       ",577,11
+"Smoothie Lid 32 oz., nontrad                       ",578,11
+"Smoothie, Pineapple, nontrad                       ",579,15
+"Smoothie, Mango, nontrad                           ",580,15
+"Smoothie, Banana, nontrad                          ",581,15
+"Smoothie, Strawberry, nontrad                      ",582,15
+"Smoothie mix, nontrad                              ",583,12
+"Smoothie Orange Mix, nontrad                       ",584,12
+"Smoothie Mangosteen Syrup, nontrad                 ",585,12
+"Smoothie Kiwi-Lime Syrup, nontrad                  ",586,12
+"Smoothie Coco Syrup, nontrad                       ",587,12
+"Smoothie Booster, nontrad                          ",588,11
+"Protein, Beef Churrasco / American Steahouse       ",589,13
+Montreal Smoked Meat                               ,590,13
+Coffee Packet in Metric                            ,591,13
+Tea with Milk powdered                             ,592,11
+Old Bay Seasoning                                  ,593,11
+"Sauce, Hollandaise                                 ",594,13
+"Cutlery, Spoon - Spain                             ",595,11
+Doughnuts                                          ,596,11
+"Bread, Baby Sub                                    ",597,11
+Produce Sweet Corn                                 ,598,13
+"Protein, Chicken Tikka Diced                       ",599,13
+Creamers -metric                                   ,600,13
+"Syrup toppings , yogurt machine                    ",601,13
+test imperial                                      ,602,15
+test metric                                        ,603,13
+"Milk, bulk per Liter                               ",604,11
+"Cleaner, Vegi Wash                                 ",605,11
+"Cup, Hot 100 mL Espresso                           ",606,11
+Fajita seasoning                                   ,607,11
+"Protein, Chicken Fajita Strips                     ",608,13
+Chicken Slice                                      ,610,13
+Egg Mayo                                           ,612,13
+Protein Chicken Tandoori                           ,614,13
+Cutlery Spoon Asia                                 ,616,11
+Capocollo                                          ,618,15
+Mortadella                                         ,620,15
+"Flavoured Tea, packets                             ",622,11
+white coffee mix white - metric                    ,624,13
+"Cutlery, fork                                      ",626,11
+"Cutlery, knife                                     ",628,11
+D&W Turkey                                         ,630,15
+D&W Ham                                            ,632,15
+D&W Chicken                                        ,634,15
+D&W Roast Beef                                     ,636,15
+D&W Lacey Swiss Cheese                             ,638,15
+D&W Picante Provolone Cheese                       ,640,15
+D&W Horseradish Cheddar Cheese                     ,642,15
+D&W Buffalo Wing Cheese                            ,644,15
+D&W Zesty Honey Mustard                            ,646,15
+D&W Wasabi Mustard                                 ,648,15
+D&W Cranberry Honey Mustard                        ,650,15
+D&W Horseradish Sauce                              ,652,15
+"Skinny Pop, Popcorn                                ",654,11
+"Sauce, Mexican, 10/940 Gram                        ",656,13
+"Topping, Sour Cream                                ",658,13
+Premium Bottle Beverage                            ,660,NA
+"Sauce, Vietnamese - Metric                         ",662,13
+coriander - metric                                 ,664,NA
+"Seasoning, Chicken Fajita                          ",666,15
+"Cleaning, Towels-Paper Folded                      ",668,11
+"Produce, Coriander                                 ",670,13
+"Cleaning, pads, scrubbing                          ",672,11
+"Icing, cookies                                     ",674,15
+Malibu Veggie Patty                                ,676,11
+Black Bean Veggie Patty                            ,678,11
+"Beer, canned beverage                              ",680,11
+Canned Beverages                                   ,682,11
+"Beverage, Coffee Iced - bottle or can              ",684,11
+"Water, Small Bottle                                ",686,11
+Guacamole - metric                                 ,688,13
+Salad Dressing Packet - metric                     ,689,11
+"Chicken, cutlettes, breaded                        ",691,13
+"Vegan, Fire Roasted Tomato Sauce                   ",693,15
+"Vegan, Sweet Potato Curry Sauce                    ",695,15
+"Cleaner, Milk Frother                              ",697,11
+"Spread, Cream Cheese                               ",699,13
+"Pan Liner, Urn Liner                               ",701,11
+"Pan Liner, Urn Liner Spigots                       ",703,11
+"Sauce, Peri-Peri                                   ",705,13
+Chorizo - Metric                                   ,707,13
+"Cheese, muenster, sliced                           ",709,15
+"Sauce, Vera Cruz Green Chili                       ",711,15
+"Spread, Smoked Gouda                               ",713,15
+"Sauce, Bistro Aioli                                ",715,12
+Apple Whole Each                                   ,717,11
+"Box, Toasties                                      ",719,11
+"Sauce, Chili Sauce  PC packets                     ",721,11
+"Cleaning, Hard Surface                             ",723,11
+Lid Soup Bowl 10 oz                                ,725,11
+"Beverage, Hot Chocolate                            ",727,11
+"Side, Fruit Cup                                    ",729,11
+Water bottle 350 mL                                ,731,11
+"Beverage, tea, 12 oz can                           ",733,11
+"Cabbage, Shredded - metric                         ",735,13
+TCBY test                                          ,737,11
+TCBY                                               ,739,11

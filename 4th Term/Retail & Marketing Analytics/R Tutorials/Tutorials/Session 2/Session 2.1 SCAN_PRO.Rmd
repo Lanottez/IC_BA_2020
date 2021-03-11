@@ -1,0 +1,213 @@
+---
+title: "Assessment of Retail Promotions"
+output:
+  html_document: default
+---
+
+</br>
+</br>
+
+
+```{r include=FALSE}
+
+#install.packages("knitr",repos = "http://cran.us.r-project.org" )
+#install.packages("dplyr", repos = "http://cran.us.r-project.org")
+#install.packages("readxl",repos = "http://cran.us.r-project.org")
+#install.packages("lme4",repos = "http://cran.us.r-project.org")
+
+##load the packages that are needed for this session
+
+library(knitr)
+library(dplyr)
+library(readxl)
+library(lme4)
+
+```
+
+## Preparations and Set Up
+
+Before we start, let us do some preparation work to get ready!
+
+We need to: 
+
+* Create a folder and set working directory to that folder on your device,
+
+* Download datasets needed for this tutorial onto your working directory, and
+
+* Load datasets for analysis later as we proceed
+
+
+The dataset of this tutorial is made available to you. The file is *Snickers_data* and is stored in an *xlsx* format. 
+
+To save the dataset and for convenience in this tutorial, let us create a folder in your computer for and name the folder *scanpro*. And then let us download the two files to the folder (*scanpro*) that you just created. 
+
+In order to load the datasets to R, we need to run only **part** of the following chunk of codes, depending on the **operating system** of your device. Please add a "#" before each line of non-applicable codes in the chunk below to avoid running unnecessary and redundant codes and receiving error messages. For example, if you are using a Mac, you need to put a "#" before *setwd("H:/downloads/scanpro")*.
+
+
+</br>
+
+```{r}
+# Please run the following codes depending on the operating system on your laptop/PC. 
+
+# if you are using iOS, and your *scanpro* folder is created under "Downloads" on your Mac: you will need to first set your working directory to *scanpro* folder:
+
+setwd("~/Downloads/scanpro")
+
+# if you are using Windows, and your *scanpro* folder is created in your H drive: you will need to first set your working directory to *scanpro* folder:
+
+#setwd("H:/downloads/scanpro")
+
+# load the datasets
+snicker <- read_xlsx("Snickers_data.xlsx")
+
+```
+
+</br>
+
+**Now we are ready to go!**
+
+</br>
+
+
+## 1. Introducing the SCAN*PRO Model
+
+Suppose you want to predict weekly sales of Snickers (the world’s best-selling candy bar) at your local supermarket. Factors that might influence sales of Snickers include:
+
+1. Price charged for Snickers bars
+
+2. Prices charged for competitors (Three Musketeers, Hershey’s Chocolate,and so on)
+
+3. Was the Snickers bar on display?
+
+4. Was there a national ad campaign for Snickers?
+
+5. Was there an ad for Snickers in the local Sunday paper?
+
+  
+Untangling how these factors affect unit sales of Snickers is diffcult. 
+
+A model was developed in 1988 by Dirk Wittink et al., called $SCAN{*}PRO$ model to isolate the effect of these (and other factors) on sales of retail goods. The $SCAN{*}PRO$ model and its variants have been widely used by A.C. Nielsen and other organizations to analyze retail sales.
+
+</br>
+
+## 2. Modeling Sales of Snickers Bars
+
+</br>
+
+The $SCAN{*}PRO$ model is often used to model the impact of various portions of the marketing mix. To predict sales, you can model the effect of each part of the marketing mix as described above and create a final prediction for sales. 
+Instead of simple additions, you do this by multiplying the terms for each part of the marketing mix and throwing in a constant to correctly scale your final prediction.
+
+### 2.1 Data and Model Specifications
+
+To create this model, you can use the *snicker* dataset that you loaded. The dataset shows the weekly sales of Snickers bars at a local supermarket as well as the Snickers price (*our price*), the price of the major competitor (*comp price*), and whether Snickers is on display (*Display*). 
+
+Let us take a brief look at the dataset:
+
+</br>
+
+```{r, warning=FALSE, message=FALSE}
+
+head(snicker)
+
+```
+
+
+Reading the data, for example, in Week 1, 986 Snickers bars were sold; the price of Snickers was `$`1.04; the price of the main competitor was `$`0.81; and Snickers was on display (1 = Snickers on display, 0 = Snickers not on display). To simplify matters assume that Snickers sales do not exhibit seasonality. 
+
+</br>
+
+To create a model to predict weekly sales, complete the following steps:
+
+1. Raise the price to an unknown power. (We call this power *OWNELAS*, meaning "own elasticity".) This creates a term of the form $(Our Price)^{OWNELAS}$. The value of OWNELAS can estimate the price elasticity. You would expect OWNELAS to be negative. For example, if OWNELAS = -3, you can estimate that for any price you charge, a 1 percent price increase reduces demand 3 percent.
+
+</br>
+
+2. Raise the competitor's price to an unknown power (*COMPELAS*, meaning "competitor elasticity"). This creates a term of the form $(Comp Price)^{COMPELAS}$. The value of COMPELAS estimates a cross-elasticity of demand. You would expect COMPELAS to be positive and smaller in magnitude than OWNELAS. For example, if COMPELAS = 0.4, then a 1 percent increase in the competitor's price increases demand for Snickers (for any set of prices) by 0.4 percent.
+
+</br>
+
+3. Model the effect of a display by a term that raises an unknown parameter (Call it *Displayeffect*) to the power DISPLAY (which is 1 if there is a display and 0 if there is no display). This term is of the form $(Displayeffect)^{DISPLAY}$. When there is a display, this term equals the value of Displayeffect, and when there is no display, this term equals 1 (i.e., $Displayeffect^0$). Therefore, a value of, say, Displayeffect=1.2 indicates that a display increases weekly sales by 20 percent after adjusting for prices.
+
+</br>
+
+Putting it all together, the final prediction for weekly sales is shown in Equation 1: 
+
+</br>
+
+\[ (1.1) Sales = Constant * (Our Price)^{OWNELAS} * (Comp Price)^{COMPELAS} * (Displayeffect)^{DISPLAY} \]
+
+</br>
+
+To estimate such a model, we can either apply optimization techniques to find the optimal combination of parameters that result in minimal estimation error (consider using *optim* function in R). 
+
+However, that will require multiple rounds of iterations and we will risk not reaching the global optimum. Alternatively we can transform equation 1.1 by taking the logarithm of it and estimate a linear model. Specifically, we have:
+
+</br>
+
+\[ (1.2) Log(Sales) = Constant' + {OWNELAS}* Log(Our Price) + {COMPELAS} * Log(Comp Price) + Log(Displayeffect) * {DISPLAY} \]
+
+</br>
+
+*Note*: Given that we are estimating *Displayeffect* as a model parameter instead of *DISPLAY* (i.e., the dummy variable indicating the existence of display ad), we will treat *$Log(Displayeffect)$* as the coefficient to be estimated in our linear model and then calculate the exponential of it to get the actual scale of the coefficient.
+
+</br>
+
+### 2.2 Model Estimation
+
+</br>
+
+```{r}
+
+# take logarithm of each variable, excpet "Display"
+snicker$log_sales <- log(snicker$Sales) 
+snicker$log_our_price <- log(snicker$`Our price`)
+snicker$log_comp_price <-log(snicker$`Comp price`)
+
+# estimate linear model
+scanpro <- lm(log_sales~log_our_price+log_comp_price+Display, data = snicker)
+summary(scanpro)
+
+```
+
+
+</br>
+
+### 2.3 Results Interpretations
+
+Given theh model output, we should not forget the transform the coefficient for *Display* back by taking the exponental: $e^{0.20635} = 1.23 $
+
+Now we can say that based on the model estimation: 
+
+1. The display effect = 1.23. This implied that after adjusting for prices, a Snickers display increases weekly sales by 1.23 percent.
+
+</br>
+
+2. The price elasticity for Snickers is -3.19, so a 1 percent increase in the price of Snickers can reduce Snicker’s sales by 3.19 percent.
+
+</br>
+
+3. The cross-price elasticity for Snickers is 0.30, so a 1 percent increase in the competitor’s price can raise the demand for Snickers by 0.30 percent.
+
+</br>
+
+Substituting your parameter values into Equation 1, you can find your prediction for weekly sales is given by:
+
+$$872.57 * (Snickers Price)^{-3.19} * (Comp Price)^{0.30} * (1.23)^{Display}$$
+
+</br>
+</br>
+
+
+To summarize, in this session we have learned to assess effectiveness of retail promotions in driving sales through estimating a $SCAN{*}PRO$ model. Specifically, we have:
+
+* Learned to estiamte a basic $SCAN{*}PRO$ model and its variation to estimate and forecast sales while incorporating different types of promotions.  
+
+* Learned to understand the concept of elasticities through interpreting model coefficients.
+
+</br>
+</br>
+
+** **END OF THIS TUTORIAL** **
+
+</br>
+</br>

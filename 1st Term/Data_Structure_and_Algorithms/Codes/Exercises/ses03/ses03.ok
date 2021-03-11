@@ -1,0 +1,28 @@
+{
+    "name": "Session 3",
+    "endpoint": "icbs/busi97284/fa20/ses03",
+    "src": [
+        "ses03.py",
+        "ses03_extra.py"
+    ],
+    "tests": {
+          "tests/q1.py": "ok_test",
+          "tests/q2.py": "ok_test",
+          "tests/q3.py": "ok_test",
+          "tests/q4.py": "ok_test",
+          "ses03.py:item_lengths": "doctest",
+          "ses03.py:longest_item": "doctest",
+          "ses03_extra.py:count_capital_letters": "doctest",
+          "ses03_extra.py:str_to_int": "doctest",
+          "ses03_extra.py:value_at_least": "doctest",
+          "ses03_extra.py:to_chars": "doctest",
+          "ses03_extra.py:is_palindrome": "doctest",
+          "ses03_extra.py:search_word": "doctest"
+    },
+    "protocols": [
+        "file_contents",
+        "grading",
+        "analytics",
+        "backup"
+    ]
+}

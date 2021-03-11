@@ -1,0 +1,169 @@
+---
+title: "Intermittent Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+
+## Sales forecast for intermittent demand
+
+
+Recall that in the modules that you have taken so far, you have been exposed to many models to, for example, understand and forecast sales for a brand. For example, you have learned moving average, expotential smoothing, and Winter's method, to name a few. Among these, Winter's method allows you to incorporate seasonalities of the data you have. Such method is particularly neat and powerful when demand for product categories with pretty fixed pattern of demand (e.g., demand for beer almost always goes high every weekend and during holidays). However, what if you are given a brand/product that is with rather sporadic, or lumpy demand? 
+
+Items with lumpy, or intermittent/volatile/unpredictable demand, have many zero or low volume values interspersed with random spikes of demand that are often many times larger than the average.  This problem is especially prevalent in companies that manage large inventories of service and spare parts in industries such as aviation, aerospace, automotive, high tech, and electronics.
+
+Intermittent demand makes it difficult to accurately estimate the safety stock and service level inventory requirements needed for successful supply chain planning. Because forecasts of intermittent demand have been so unreliable, most companies forecast inventory requirements relying primarily on subjective business knowledge, forecasting only a fraction of their higher volume inventory, using simple “rule of thumb” estimates, or traditional statistical forecasting that incorrectly assumes a particular type demand distribution for inventory control. The result is that billions of dollars are wasted every year because of either excess inventory costs or poor customer service due to stock-outs.
+
+
+**_Croston forecast model for intermittent demand_**
+
+In 1972, J.D. Croston published “Forecasting and Stock Control for Intermittent Demands”, an article that introduced a new technique to forecast products with intermittent demand. His idea could be summarized in three simple steps:
+
+(1) Evaluate the average demand level when there is a demand occurrence.
+(2) Evaluate the average time between two demand occurrences.
+(3) Forecast the demand as the demand level (when there is an occurrence) multiplied by the probability to have an occurrence.
+
+
+
+*Model Specification*
+
+So how does the model work exactly?
+
+
+
+
+
+*Model Implementation in R*
+
+Having learned about this exciting  method to deal with intermittent demand, let's now implement Croston forecast model with R!
+
+
+*Data*
+
+We use data in file "intermittent.xlsx" for this section. The data records daily sales of a mobile APP during a 170-day period in 2019. Run the following code to import and, more importantly, have a visualization of the data we have. 
+```{r}
+library(readxl)
+library(ggplot2)
+data <- read_excel("~/Dropbox/intermittent.xlsx")
+kable(head(data, 10))
+df <-data.frame(data)
+ggplot(data=df, aes(x=day, y=sales)) +
+  geom_line(color="red")
+  
+```
+
+As shown in the above graph, the demand for the APP is quite random and unpredictable, with large spikes and long periods of zero sales. Therefore, fitting a model for intermittent demand is obvioulsy more appropriate than other traditional forecasting models. 
+
+Now we set up the model in R. First we need to tell R that we will be optimizing our model by changing the values of two parameters, alpha and beta. Let's give them a starting value of both 0.5.
+
+```{r}
+
+library(dplyr)
+
+#give a set of initial values to two parameters to estimate:
+alpha <- 0.5
+beta <- 0.5
+
+```
+
+Then, in order to update periodicity (as is described in the model specification section), we need to first build a variable that records the actual time gap beteween trasactions. Specifically, we need this variable to take value of one if there was a purchase on the previous day, and increase by one if there was no purchase on the previous day.  
+
+```{r}
+ n <- length(data$sales)
+  data$gap <- rep(0,n)
+  data$gap[1] <-3
+  for (i in 2: n){
+    if(data$sales[i-1]>0){
+      data$gap[i] <- 1
+    } else{
+      data$gap[i] <- data$gap[i-1]+1
+    }
+  }
+  
+  kable(head(data), caption = "Daily downloads of APP")
+  
+```
+
+
+Now we can calculate our predicted level of sales and predicted periodicity using the updating process specified in the model. To do so, we need to calculate these values by assuming certain initial values of alpha and beta (in our setting, both being 0.5). 
+
+```{r}
+#build sales level predictions and record a new column "level" to the original data file
+
+level.fn <- function(alpha, beta, sales){
+  n <- length(sales)
+  sales_level <- rep(0, n)
+  sales_level[1] <- sales[1]
+  for (i in 2: n){
+    if(sales[i]>0){
+      sales_level[i] <- alpha * sales[i]+(1-alpha)*sales_level[i-1] 
+    } else{
+      sales_level[i] <- sales_level[i-1]
+    }
+  }
+  
+  return(sales_level)
+}
+data$level <- level.fn(0.5, 0.5, data$sales)
+
+#repeat the same procedure for periodicity:
+
+period.fn <- function(alpha, beta, sales){
+  n <- length(sales)
+  
+  periodicity <- rep(0,n)
+  periodicity[1] <- data$gap[1]
+  for (i in 2: n){
+    if(sales[i]>0){
+      periodicity[i] <- beta * data$gap[i]+(1-beta)*periodicity[i-1] 
+    } else{
+      periodicity[i] <- periodicity[i-1]
+    }
+  }
+  return(periodicity)
+  
+  }
+
+data$period <- period.fn(0.5, 0.5, data$sales)
+
+kable(head(data), caption = "Daily downloads of APP")
+
+```
+
+Now we will be able to predict daily sales by dividing predicted sales level by periodicity. Then we calculate the sum of squared error and use it as the optimization objective. 
+
+```{r}
+
+intermittent.optim <- function(x, sales){
+  #assigning parameters
+  alpha <- x[1]
+  beta <- x[2]
+  
+  #Calculations
+  level<- level.fn(alpha, beta, sales)
+  period <- period.fn(alpha, beta, sales)
+  
+  
+  predict <- level/period
+  sse <- sum((sales - predict)^2)
+  return (sse)
+}
+```
+ 
+
+```{r}
+optim(par=c(0.2, 0.1),fn = intermittent.optim, sales = data$sales)[1:2]
+
+
+```
+---
+
+
+**_Question_**: What do you think are the pros and cons of Croston forecast model? Specifically, do you think there are any limitations of the model specifications? (Hint: think of what would the prediction be after long period of zero sales)
+

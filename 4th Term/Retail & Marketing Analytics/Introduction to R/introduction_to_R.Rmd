@@ -1,0 +1,662 @@
+---
+title: "Introduction to R"
+author: "Gokhan Yildirim"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+<br/>
+
+
+*Time: 30 minutes*
+
+
+---
+
+Welcome to this preparatory tutorial for R!  Let me tell you upfront that this session does not assume any prior knowledge of coding or computer programming. 
+
+
+By the end of this tutorial, you will: 
+
+* be introduced to R, RStudio and R Markdown, 
+* be able to set up a working directory in R
+* learn how to install and load R packages,
+* be able to create a simple R Markdown document 
+* be able to import(export) data to(from) R 
+
+
+#### What is R? 
+R is an open-source programming tool designed mainly for data analytics. R is very flexible and widely used for a myriad of big data and machine learning applications by many organizations worlwide. Besides, it is free, meaning that you will be able to install and start using it just after a couple of clicks, like many businesses do.
+
+#### What is RStudio? 
+Rstudio is an Integrated Development Editor, developed for R. It provides user friendly environment for R, and makes your life much easier. We will be using RStudio for our analyses. 
+
+#### What is R Markdown? 
+R Markdown is a text formatting tool that allows you to write and run your codes. Using R Markdown, you can also make your analyses and prepare reports out of those analyses in various file formats, including HTML (files that you can open using an internet browser), PDF,and Word.R Notebook is an another document type, and can be perceived as a form of R Markdown. We will use R Markdown for our sessions with data. 
+
+
+## Installing R 
+1. To install R to your computer, please go to <https://www.r-project.org/>, and click on [download R](https://www.r-project.org/). 
+
+<center>
+
+![*Figure 1: Download R*](R_download1.png)
+
+</center>
+
+<br/>
+
+
+2. You will land on the [CRAN Mirrors page](https://cran.r-project.org/mirrors.html). Go down the page and find UK from the list. Click on one of the links associated with Imperial College London. 
+
+<center>
+
+![*Figure 2: CRAN Mirrors*](R_download2.png)
+
+</center>
+
+
+<br/>
+
+3. Depending on your operating system, click on Windows, Mac OS X or Linux. 
+
+<center>
+
+![*Figure 3: R for different operating systems*](R_download3.png)
+
+</center>
+
+<br/>
+
+4. In the next page, you will find the link to download R. Here, click on base.
+
+<center>
+
+![*Figure 4: Subdirectories for R*](R_download4.png)
+
+</center>
+
+<br/>
+
+5. Next, download R 3.6.1 for Windows:
+
+<center>
+
+![*Figure 5: Download R 3.6.1*](R_download5.png)
+
+</center>
+
+
+<br/>
+
+You are now downloading the .exe file *R-3.6.1-win*. Once downloaded to your computer, double click on the file and follow the instructions to complete the installation. You are done with R installation! Next, we will download the RStudio. 
+
+
+## Installing RStudio
+
+1. Go to <https://www.rstudio.com/products/rstudio/download/>. Scroll down the page. will show multiple package options for RStudio. We will download the open source RStudio Desktop (free) version:
+
+
+<center>
+
+![*Figure 6: Free version of RStudio*](Rstudio_download2.png)
+
+</center>
+
+
+<br/>
+
+2. Scroll down the page and select the RStudio version in line with your operating system (windows, Mac OS X, or Linux):
+
+
+<center>
+
+![*Figure 7: RStudio for different operating systems*](Rstudio_download3.png)
+
+</center>
+
+<br/>
+
+3. You are now downloading the .exe file *RStudio-1.2.5019*. Once downloaded to your computer, double click on the file and follow the instructions to complete the installation. You are done with RStudio installation, as well! RStudio is the interface that we will use during the entire module. 
+
+
+4. Now, you can open the RStudio from the Windows start menu: 
+
+<center>
+
+![*Figure 8: Access to RStudio from start menu*](Rstudio_open.png)
+
+</center>
+
+<br/>
+
+5. When you open the RStudio, this is how the screen will look like: 
+
+<center>
+
+![*Figure 9: RStudio interface*](Rstudio_screen1.png)
+
+</center>
+
+
+## Exploring RStudio
+
+Now, let's explore RStudio. There are four main parts on the main screen. Each has a specific role: 
+
+
+<center>
+
+![*Figure 10: RStudio screen*](Rstudio_screen2.png)
+
+</center>
+
+
+<br/>
+
+To open a new editor to write and run your codes, go to *Files* tab (left of upper menu), *New File* -> *R Script* (new *R Notebook* and *R Markdown* files are also accessed from here).
+
+In the *Files* menu, you will also find operations such as *Save*, *Save As*, *Import Dataset* etc.
+
+<center>
+
+![*Figure 11: Opening a text editor in RStudio*](Rstudio_texteditor.png)
+
+</center>
+
+
+<br/>
+
+
+When you write your code, you can run the snippet by clicking on the RUN button. Try to type the following code in your script and run: 
+
+```{r eval=FALSE, echo=TRUE}
+m<-1:5
+print(m)
+n<-6:10
+print(n)
+m+n
+```
+
+<br/>
+
+<center>
+
+![*Figure 12: Running a code in RStudio*](Rstudio_code1.png)
+
+</center>
+
+
+<br/>
+
+
+<br/>
+
+
+Now, let's discover where to look when we execute a code from our script:
+
+<center>
+
+![*Figure 13: RStudio: code, environment and output*](Rstudio_output.png)
+
+</center>
+
+<br/>
+
+The top left screen shows that we defined two vectors **m** and **n**, and then summed them. Note that the sign  `<-`  in R language actually means equality sign `=` . When we ran the code, these vectors appeared at the top right (*Environment* panel). You can find all command results at the bottom left in the *Console* panel.
+
+
+
+**_Working Directory_**
+
+The *working directory* is where your files (data, code, output) are stored. So, to start working with your RStudio, you need to set up your working directory.  For example, you can create a new folder called *'R Intro'* on your desktop.  Next, in RStudio, you can click on the sequence *Session - Set Working Directory - Choose Directory*, and finally choose the folder *'R Intro'* that you created before. 
+
+
+<center>
+
+![*Figure 14: Working Directory*](Rstudio_workingdirectory.png)
+
+</center>
+
+<br/>
+
+<span style="color:red">WARNING</span>: Make sure that every time you start your RStudio, you set up your working directory. 
+
+
+__How can I save my code/script?__
+
+You can save your code (e.g. R script, R Markdown, R Notebook) if you want to continue working with it later on. To do so, go to *File - Save*. Choose the folder that you want to put your code in. This is usually your working directory. To open the file again, go to *File - Open File*, and find the corresponding folder.  
+
+<center>
+
+![*Figure 15: Saving R script*](Rstudio_savescript.png)
+
+</center>
+
+
+<br/>
+
+__Help?__ 
+
+When you don't know a function's specifics and the corresponding R syntax (code), you can ask the *Help* menu which can be found at the bottom right of the screen. 
+
+<center>
+
+![*Figure 16: RStudio help*](Rstudio_help.png)
+
+</center>
+
+
+## Packages
+Now, let's discover the interesting feature of R: the *packages*. Very often, we need to use functions that are developed by other analysts. So, R's capabilities significantly depend on packages that are developed by the R community. This flexibility makes R a powerful tool. Packages are collections of R functions, data, and compiled code in a well-defined format. The directory where packages are stored is called the library. We use the function `install.packages()` to install a package and `library()` to launch before using it. Now, let's see how we install an R package and launch it in a user-friendly way:
+
+**_Installing a package_** 
+
+* From the bottom-right window, click on *Packages - Install* . Then, in the pop-up menu, type in *dplyr*, and select the highlighted package from the drop-down list. The package `dplyr` is the data manupulation package that is oftentimes needed for cleaning and structuring the data. Depending on our needs, we may want to install a different package, e.g. *forecast* package.  
+
+
+<center>
+![*Figure 17: Installing a package*](Rstudio_package1.png)
+
+</center>
+
+<br/>
+
+* While you install the package you will see the texts in red colour, and a tiny stop sign at the top right of the console section. When the installation is complete, that stop sign should disappear.  
+
+
+
+
+<center>
+
+![*Figure 18: Process of installing a package*](Rstudio_package2.png)
+
+</center>
+
+
+<br/>
+
+**_Launching a package_**
+
+Just to repeat, in order to use an R package you need to install first, and then launch it. To launch a package, go to *Packages* (the bottom right corner), then type *dplyr* in the search box. When the package appears within that window, then put a tick in the small box by clicking on it. This will initiate the launching. Within the Console section, at the top right, you will see again the tiny *stop* sign. Wait until it disappears. Once it does disappear, then you are ready to use the package for your analysis. 
+
+*There is another way to install and launch packages*: 
+
+An alternative, and perhaps easier way to install and launch a package is to execute the following command in your text editor: 
+
+
+```{r eval=FALSE, echo=TRUE}
+install.packages("dplyr")
+library(dplyr)
+```
+
+With just two lines of code, you are done! Try either of these two methods to install and launch an R package you want to work with. 
+
+Depending on your analysis, you will need to install and launch a different package. 
+
+
+<span style="color:red">WARNING</span>: Every time you start an RStudio session, you need to launch the package that you want to work with. 
+
+
+## RMarkdown
+Of the text editors in R, WE WILL USE *RMarkdown* in our data applications.  
+We provided a short introduction to *RMarkdown* in the beginning. *RMarkdown* will provide you with the tools to present your work and act as a notebook while you work. For instance, assume that you need to analyze a dataset in *csv* format. Without *RStudio* and *RMarkdown*, you would need to import the dataset into your analysis program, then create an output, say a graph, then copy the graph out of the analysis program, then, may be, photoshop it, and then insert as an image into your presentation that you are preparing in *MS PowerPoint* or *Keynote*. Whenever you make a change in your analysis and your resulting graph changes, you would need to repeat the same cycle again. This is exhausting. But *RMarkdown* enables you to import your dataset, run your analysis, generate outcomes in multiple types such as HTML, and finally make presentations under single environment. An more importantly, whenever you alter your analysis, it will be dynamically reflected in your outputs. Thus, you won't need to make further changes to your presentation. It is worth to note that the developer of *RMarkdown* advises us to prefer html file type over others.
+
+
+Now, let's locate where *RMarkdown* is:
+
+
+<center>
+
+![*Figure 19: Opening an RMarkdown*](Rstudio_markdown1.png)
+
+</center>
+
+<br/>
+
+So, it is easy to reach to *RMarkdown*, isn't it? After clicking *R Markdown* from the menu, a pop-up menu will appear so that you choose the specifics of your Rmarkdown. First, type in the title of your file, and the author name. Then, select *Document* as the file type. Finally, choose *HTML* as the output format.  
+
+<center>
+
+![*Figure 20: Choosing the specifics of RMarkdown*](Rstudio_markdown2.png)
+
+</center>
+
+<br/>
+
+Your document will not be blank, but a bit structured. Here are the sections of a standard *RMarkdown* file:
+
+
+<center>
+
+![*Figure 21: Sections of a standard RMarkdown*](Rstudio_markdown3.png)
+
+</center>
+
+<br/>
+
+If you need a new code chunk, click on "Insert" button and select the code chunk type you wish to insert. We will insert an R code chunk:
+
+
+<center>
+
+![*Figure 22: Inserting a new code chunk in RMarkdown*](Rstudio_markdown4.png)
+
+</center>
+
+
+<br/>
+
+Let's run the codes in the chunks:
+
+
+<center>
+
+![*Figure 23: Running codes in chunks in RMarkdown*](Rstudio_markdown5.png)
+
+</center>
+
+
+<br/>
+
+The output will be illustrated, just below the relevant chunk:
+
+<center>
+
+![*Figure 24: Seeing outputs in RMarkdown*](Rstudio_markdown6.png)
+
+</center>
+
+
+<br/>
+
+Now, to generate all we have done in the *RMarkdown* file, we click *Knit*, and select *Knit to HTML*. 
+
+
+<center>
+
+![*Figure 25: Knitting a document in RMarkdown*](Rstudio_knitting1.png)
+
+</center>
+
+
+<br/>
+
+An output document in a seperate window will appear: 
+
+<center>
+
+![*Figure 26: Generated HTML file from RMarkdown*](Rstudio_knitting2.png)
+
+</center>
+
+
+<br/>
+
+You can also open this document in your browser or at the *Viewer* tab at the bottom right panel, by changing the knit setting:
+
+
+<center>
+
+![*Figure 27: Viewing HTML file from viewer pane*](Rstudio_knitting3.png)
+
+</center>
+
+
+## Importing Data to R 
+
+Companies keep track of lots of internal data such as online and offline sales, advertising expenses, number of visitors to the webpage, number of clicks, click-through-rate (CTR) and many others. Using R, we will build models. Those models will make use of given datasets. Therefore, we need to know how to import and export such data. Since the data can be kept in various forms, in these notes, we will focus on the most widely used ones: 1) Excel files, and 2) CSV files. 
+
+**_Excel files_**
+
+First, open a new Rmarkdown file and insert a new code chunk. To import a dataset from an Excel file, we need the package called *readxl*. Then, type the following command within the chunk that you just created in your RMarkdown:   
+
+```{r eval=FALSE, echo=TRUE}
+install.packages("readxl")
+library(readxl)
+```
+
+The first statement is to install the package while the second one is to launch the package. 
+
+Alternatively, you can do it via the *Packages* tab from the bottom right corner (see the below figures): 
+
+<center>
+
+![*Figure 28: Installing the readxl package*](Rstudio_dataimport1.png)
+
+</center>
+
+
+<br/>
+
+<center>
+
+![*Figure 29: Launching the readxl package*](Rstudio_dataimport2.png)
+
+</center>
+
+<br/>
+
+Once you launch the package, then you are ready to import your data. The data you will import is called **_data1_**, and can be found in the folder that is made available for you on the HUB page. Make sure that the data file is in the same directory as your RMarkdown file. Insert the following command into your previously created code chunk:  
+
+```{r eval=FALSE, echo=TRUE}
+#library(readxl)
+data<-read_excel("data1.xlsx")
+```
+
+
+Overall, when you import the data to R, your screen will show your data at the top right corner. Click on the data and observe where it appears and what the it looks like. 
+
+<center>
+
+![*Figure 30: Importing data from Excel to R*](Rstudio_dataimport3.png)
+
+</center>
+
+
+NOTE: If you have missing values in the data, they are usually represented as blank cells. If the 'NA's are represented by something other than blank cells, you need to set the `na` argument as follows: 
+
+```{r eval=FALSE, echo=TRUE}
+read_excel("data1.xlsx", na = "NA")
+```
+
+<br/>
+
+**_CSV files_**
+
+CSV stands for Comma Separated Values. In fact, CSV files are plain text-files.  They can be opened using programs like Notepad or Excel. To import a data file in CSV format, insert a new code chunk in your RMarkdown, then type the following command within the chunk:   
+
+```{r}
+#If your data does not have any header 
+data <- read.csv("data1.csv")   
+
+#If your data starts with a header (e.g. date, name of the variable)
+data <- read.csv("data1.csv", header=TRUE)   
+
+```
+
+
+<center>
+
+![*Figure 31: Importing CSV data file to R*](Rstudio_dataimport4.png)
+
+</center>
+
+
+## Exporting Data from R
+
+Suppose that you finished your R session, and now have your R data. You may want to export your data from R to other formats such as Excel and CSV. It could be that you want to make your plots better in Excel by using your R data. Or, you want to continue with your work using another software, and you need to export your R data to a CSV file.  You can do these in R. Let's start with how to export R data to an Excel file. 
+
+**_From R to Excel_**
+
+First, let's create an artifical variable and name it *Rdata*. Type the following code in your RMarkdown and run the chunk: 
+
+```{r}
+Rdata<-c(1:100)
+
+```
+
+
+<center>
+
+![*Figure 32: Creating a variable in R*](Rstudio_dataexport1.png)
+
+</center>
+
+<br/>
+
+Next, let's export this data to Excel. To this end, go to *Packages* tab at the bottom right, click on *Install*, and then type in the box *openxlsx*. After you install the package *openxlsx*, DO NOT FORGET to LAUNCH it. If you are unsure about how to launch a package, check the related notes above. 
+
+
+<center>
+
+![*Figure 33: Installing the 'openxlsx' package*](Rstudio_dataexport2.png)
+
+</center>
+
+
+<br/>
+
+
+Once you launch the package, enter the following line of code within your code chunk in RMarkdown: 
+
+
+```{r eval=FALSE, echo=TRUE}
+data <- write.xlsx(Rdata,file="Rdata_to_excel.xlsx")
+
+```
+
+
+Once you execute the above code, then in your working directory you will see an excel file called 'Rdata_to_excel'. So, you exported your Rdata to an excel file! 
+
+<center>
+
+![*Figure 34: Exporting R data to an excel file*](Rstudio_dataexport3.png)
+
+</center>
+
+
+<br/>
+
+
+**_From R to CSV_**
+
+To export your Rdata to a CSV file, enter the following within your code chunk in RMarkdown: 
+
+```{r eval=FALSE, echo=TRUE}
+write.table(Rdata,file="Rdata_to_csv.csv")
+
+```
+
+Then, you will see the exported CSV file called 'Rdata_to_csv' in your directory. You will see that the names of the rows and columns are kept in the file. To remove those, change your statement to: 
+  
+
+```{r eval=FALSE, echo=TRUE}  
+write.table(Rdata, file="Rdata_to_csv.csv",row.names = FALSE, col.names = FALSE, sep=",")
+
+```
+
+<center>
+
+
+![*Figure 35: Exporting R data to CSV file*](Rstudio_dataexport4.png)
+
+
+</center>
+
+
+<br/>
+
+
+Once you execute the above code, in your working directory you will see an excel file called 'Rdata_to_csv'. So, you exported your Rdata to a CSV file! 
+
+<br/>
+
+
+You reached the end of the prep notes! Now, you are familiar with R. If you want to check some more resources about R, the below list might help you. In the next session, we will take a deep dive into analytic models in digital marketing. 
+
+<center>
+
+**SEE YOU IN THE NEXT SESSION**!
+
+</center>
+
+
+### Additional Resources 
+
+**_Cheatsheet for RMarkdown_**: 
+
+You will use RMarkdown for your tutorials. These cheatsheets will give you useful tools in a nutshell:
+
+<https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf>
+
+
+<https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet>
+
+<br/>
+
+**_If you want to know more about reporting with R markdown_**: 
+
+[Reporting with R markdown](https://www.datacamp.com/courses/reporting-with-r-markdown)
+
+<br/>
+
+**_There are many other websites to get help with R. The main ones are_**: 
+
+[Rseek](https://rseek.org/), for a version of google that understands that R is not a letter.
+
+[Stack Overflow]([https://stackoverflow.com/), for programming questions 
+
+[Cross Validated](https://stats.stackexchange.com/), for statistics questions
+
+[R mailing lists](https://www.r-project.org/mail.html), for everything else
+
+<br/>
+
+**_And this is a more structured list_**:
+
+*Beginners*
+
+[Introduction to R](https://www.datacamp.com/courses/free-introduction-to-r)
+
+[Introduction to RStudio](https://www.datacamp.com/courses/working-with-the-rstudio-ide-part-1)
+
+[Importing data (part 1)](https://www.datacamp.com/courses/importing-data-in-r-part-1)
+
+[Data visualisation (part 1)](https://www.datacamp.com/courses/data-visualization-with-ggplot2-1)
+
+[Cleaning data](https://www.datacamp.com/courses/cleaning-data-in-r)
+
+<br/>
+
+*Intermediate*
+
+[Intermediate R](https://www.datacamp.com/courses/intermediate-r)
+
+[Writing functions](https://www.datacamp.com/courses/writing-functions-in-r)
+
+[Data manipulation](https://www.datacamp.com/courses/dplyr-data-manipulation-r-tutorial)
+
+[Importing data part 2](https://www.datacamp.com/courses/importing-data-in-r-part-2)
+
+<br/>
+
+*Advanced*
+
+[Multiple regression](https://www.datacamp.com/courses/multiple-and-logistic-regression)
+
+[Sentiment analysis](https://www.datacamp.com/courses/sentiment-analysis-in-r-the-tidy-way)
+
+[Writing efficient code](https://www.datacamp.com/courses/writing-efficient-r-code)
+
+
+---
+
+
+
+
+
+
+
+

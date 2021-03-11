@@ -1,0 +1,30 @@
+---
+title: "Assignment 1 Forecasting"
+output: html_document
+---
+
+
+Please download the dataset, **“beer.xlsx”**, which contains weekly store-level scanner data provided by an anonymous beer brand in the US. The analysis focuses on the Top 3 brands of beer sold between 14th September 2015 to 19th January 2020, covering 227 weeks (4.4 years).
+ 
+The dataset includes:
+
+* **Price level data**: average weekly retail price ($price_i$) and wholesale prices ($wprice_i$) for brand i;
+
+* **Performance metrics**: sales ($sales_i$) and retail margin ($retailmargin_i$) for brand i;
+
+* **Promotional activities**: feature ($feature_i$) and display ($display_i$) variables for brand i. featurei measures the fraction of a brand’s stock keeping units (SKU) placed on a “price special” during the week (i.e. a temporary price reduction such as 15% off). $display_i$ represents the fraction of all SKUs sold as a “Bonus Buy” (e.g. volume discounts such as “buy one, get one free”). 
+
+Note, $feature$ is an example of price promotions and $display$ an example of non-price promotions.
+ 
+### Task:
+
+Please use **multivariate linear regression** and **neural networks** method to estimate and predict weekly brand sales for brand 1, 2, and 3, and answer the following questions:
+
+* What is the difference in effectiveness of price and non-price promotions in improving brands’ sales performance?
+
+* Which method performs the better in predicting future sales of brands?
+
+
+
+
+

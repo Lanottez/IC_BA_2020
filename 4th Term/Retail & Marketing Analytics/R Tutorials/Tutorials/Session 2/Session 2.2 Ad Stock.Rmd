@@ -1,0 +1,312 @@
+---
+title: "Advertising effectivenesss"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+
+install.packages("knitr",repos = "http://cran.us.r-project.org" )
+install.packages("dplyr", repos = "http://cran.us.r-project.org")
+install.packages("readxl",repos = "http://cran.us.r-project.org")
+install.packages("forecast",repos = "http://cran.us.r-project.org")
+install.packages("tseries",repos = "http://cran.us.r-project.org")
+install.packages("vars",repos = "http://cran.us.r-project.org")
+install.packages("R6",repos = "http://cran.us.r-project.org")
+
+##load the packages that are needed for this session
+
+library(knitr)
+library(dplyr)
+library(readxl)
+library(forecast)
+library(tseries)
+library(vars)
+library(dplyr)
+
+```
+
+
+<br/>
+
+Companies have trouble measuring the effectiveness of advertising. This is due primarily to the lag between exposure to an ad and the consumer response to an ad. Simply put: past ads can (and usually do) affect present and future sales.
+
+John Wanamaker, a 19th-century Philadelphia department store merchant, summarized how difficult it is to measure the benefits of advertising when he said, “Half the money I spend on advertising is wasted; the trouble is I don’t know which half.” 
+
+This session develops several models that you can use to determine if a firm’s advertising is worthwhile. 
+
+* You learn how to incorporate the lagged effect of advertising into your forecast of product sales. 
+
+* You also learn that the optimal allocation of the ad budget over time may involve either pulsing (quick bursts of intensive advertising followed by a period of no ads) or continuous spending (advertising all the time at a fairly constant rate).
+
+
+**Now let's start!**
+
+<br/>
+<br/>
+
+
+### Preparations and Set Up
+
+Before we start, let us do some preparation work to get ready!
+
+We need to: 
+
+* Create a folder and set working directory to that folder on your device,
+
+* Download datasets needed for this tutorial onto your working directory, and
+
+* Load datasets for analysis later as we proceed
+
+
+The dataset of this section is made available to you. The file is *adstockdata* and are stored in an *xlsx* format. 
+
+To save the dataset and for convenience of anlaysis for this section, let us create a folder in your computer for and name the folder *adstock*. And then let us download the two files to the folder (*adstock*) that you just created. 
+
+In order to load the dataset to R, we need to run only **part** of the following chunk of codes, depending on the **operating system** of your device. To avoid running unnecessary and redundant codes and receiving error messages, please add a "#" before each line of non-applicable codes in the chunk below. For example, if you are using a Mac, you need to put a "#" before code *setwd("H:/downloads/adstock)*.
+
+
+
+```{r}
+# Please run the following codes depending on the operating system on your laptop/PC. 
+
+# if you are using iOS, and your *adstock* folder is created under "Downloads" on your Mac: you will need to first set your working directory to *adstock* folder:
+
+setwd("~/Downloads/adstock")
+
+# if you are using Windows, and your *adstock* folder is created in your H drive: you will need to first set your working directory to *adstock* folder:
+
+#setwd("H:/downloads/adstock")
+
+# load the datasets
+data <- read_excel("adstockdata.xlsx")
+
+```
+
+
+</br>
+</br>
+
+## 1. A Brief Introduction
+
+In the previous session, "$SCAN{*}PRO$ Model for Evaluating Retail Promotion", we learned about models that you can use to determine how price and display affect sales. These models are not too difficult to set up because you can assume that past prices and displays do not affect current sales. 
+
+---
+
+**Question**: Do you think models like $SCAN{*}PRO$ can be used to understand the effect of advertising on sales? If yes, why? If no, what assumption(s) does not hold for advertising context? 
+
+---
+
+
+This session focuses on **Adstock Model**, which accounts for the lag between exposure to an ad and the consumer response to an ad. The key idea behind the Adstock Model is the assumption that each given sales period or quarter, you retain a fraction \( \lambda \) of your previous stock of advertising. 
+
+For example, if \( \lambda \) = 0.8, then an ad from one period ago has 80 percent of the effect of an ad during the current period; an ad two periods ago has $(0.80)^2 = 51.2$ percent as much impact as an ad during the current period; and so on. \( \lambda \) will therefore be a changing value that is determined through solving the optimization problem. In a sense, the Adstock Model assumes that the effect of advertising "depreciates" or wears out in a manner similar to the way a machine wears out.
+
+
+## 2. Data
+
+To try out an analysis using the Adstock Model, suppose you want to model sales of a seasonal price-sensitive product for which sales are trending upward. In this session, we are using a retailing dataset of a company from January 2013 to December 2018. Let's take a brief look of the dataset:
+
+
+```{r, message=FALSE, warning=FALSE}
+
+head(data)
+
+```
+
+
+After reading in and listing a few lines of the dataset, you can see that for each quarter, you are given the product price, amount of advertising, and units sold (in thousands). For example, during the first quarter of data (which was also the first quarter of the year), the price was $44.00, 44 ads were placed, and 2,639 units were sold.
+
+<br/>
+<br/>
+
+## 3. Model Specification
+
+<br/>
+
+### 3.1 Calculating Adstock Level
+
+<br/>
+
+Coming into the first period, you do not know the current Adstock level, so you can make the period 1 level of Adstock a changing parameter (call it $Adstock_{initial}$). Then each period’s Adstock value can be computed using Equations 1 and 2:
+
+$$(1) Adstock_{Q_1} =  \lambda * Adstock_{initial} + Advertising_{Q_1} $$
+
+$$(2) Adstock_{Q_t} = \lambda * Adstock_{Q_{t-1}}+ Advertising_{Q_t}, \ t=2,3,...,T$$
+<br/>
+
+### 3.2 Sales Model
+
+<br/>
+
+Of course, you need a mechanism by which the Adstock level influences sales. You can assume that the Adstock level in a quarter has a linear effect on sales through a parameter *ADEFFECT*. Use the following model to forecast each quarter’s sales:
+
+<br/>
+
+$$(3) Predicted\ Sales = Constant * (Trend^{Q_t}+ AdEffect_t * Adstock_t) * (Price_t)^{-\epsilon} * (Seasonal\ Index)$$
+
+<br/>
+
+where $\epsilon$ is price elasticity of demand.
+
+In Equation 3 $Constant * (Trend^{Q_t}+ AdEffect * Adstock_t)$ “locates” a base level for sales in the absence of seasonality and advertising and adjusts this base level based on the current Adstock level. Multiplying this base level by $(Price_t)^{-\epsilon} * (Seasonal\ Index)$ adjusts the base level based on the current price and quarter of the year.
+
+<br/>
+
+### 3.3 Analysis Steps
+
+
+In your analysis, find the parameter values that minimize the MAPE associated with Equation 3. The following steps describe how to use *optim* to minimize MAPE.
+
+<br/>
+
+#### 3.3.1 Assign the $Adstock_{initial}$ to be 0 and  \( \lambda \) equals to 0.8, and then compute adstock for all following quarters using equation (1) and (2) 
+
+<br/>
+
+```{r, message=FALSE, warning=FALSE}
+
+initial.adstock <- 0
+lambda <- 0.8
+
+adstock.fn <- function(initial.adstock, lambda, ads){
+  n <- length(ads)
+  adstock <- rep(0, n)
+  adstock[1] <- initial.adstock * lambda + ads[1]
+  for (i in 2: dim(data)[1]){
+    adstock[i] <- adstock[i-1] * lambda + ads[i]
+  }
+  return (adstock)
+  }
+
+data$adstock <- adstock.fn(0, 0.8, data$Ads)
+
+head(data, caption = "Table 2 Adstock Data")
+```
+
+<br/>
+
+#### 3.3.2 Compute the forecasted sales using adstock using formula (3)
+
+<br/>
+
+The following parameters are needed in order to compute the forecast: *Constant*, Trend, Adeffect, elasticity ($\epsilon$), Seasonal Index, Adstock, Initial stock ($Adstock_{initial}$) and  \( \lambda \)
+
+The data input is price info ("Price" in the dataset), the quarters which is used to determine the seasonal index ("Quarter of Year" in the dataset), Ads used to calculate Adstock ("Ads in the dataset"), and Sales ("Sales" in the dataset) used to compute errors. 
+
+They are all going to be parameters of the optimisation problem for us to solve. The function used in R that allows us to formulate an optimization problem is *optim*. The function comprises two groups of inputs: parameters as denoted by x and other input data.
+
+The first part of the function is to assign the parameter values from x to kick start the solving mechanism. Then additional data is calculated, namely Adstock using the Adstock function you created earlier and Seasonal Index based on the quarter of the year. With all the data available, you are then able to compute the forecast sales using formula (3). Lastly, you can compute the absolute percentage errors (APE) and return the mean of APE.
+
+
+<br/>
+
+```{r}
+
+adstock.optim <- function(x, price, quarterofyear, quarters, ads, sales){
+  #assigning parameters
+  const <- x[1]
+  trend <- x[2]
+  adeffect <- x[3]
+  initial.adstock <- x[4]
+  lambda <- x[5]
+  elasticity <- x[6]
+  s1 <- x[7]
+  s2 <- x[8]
+  s3 <- x[9]
+  s4 <- x[10]
+  #Calculations
+  adstock <- adstock.fn(initial.adstock, lambda, ads)
+  seasonal_index <- ifelse(quarterofyear == 1, s1, ifelse(
+    quarterofyear == 2, s2, ifelse(
+      quarterofyear == 3, s3, s4
+    )
+  ))
+  predict <- const * (trend^(quarters) + 
+                        adeffect * adstock)* price ^(-elasticity) * seasonal_index
+  mape <- mean(abs((sales - predict)/sales))
+  return (mape)
+}
+```
+
+<br/>
+
+The optimization problem has 10 variables, and it also involves non-linear transformation. 
+
+The initial parameters we feed to the algorithm is crucial as it dramatically improves the efficiency of finding the solution. The variables such as trend, adeffect, lambda, elasticity, and seasonal indices all should have values around 1. So our initial guess would be 1 for them. The other two variables, initial adstock and constant, have a larger range of variations. We assume that the initial adstock at half of the adstock one year later is a reasonable guess. That could be the accumulated adstocks from previous marketing. However, we have little idea of what constant could be. We could start with 1 and see what we get. 
+
+<br/>
+
+```{r}
+optim(c(1,1,1,22,1,1,1,1,1,1),fn = adstock.optim, price = data$Price, 
+      quarterofyear = data$`Quarter of Year`,
+      quarters = data$Quarter,
+      ads = data$Ads, sales = data$Sales, 
+    )[1:2]
+```
+
+<br/>
+
+The initial guess gives us an average percentage error (APE) of 0.13 i.e. 13%. The output of the optimisation problem does not deviate much from the initial input value. In fact the optim function doesn't solve the problem well. We could increase the constant and see if we can get a better result. 
+
+<br/>
+
+```{r}
+optim(c(10,1,1,22,1,1,1,1,1,1),fn = adstock.optim, price = data$Price, 
+      quarterofyear = data$`Quarter of Year`,
+      quarters = data$Quarter,
+      ads = data$Ads, sales = data$Sales, 
+      method = "L-BFGS-B")[1:2]
+```
+
+<br/>
+
+When we increase the constant to 10, the APE decreases to 0.063, which is a large improvement. 
+After a few rounds of testing, the best output we could get is when we set initial value of constant = 280 and initial adstock = 60 which produces an APE of 0.041 only. 
+
+<br/>
+
+```{r}
+result <- optim(c(280,1,1,60,1,1,1,1,1,1),fn = adstock.optim, price = data$Price, 
+      quarterofyear = data$`Quarter of Year`,
+      quarters = data$Quarter,
+      ads = data$Ads, sales = data$Sales, 
+      method = "L-BFGS-B")
+result[1:2]
+```
+
+To summarize, results indicate the following model parameters:
+
+* constat = 280
+
+* trend = 1.71
+
+* adeffect = 0.07
+
+* initial adstock = 60
+
+* lambda = 0.88
+
+* elasticity = 1.77
+
+* s1 = 0.74
+
+* s2 = 0.67
+
+* s3 = 0.75
+
+* s4 = 1.56
+
+
+<br/>
+<br/>
+
+From the trials above, you might find that a limitation of *optim* function is that the model outcome may be highly dependent on the choice of starting values of the parameters. This is especially a concern when the size of the data is small (e.g., in our case).
+
+<br/>
+<br/>
+
+**  **END OF THIS TUTORIAL**  **
+
+<br/>
+<br/>
