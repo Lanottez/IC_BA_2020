@@ -1,12 +1,5 @@
-17:00 14/2/2021 Analytics in Business Heat Smart Orkney report
+17:00 11/3/2021 Retail & Marketing Analytics Simulation Round 1
 
-17:00 14/2/2021 Analytics in Business Heat Smart Orkney video presentation
+16:00 15/3/2021 Logistics & Supply Chain Analytics Indiviudal Project
 
-23:59 16/2/2021 Machine Learning Individual Assignment 4
-
-23:59 16/2/2021 Machine Learning Group Assignment 4
-
-17:00 22/2/2021 Network Analytics Homework 3
-
-
-
+16:00 7/4/2021 Logistics & Supply Chain Analytics Group supply chain simulation game
