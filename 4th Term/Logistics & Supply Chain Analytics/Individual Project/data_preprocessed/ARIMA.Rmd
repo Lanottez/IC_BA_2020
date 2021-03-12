@@ -1,0 +1,84 @@
+---
+title: "ARIMA"
+author: "Qian Zhang"
+date: "2021年3月12日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(forecast)
+library(tseries)
+library(ggplot2)
+```
+```{r}
+data <- read.csv(file = "shampoo.csv", header = TRUE)
+shampoo <- ts(data[, 2], frequency = 12, start = c(2001, 1))
+shampoo
+```
+
+```{r}
+data <- read.csv(file = "lettuce_demand_4904.csv", header = TRUE)
+# lettuce_demand_4904 <- ts(lettuce_demand_4904[, 2], frequency = 7, start = c(2001, 1))
+lettuce_demand_4904 <- ts(data[, 4], frequency = 7)
+lettuce_demand_4904
+```
+
+
+```{r}
+ggtsdisplay(lettuce_demand_4904)
+```
+
+```{r}
+adf.test(lettuce_demand_4904)
+```
+
+```{r}
+pp.test(lettuce_demand_4904)
+```
+
+```{r}
+kpss.test(lettuce_demand_4904)
+```
+```{r}
+ndiffs(lettuce_demand_4904)
+nsdiffs(lettuce_demand_4904)
+```
+
+```{r}
+ggAcf(lettuce_demand_4904)
+```
+
+```{r}
+ggPacf(lettuce_demand_4904)
+```
+
+```{r}
+auto.arima(lettuce_demand_4904, trace = TRUE, ic = 'bic')
+```
+```{r}
+# Best Model: ARIMA(1,0,0)(1,0,1)[7] with non-zero mean (1083.971)
+lettuce_demand_4904.m1 <- Arima(lettuce_demand_4904, order = c(1, 0, 0),seasonal = list(order = c(1, 0, 1), period = 7))
+
+# Second Best Model: ARIMA(0,0,1)(1,0,1)[7] with non-zero mean (1086.683)
+lettuce_demand_4904.m2 <- Arima(lettuce_demand_4904, order = c(0, 0, 1),seasonal = list(order = c(1, 0, 1), period = 7))
+
+# Third Best Model: ARIMA(2,0,0)(1,0,1)[7] with non-zero mean (1087.111)
+lettuce_demand_4904.m3 <- Arima(lettuce_demand_4904, order = c(2, 0, 0),seasonal = list(order = c(1, 0, 1), period = 7))
+```
+
+```{r}
+accuracy(lettuce_demand_4904.m1)
+
+accuracy(lettuce_demand_4904.m2)
+
+accuracy(lettuce_demand_4904.m3)
+
+
+```
+```{r}
+lettuce_demand_4904.m1 <- forecast(lettuce_demand_4904.m1, h = 6)
+lettuce_demand_4904.m1
+autoplot(lettuce_demand_4904.m1)
+```
+
