@@ -1,5 +1,3 @@
-17:00 5/4/2021 Retail & Marketing Analytics Group Project Report
-
 16:00 7/4/2021 Logistics & Supply Chain Analytics Simulation Report
 
 17:00 9/4/2021 Retail & Marketing Analytics Individual Project Report
