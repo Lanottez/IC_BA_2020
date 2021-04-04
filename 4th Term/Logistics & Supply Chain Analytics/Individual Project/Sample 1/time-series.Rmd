@@ -1,0 +1,1881 @@
+---
+title: "Supply Chain Analytics Individual Assignment"
+author:
+- Candidate Number - 01437771
+- Teacher - Dr. Jiahua Wu
+- Avi Mago
+subtitle: BS1808 Logistics and Supply Chain Analytics
+fontsize: 11pt
+output:
+  html_document:
+    theme: "paper"
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+csl: harvard-imperial-college-london.csl
+bibliography: sca_final.bib
+---
+
+```{r Loading Libraries, include=FALSE}
+library(forecast)
+library(tseries)
+library(ggplot2)
+library(knitr)
+library(stargazer)
+library(ggthemes)
+library(xtable)
+library(texreg)
+library(kableExtra)
+library(gridExtra)
+```
+
+```{r Loading dataset, include=FALSE}
+# loading transaction data
+transaction_rep <- read.csv("results/rep_transactions.csv")
+transaction_sub <- read.csv("results/sub_transactions.csv")
+
+# Loading data for stores 
+data_12631 <- read.csv("results/12631.csv")
+data_20974 <- read.csv("results/20974.csv")
+data_46673 <- read.csv("results/46673.csv")
+data_4904 <- read.csv("results/4904.csv")
+```
+
+```{r Analysing existence of outlier, include=FALSE}
+# Histogram to see if there are any outliers
+repice_hist <- ggplot(data = transaction_rep, aes(x = total_lettuce_trans_rep)) + geom_histogram() +labs(x = "Total lettuce Ussage in Ounces", y = "Number of Such Transaction", title = "Recipe") + theme_few()
+sub_hist <- ggplot(data = transaction_sub, aes(x = total_lettuce_trans_sub)) + geom_histogram() + labs(x = "Total lettuce Ussage in Ounces", y = "Number of Such Transaction", title = "Sub-Recipe") + theme_few()
+
+# Outlier Cutoff
+# Recipe
+rep_cutoff <- mean(transaction_rep$total_lettuce_trans_rep) + (3*sd(transaction_rep$total_lettuce_trans_rep))
+# Sub Recipe
+sub_cutoff <- mean(transaction_sub$total_lettuce_trans_sub) + (3*sd(transaction_sub$total_lettuce_trans_sub))
+
+
+# Sub recipe Outlier Pattern check
+sub_out <- ggplot(data = transaction_sub, aes(y = total_lettuce_trans_sub, x = date)) + geom_point(alpha = 0.4) + facet_grid(~storenumber) + labs(x = "Date tick marks", y = "Lettuce per Transaction", title = "Checking for patterns in outliers Sub-Recipe")+ geom_hline(aes(yintercept=sub_cutoff), colour="green", linetype="dashed") + theme_few() +theme(axis.text.x = element_blank())
+
+# Recipe Outlier Pattern Check
+repice_out <- ggplot(data = transaction_rep, aes(y = total_lettuce_trans_rep, x = date)) + geom_point(alpha = 0.4) + facet_grid(~storenumber) + labs(x = "Date tick marks", y = "Lettuce per Transaction", title = "Checking for patterns in outliers Recipe") + theme(axis.text.x = element_blank())+ geom_hline(aes(yintercept=rep_cutoff), colour="green", linetype="dashed") + theme_few() +theme(axis.text.x = element_blank())
+
+# Plot
+# grid.arrange(sub_out, repice_out, nrow=2)
+
+# Green line show the outlier cutoff by using mean + 3 sd formula
+# Blue line is choosen by visually accessing the plots and removing the
+# Irregular and extermely high value points.
+```
+
+```{r Store 12631, include=FALSE}
+# Creating time series object
+ts_12631 <- ts((data_12631$total_lettuce), frequency = 7, start = c(10, 1))
+# Splitting into train and test
+ts_12631_train <- subset(ts_12631, end = 93)
+ts_12631_test <- subset(ts_12631, start = 94)
+```
+
+```{r 12631 Plotting, include=FALSE}
+# Plot
+# autoplot(ts_12631_train, main = "Store 12631 Time Series Plot", xlab = "Weeks", ylab = "Lettuce Ussage") + theme_economist()
+
+# Seasonality plot
+# ggseasonplot(ts_12631_train, main = "Store 12631 Time Series Plot (Seasonality check)", xlab = "Weeks") + theme_economist()
+
+# Sub series plot
+# ggsubseriesplot(ts_12631_train , main = "Store 12631 Sub Series Plot", xlab = "Weeks", ylab = "Lettuce Demand") + theme_economist()
+```
+
+```{r 12631 ARIMA Stationary Test, include=FALSE}
+# stationary test
+
+# Dickey Fuller Test
+adf_12631 <- adf.test(log(ts_12631_train))
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# Phillips - Perron Test
+pp_12631 <- pp.test(log(ts_12631_train))
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# KPSS test
+kpss_12631 <- kpss.test(log(ts_12631_train))
+# Rejected the null that the proces is STATIONARY
+
+# Checking how many differences are needed for the process to be stationary 
+#since KPSS rejected the null
+ndiffs(log(ts_12631_train))
+# 1 differences in needed
+
+# Testing again after taking difference
+ts_12631_train.diff1 <- diff(log(ts_12631_train), differences = 1)
+
+# Dickey Fuller Test
+adf_12631.diff1 <- adf.test(ts_12631_train.diff1)
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# Phillips - Perron Test
+pp_12631.diff1 <- pp.test(ts_12631_train.diff1)
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# KPSS test
+kpss_12631.diff1 <- kpss.test(ts_12631_train.diff1)
+# Fail to reject the null that the proces is STATIONARY
+
+# Creating a table to summarize first test results
+test_results_12631 <- data.frame(Test=c("Dickey Fuller", "Phillips - Perron", "KPSS"),
+                       "P Value" = c(adf_12631$p.value,pp_12631$p.value,kpss_12631$p.value),
+                       "Null Hypothesis" = c("Unit Root", "Unit Root", "Stationary"),
+                       Conclusion = c("Stationary", "Stationary", "Not Stationary"))
+
+# Creating a table to summarize first test results after taking 1st difference
+test_results_12631.diff1 <- data.frame(Test=c("Dickey Fuller", "Phillips - Perron", "KPSS"),
+                                       "P Value" = c(adf_12631.diff1$p.value,pp_12631.diff1$p.value,
+                                       kpss_12631.diff1$p.value),
+                                       "Null Hypothesis" = c("Unit Root", "Unit Root", "Stationary"),
+                                       Conclusion = c("Stationary", "Stationary", "Stationary"))
+
+# Final test results
+final_test_results_12631 <- rbind(test_results_12631, test_results_12631.diff1)
+row.names(final_test_results_12631) <- c(1, 2, 3, 1.1, 2.1, 3.1)
+# Creating a table to present these results after taking 1st difference
+# kable(final_test_results_12631, caption = "Stationary Test Results for Store 12631", format = "html", booktabs = T, align = 'l') %>% kable_styling() %>% group_rows("Before 1st diff", 1, 3, latex_gap_space = "2em") %>% group_rows("After 1st diff", 4, 6, latex_gap_space = "2em")
+
+# Plotting the time series to see if stationary
+# autoplot(ts_12631_train.diff1, main = "Store 12631 Time Series Plot (Stationary)", xlab = "Weeks", ylab = "Lettuce Ussage") + theme_economist()
+# Looks stationary
+```
+
+```{r 12631 ARIMA Plotting time series data, include=FALSE}
+# PACF AND ACF
+# ggtsdisplay(ts_12631_train.diff1, lag.max = 49, main = "Store 12631 Time Series (Stationary), ACF and PACF Plots", xlab = "Weeks", theme = theme_economist())
+
+# Looking at the ACF and PACF model?
+# p = 0, q = 1 (ACF cuts of at 1 and PACF tails off)
+# Seasonal - ACF cuts of at 4 and PACF no tailing off Q = 4, P = 0
+
+# Let's see if there is seasonality 
+nsdiffs(ts_12631_train)
+# There is none.
+```
+
+```{r 12631 ARIMA Chosing best model, include=FALSE, results='asis'}
+auto.arima(ts_12631_train, trace = TRUE, ic = 'bic', lambda = 0)
+# Best model is ARIMA(0,1,1)(0,0,1) with drift (BIC - -60.24)
+
+# Using PACF AND ACF Model we get ARIMA(0,1,1)(0,0,4) and ARIMA (0,1,1)(0,0,2)
+# Using ARIMA (0,1,1)(0,0,2) we get a BIC -59.25 which is clearly lower than -60.24 
+# and therefore this is our best model. Let's use both models on the 
+# test set to check performance
+
+ts_12631_train.arima.m1 <- Arima(ts_12631_train, order = c(0, 1, 1), 
+                       seasonal = list(order = c(0, 0, 2), period = 7), lambda = 0)
+
+ts_12631_train.arima.m2 <- Arima(ts_12631_train, order = c(0, 1, 1), 
+                       seasonal = list(order = c(0, 0, 1), period = 7), lambda = 0)
+
+# texreg(list(ts_12631_train.arima.m1, ts_12631_train.arima.m2), caption = "ARIMA Self selected V/s automatically selected model for Store 12631",custom.model.names = c("Self", "Auto Arima"))
+```
+
+```{r 12631 ARIMA Checking residual, include=FALSE}
+# Plot
+# Model 1
+# checkresiduals(ts_12631_train.arima.m1, xlab = "weeks", theme = theme_economist(), test=FALSE)
+# Model 2
+# checkresiduals(ts_12631_train.arima.m2, xlab = "Weeks", theme = theme_economist(), test=FALSE)
+
+
+
+# For both model the residual looks fine and the p-value for Ljung-Box test is 
+# way higher than standard 0.05 (m1 - .2764, m2 - .4851)
+
+# Ljung-Box test
+ljung_box_test_12631 <- data.frame(Model = c("ARIMA (0,1,1)(0,0,2)", "ARIMA(0,1,1)(0,0,1)"),
+                             "p-value" = c(0.6218, 0.1174))
+
+# Print output
+# kable(ljung_box_test_12631, caption = "Ljung-Box test result for the two candidate models (Store 12631)", format = "latex", booktabs = T, align = 'l')
+```
+
+```{r 12631 ARIMA accuracy test, include=FALSE}
+# Accuracy test for best model
+acc_12631_arima.m1 <- accuracy(forecast(ts_12631_train.arima.m1, h = 10), ts_12631_test)
+# Accuracy test for best aacording to auto arima test
+acc_12631_arima.m2 <- accuracy(forecast(ts_12631_train.arima.m2, h = 10), ts_12631_test)
+
+# Creating a dataframe and renaming the rows to avoid duplicates
+acc_12631_arima <- as.data.frame(rbind(acc_12631_arima.m1, acc_12631_arima.m2))
+row.names(acc_12631_arima) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# Creating a table for combined accuracy results
+# kable(acc_12631_arima, caption = "Out of Sample Performance for Self selected Model V/s Auto Arima Model", format = "latex", booktabs = T) %>% kable_styling() %>% group_rows("Self selected", 1, 2, latex_gap_space = "2em") %>% group_rows("Auto Arima", 3, 4, latex_gap_space = "2em")
+
+# model 1 outperforms the model 2. Therrefore we choose model 1.
+```
+
+```{r 12631 ARIMA Training on all data and predicting, include=FALSE, results='asis'}
+# Training on all data
+ts_12631.arima.m <- Arima(ts_12631, order = c(0, 1, 1), 
+                    seasonal = list(order = c(0, 0, 2), period = 7), lambda = 0)
+
+# Forecast for next two weeks
+ts_12631.arima.f <- forecast(ts_12631.arima.m, h = 14)
+
+# Final trained model output
+# texreg(ts_12631.arima.m, caption = "Final Model for Store 12631 (Trained on all data)")
+
+# Predictions output formatting
+ts_12631.arima.f.df <- as.data.frame(ts_12631.arima.f)
+days <- data.frame(Day = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
+final_forecast_12631 <- cbind(days, ts_12631.arima.f.df$`Point Forecast`)
+
+# Final Forecast
+# kable(final_forecast_12631, caption = "2 Week Prediction for Store 12631", col.names = c("Day", "Forecast for Store 12631"), align = 'c')
+```
+
+```{r 12631 Holt Winters Model, include=FALSE, results='asis'}
+# Range bar plots
+# ts_12631_train %>% stl(s.window = "period") %>% autoplot + theme_economist() + labs(x = "Weeks")
+# Seasonality and trend has a magnitude which is less than the stochastic component.
+# Seasonality ranges from +30 to -30. Indicating some days have higher sales than others
+# Trend shows a continuos rise till week 18. Followed by a drastic dip in sales in week 
+# 22 to 24. 
+
+# Looking at the range bar plots we can see additive seasonality and linear(additive) 
+# trend 
+ts_12631.ets1 <- ets(ts_12631_train, model = "AAA")
+# Automatic approach
+ts_12631.ets2 <- ets(ts_12631_train, model = "ZZZ")
+
+# According to BIC model 2 outperforms model 1
+
+# Output
+# texreg(list(ts_12631.ets1, ts_12631.ets2), caption = "Holt Winters Self selected(A,A,A) V/s automatically selected model(M,N,M) for Store 12631", model.names = c("Self", "Automatic"), single.row = T)
+```
+
+```{r 12631 Holt Winters Model Out of sample accuracy, include=FALSE}
+# Forecast
+# Model 1
+ts_12631.ets1.f <- forecast(ts_12631.ets1, h = 10)
+# Model 2
+ts_12631.ets2.f <- forecast(ts_12631.ets2, h = 10)
+
+# Out of sample accuracy
+# Model 1
+acc_12631_hw.m1 <-accuracy(ts_12631.ets1.f, ts_12631_test)
+# Model 2
+acc_12631_hw.m2 <-accuracy(ts_12631.ets2.f, ts_12631_test)
+
+# Model 1 performs better according to out of sample accuracy with most of the accuracy 
+# measures
+# favouring it. Thus we go ahead with Model 1.
+
+# Creating a dataframe and renaming the rows to avoid duplicates
+acc_12631_hw <- as.data.frame(rbind(acc_12631_hw.m1, acc_12631_hw.m2))
+row.names(acc_12631_hw) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# Creating a table for combined accuracy results
+# kable(acc_12631_hw, caption = "Out of Sample Performance for Self selected Model V/s Auto selected Model (HW) Store 12631", format = "latex", booktabs = T) %>% kable_styling() %>% group_rows("Self selected", 1, 2, latex_gap_space = "2em") %>% group_rows("Automatic", 3, 4, latex_gap_space = "2em")
+```
+
+```{r 12631 Holt Winter Training on all data and predicting, include=FALSE}
+# Training on all data
+ts_12631.ets <- ets(ts_12631, model = "AAA")
+# Forecast for next two weeks
+ts_12631.ets.f <- forecast(ts_12631.ets, h = 14)
+
+# Predictions output formatting
+ts_12631.ets.f.df <- as.data.frame(ts_12631.ets.f)
+final_forecast_12631_hw <- cbind(days, ts_12631.ets.f.df$`Point Forecast`)
+
+# Final Forecast
+# kable(final_forecast_12631_hw, caption = "2 Week Prediction for Store 12631 using HW model", col.names = c("Day", "Forecast for Store 12631"), align = 'c')
+```
+
+```{r 12631 2 week forecast, include=FALSE}
+# par(mfrow=c(2,1)) 
+# plot(ts_12631.arima.f)
+# plot(ts_12631.ets.f)
+```
+
+```{r 12631 2 week forecast comparison, include=FALSE}
+forecast_12631 <- cbind(days, ts_12631.arima.f.df$`Point Forecast`, ts_12631.ets.f.df$`Point Forecast`)
+colnames(forecast_12631) <- c("Day", "Arima Model Forecast", "HW Model Forecast")
+forecast_12631['diff'] <- forecast_12631$`Arima Model Forecast` - forecast_12631$`HW Model Forecast`
+
+# kable(forecast_12631, caption = "Prediction Comparison", align = 'c')
+```
+
+```{r 12631 Out of sample performance comparison, include=FALSE}
+acc_12631_final <- as.data.frame(rbind(acc_12631_arima.m1, acc_12631_hw.m2))
+row.names(acc_12631_final) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# kable(acc_12631_final, caption = "Out of Sample Performance Comparison ARIMA v/s Holt-Winters for Store 12631", format = "latex", booktabs = T) %>% kable_styling() %>% group_rows("ARIMA", 1, 2, latex_gap_space = "2em") %>% group_rows("Holt-Winters", 3, 4, latex_gap_space = "2em")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r Store 4904, include=FALSE}
+# Creating time series object
+ts_4904 <- ts((data_4904$total_lettuce), frequency = 7, start = c(11, 2))
+# Splitting into train and test
+ts_4904_train <- subset(ts_4904, end = 85)
+ts_4904_test <- subset(ts_4904, start = 86)
+```
+
+```{r 4904 Plotting, include=FALSE}
+# Plot
+# autoplot(ts_4904_train)
+
+# Seasonality plot
+# ggseasonplot(ts_4904_train)
+
+# Sub series plot
+# ggsubseriesplot(ts_4904_train)
+```
+
+```{r 4904 ARIMA Stationary Test, include=FALSE}
+# stationary test
+
+# Dickey Fuller Test
+adf_4904 <- adf.test(log(ts_4904_train))
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# Phillips - Perron Test
+pp_4904 <- pp.test(log(ts_4904_train))
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# KPSS test
+kpss_4904 <- kpss.test(log(ts_4904_train))
+# Fail to reject the null that the proces is STATIONARY
+
+# Confirming using Ndiffs
+ndiffs(log(ts_4904_train))
+# 0 difference in needed
+
+# Plotting the time series to see if stationary
+# autoplot(log(ts_4904_train))
+# Does not look stationary
+
+# Checking how many seasonal differences are needed
+nsdiffs(log(ts_4904_train))
+# 1 seasonal difference in needed
+
+# Creating a table to summarize first test results
+test_results_4904 <- data.frame(Test=c("Dickey Fuller", "Phillips - Perron", "KPSS"),
+                       "P Value" = c(adf_4904$p.value,pp_4904$p.value,kpss_4904$p.value),
+                       "Null Hypothesis" = c("Unit Root", "Unit Root", "Stationary"),
+                       Conclusion = c("Stationary", "Stationary", "Stationary"))
+
+# Final test results
+final_test_results_4904 <- test_results_4904
+row.names(final_test_results_4904) <- c(1, 2, 3)
+# Creating a table to present these results after taking 1st difference
+# kable(final_test_results_4904, caption = "Stationary Test Results for Store 4904", format = "latex", booktabs = T, align = 'l')
+
+# Taking seasonal difference
+ts_4904_train.sdiff1 <- diff(log(ts_4904_train), differences = 1, lag = 7)
+
+# Taking first difference
+ts_4904_train.sdiff1.diff1 <- diff(ts_4904_train.sdiff1, differences = 1)
+
+# Plot after seasonal diff
+# autoplot(ts_4904_train.sdiff1)
+
+# Plot after seasonal and first diff
+# autoplot(ts_4904_train.sdiff1.diff1)
+```
+
+```{r 4904 ARIMA Plotting time series data, include=FALSE}
+# Model 1 with only seasonal difference
+# PACF AND ACF
+# ggtsdisplay(ts_4904_train.sdiff1, lag.max = 49)
+# Looking at the ACF and PACF model
+# p = 0, q = 0 (Since it seems like white noise)
+# Seasonal - ACF tails off and PACF tails off Q = 1, P = 1
+
+
+# Model 2 with both seasonal and first difference
+# PACF AND ACF
+# ggtsdisplay(ts_4904_train.sdiff1.diff1, lag.max = 49)
+
+# Looking at the ACF and PACF model
+# p = 1, q = 1 (ACF tails off PACF also tails off)
+# Seasonal - ACF cuts off at 1 and PACF tails off
+# P = 0, Q = 1
+```
+
+```{r 4904 ARIMA Chosing best model, results='asis', include=FALSE}
+auto.arima(ts_4904_train, trace = TRUE, ic = 'bic', lambda = 0) 
+# Best model is ARIMA(0,0,0)(2,1,0) (BIC - -27.06)
+
+# Using PACF AND ACF Model we get ARIMA(0,0,0)(1,1,1)
+# Using this we get a BIC -31.8 which is clearly lower than -27.06 and therefore this is 
+# our best model. Let's use both models on the test set to check performance
+
+# Model 1 with only seasonal differ
+ts_4904_train.arima.m1 <- Arima(ts_4904_train, order = c(0, 0, 0), 
+                       seasonal = list(order = c(1, 1, 1), period = 7), lambda = 0)
+
+# Model 2 with seasonal and first differnce
+ts_4904_train.arima.m2 <- Arima(ts_4904_train, order = c(1, 1, 1), 
+                       seasonal = list(order = c(0, 1, 1), period = 7), lambda = 0)
+
+# Auto Arima model
+ts_4904_train.arima.m3 <- Arima(ts_4904_train, order = c(0, 0, 0), 
+                       seasonal = list(order = c(2, 1, 0), period = 7), lambda = 0)
+
+# texreg(list(ts_4904_train.arima.m1, ts_4904_train.arima.m2, ts_4904_train.arima.m3), caption = "ARIMA Two Self selected V/s automatically selected model for Store 4904",custom.model.names = c("Self (only seasonal)", "Self (both 1st and seasonal diff)", "Auto Arima"))
+
+# Order of performance 2, 1, 3
+```
+
+```{r 4904 ARIMA Checking residual, include=FALSE}
+# Model 1
+# checkresiduals(ts_4904_train.arima.m1, test=FALSE)
+# Model 2
+# checkresiduals(ts_4904_train.arima.m2, test=FALSE)
+# Model 3
+# checkresiduals(ts_4904_train.arima.m3, test=FALSE)
+
+# For both model the residual looks fine and the p-value for Ljung-Box test is way higher 
+# than standard 0.05 (m1 - .2764, m2 - .4851)
+
+# Ljung-Box test
+ljung_box_test_4904 <- data.frame(Model = c("ARIMA (0,0,0)(1,1,1)", "ARIMA(1,1,1)(0,1,1)", "ARIMA (0,0,0)(2,1,0)"),
+                             "p-value" = c(0.005198, 0.1241, 0.009388))
+
+# Print output
+# kable(ljung_box_test_4904, caption = "Ljung-Box test result for the three candidate models (Store 4904)", format = "latex", booktabs = T, align = 'l')
+```
+
+```{r 4904 ARIMA accuracy test, include=FALSE}
+# Accuracy test for model 1
+acc_4904_arima.m1 <-  accuracy(forecast(ts_4904_train.arima.m1, h = 10), ts_4904_test)
+# Accuracy test for model 2
+acc_4904_arima.m2 <-  accuracy(forecast(ts_4904_train.arima.m2, h = 10), ts_4904_test)
+# Accuracy test for best aacording to auto arima test
+acc_4904_arima.m3 <- accuracy(forecast(ts_4904_train.arima.m3, h = 10), ts_4904_test)
+
+# Creating a dataframe and renaming the rows to avoid duplicates
+acc_4904_arima <- as.data.frame(rbind(acc_4904_arima.m1, acc_4904_arima.m2, acc_4904_arima.m3))
+row.names(acc_4904_arima) <- c("Training M1", "Test M1", "Training M2", "Test M2", "Training M3", "Test M3")
+
+# Creating a table for combined accuracy results
+# kable(acc_4904_arima, caption = "Out of Sample Performance for The three models", format = "latex", booktabs = T) %>% kable_styling() %>% group_rows("Self selected M1", 1, 2, latex_gap_space = "2em") %>% group_rows("Self selected M2", 3, 4, latex_gap_space = "2em")%>% group_rows("Auto Arima", 5, 6, latex_gap_space = "2em")
+
+# Model 1 outperforms all other models here However since the residual analysis
+# was in favour of Model 2 We use that.
+```
+
+```{r 4904 ARIMA Training on all data and predicting, include=FALSE}
+# Training on all data
+ts_4904.arima.m <- Arima(ts_4904_train, order = c(1, 1, 1), 
+                       seasonal = list(order = c(0, 1, 1), period = 7), lambda = 0)
+
+# Forecast for next two weeks
+ts_4904.arima.f <- forecast(ts_4904.arima.m, h = 14)
+
+# Final trained model output
+texreg(ts_4904.arima.m, 
+       caption = "Final Model for Store 4904 (Trained on all data)")
+
+# Predictions output formatting
+ts_4904.arima.f.df <- as.data.frame(ts_4904.arima.f)
+final_forecast_4904 <- cbind(days, ts_4904.arima.f.df$`Point Forecast`)
+
+# Final Forecast
+# kable(final_forecast_4904, caption = "2 Week Prediction for Store 4904", col.names = c("Day", "Forecast for Store 4904"), align = 'c')
+```
+
+```{r 4904 Holt Winters Model, results='asis', include=FALSE}
+# Looking at the range bar plots we can see additive seasonality and linear(additive) 
+# Range bar plots
+# ts_4904_train %>% stl(s.window = "period") %>% autoplot
+# Seasonality and trend has a magnitude which is less than the stochastic component.
+# Seasonality ranges from +50 to -65. Indicating some days have higher sales than others
+# Trend shows a continuos rise till week 15. Followed by a drastic dip in sales in week 
+# 20 to 21. 
+
+# trend 
+ts_4904.ets1 <- ets(ts_4904_train, model = "AAA")
+# Automatic approach
+ts_4904.ets2 <- ets(ts_4904_train, model = "ZZZ")
+# According to BIC model 2 outperforms model 1
+
+# Output texreg
+# Output
+# texreg(list(ts_4904.ets1, ts_4904.ets2), caption = "Holt Winters Self selected(A,A,A) V/s automatically selected model(A,N,A) for Store 4904",model.names = c("Self", "Automatic"), single.row = T)
+```
+
+```{r 4904 Holt Winters Model Out of sample accuracy, include=FALSE}
+# Forecast
+# Model 1
+ts_4904.ets1.f <- forecast(ts_4904.ets1, h = 10)
+# Model 2
+ts_4904.ets2.f <- forecast(ts_4904.ets2, h = 10)
+
+# Out of sample accuracy
+# Model 1
+acc_4904_hw.m1 <- accuracy(ts_4904.ets1.f, ts_4904_test)
+# Model 2
+acc_4904_hw.m2 <- accuracy(ts_4904.ets2.f, ts_4904_test)
+
+# Model 2 performs better according to out of sample accuracy with most of the accuracy 
+# measures favouring it. Thus we go ahead with Model 2.
+
+# Creating a dataframe and renaming the rows to avoid duplicates
+acc_4904_hw <- as.data.frame(rbind(acc_4904_hw.m1, acc_4904_hw.m2))
+row.names(acc_4904_hw) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# Creating a table for combined accuracy results
+# kable(acc_4904_hw, caption = "Out of Sample Performance for Self selected Model V/s Auto selected Model (HW) Store 4904", format = "latex", booktabs = T) %>% kable_styling() %>% group_rows("Self selected", 1, 2, latex_gap_space = "2em") %>% group_rows("Automatic", 3, 4, latex_gap_space = "2em")
+```
+
+```{r 4904 Holt Winter Training on all data and predicting, include=FALSE}
+# Training on all data
+ts_4904.ets <- ets(ts_4904, model = "ZZZ")
+# Forecast for next two weeks
+ts_4904.ets.f <- forecast(ts_4904.ets, h = 14)
+
+# Predictions output formatting
+ts_4904.ets.f.df <- as.data.frame(ts_4904.ets.f)
+final_forecast_4904_hw <- cbind(days, ts_4904.ets.f.df$`Point Forecast`)
+
+# Final Forecast
+# kable(final_forecast_4904_hw, caption = "2 Week Prediction for Store 4904 using HW model", col.names = c("Day", "Forecast for Store 4904"), align = 'c')
+```
+
+```{r 4904 2 week forecast, fig.align = "center", include=FALSE}
+# par(mfrow=c(2,1)) 
+# plot(ts_4904.arima.f)
+# plot(ts_4904.ets.f)
+```
+
+```{r 4904 2 week forecast comparison, include=FALSE}
+forecast_4904 <- cbind(days, ts_4904.arima.f.df$`Point Forecast`, ts_4904.ets.f.df$`Point Forecast`)
+colnames(forecast_4904) <- c("Day", "Arima Model Forecast", "HW Model Forecast")
+forecast_4904['diff'] <- forecast_4904$`Arima Model Forecast` - forecast_4904$`HW Model Forecast`
+
+# kable(forecast_4904, caption = "Prediction Comparison 4904", align = 'c')
+```
+
+```{r 4904 Out of sample performance comparison, include=FALSE}
+acc_4904_final <- as.data.frame(rbind(acc_4904_arima.m2, acc_4904_hw.m2))
+row.names(acc_4904_final) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# kable(acc_4904_final, caption = "Out of Sample Performance Comparison ARIMA v/s Holt-Winters for Store 4904", booktabs = T) %>% kable_styling() %>% group_rows("ARIMA", 1, 2, latex_gap_space = "2em") %>% group_rows("Holt-Winters", 3, 4, latex_gap_space = "2em")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r Store 20974, include=FALSE}
+# Creating time series object
+ts_20974 <- ts((data_20974$total_lettuce), frequency = 7, start = c(12, 2))
+# Splitting into train and test
+# Dropping inconsistent data with start
+ts_20974_train <- subset(ts_20974, end = 84, start = 7)
+ts_20974_test <- subset(ts_20974, start = 85)
+```
+
+```{r 20974 Plotting, include=FALSE}
+# Plot
+# autoplot(ts_20974_train)
+
+# Seasonality plot
+# ggseasonplot(ts_20974_train)
+
+# Sub series plot
+# ggsubseriesplot(ts_20974_train)
+```
+
+```{r 20974 ARIMA Stationary Test, include=FALSE}
+# stationary test
+
+# Dickey Fuller Test
+adf_20974 <- adf.test(log(ts_20974_train))
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# Phillips - Perron Test
+pp_20974 <- pp.test(log(ts_20974_train))
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# KPSS test
+kpss_20974 <- kpss.test(log(ts_20974_train))
+# Fail to reject the null that the proces is STATIONARY at 1% cf level
+
+# Confirming using Ndiffs
+ndiffs(log(ts_20974_train))
+# 0 difference in needed
+
+# Confirming using NsDiffs
+nsdiffs(log(ts_20974_train))
+# 0 diff is needed
+
+# Creating a table to summarize first test results
+test_results_20974 <- data.frame(Test=c("Dickey Fuller", "Phillips - Perron", "KPSS"),
+                       "P Value" = c(adf_20974$p.value,pp_20974$p.value,kpss_20974$p.value),
+                       "Null Hypothesis" = c("Unit Root", "Unit Root", "Stationary"),
+                       Conclusion = c("Stationary", "Stationary", "Stationary"))
+
+# Final test results
+final_test_results_20974 <- test_results_20974
+row.names(final_test_results_20974) <- c(1, 2, 3)
+# Creating a table to present these results
+# kable(final_test_results_20974, caption = "Stationary Test Results for Store 20974", format = "latex", booktabs = T, align = 'l')
+
+# Plotting the time series to see if stationary
+# autoplot(log(ts_20974_train))
+# looks like a trend
+
+# Taking a difference
+ts_20974_train.diff1 <- diff(log(ts_20974_train), differences = 1)
+
+# Plotting the time series to see if stationary
+# autoplot(ts_20974_train.diff1)
+# Does look stationary
+```
+
+```{r 20974 ARIMA Plotting time series data, include=FALSE}
+# Model 1 No difference
+# PACF AND ACF
+# ggtsdisplay(log(ts_20974_train), lag.max = 49)
+
+# Looking at the ACF and PACF model
+# p = 0, q = 0 (looks like white noise)
+# Seasonal - ACF tails off and PACF tails off Q = 1, P = 1
+
+# Model 2 - 1st diff
+# PACF AND ACF
+# ggtsdisplay(ts_20974_train.diff1, lag.max = 49)
+
+# Looking at the ACF and PACF model
+# p = 0, q = 1 (ACF cuts off at 1 and PACF tails off)
+# Seasonal - tails off try 1- P & Q = 0 AND 1
+```
+
+```{r 20974 ARIMA Chosing best model, results = 'asis', include=FALSE}
+auto.arima(ts_20974_train, trace = TRUE, ic = 'bic', lambda = 0) 
+# Best model is ARIMA(0,0,0)(1,0,0) (BIC - 76.54)
+
+# Model 1
+ts_20974_train.arima.m1 <- Arima(ts_20974_train, order = c(0, 0, 0), 
+                       seasonal = list(order = c(1, 0, 1), period = 7), lambda = 0)
+
+# Model 2
+ts_20974_train.arima.m2 <- Arima(ts_20974_train, order = c(0, 1, 1), 
+                       seasonal = list(order = c(1, 0, 1), period = 7), lambda = 0)
+
+# Model 3 Auto arima
+ts_20974_train.arima.m3 <- Arima(ts_20974_train, order = c(0, 0, 0), 
+                       seasonal = list(order = c(1, 0, 0), period = 7), lambda = 0)
+
+# Order in terms of BIC -  3, 2, 1
+# texreg(list(ts_20974_train.arima.m1, ts_20974_train.arima.m2, ts_20974_train.arima.m3), caption = "ARIMA Two Self selected V/s automatically selected model for Store 20974",custom.model.names = c("Self (No diff)", "Self (1st diff)", "Auto Arima"))
+
+```
+
+```{r 20974 ARIMA Checking residual, include=FALSE}
+# Model 1
+# checkresiduals(ts_20974_train.arima.m1, test=FALSE)
+# Model 2
+# checkresiduals(ts_20974_train.arima.m2, test=FALSE)
+# Model 3
+# checkresiduals(ts_20974_train.arima.m3, test=FALSE)
+
+# p values
+# model 1 - 0.7363
+# model 2 - 0.8604
+# model 3 - 0.7892
+
+# Ljung-Box test
+ljung_box_test_20974 <- data.frame(Model = c("ARIMA (0,0,0)(1,0,1)", "ARIMA(0,1,1)(1,0,1)", "ARIMA (0,0,0)(1,0,0)"),
+                             "p-value" = c(0.7363, 0.8604, 0.7892))
+
+# Print output
+# kable(ljung_box_test_20974, caption = "Ljung-Box test result for the three candidate models (Store 20974)", format = "latex", booktabs = T, align = 'l')
+```
+
+```{r 20974 ARIMA accuracy test, include=FALSE}
+# Accuracy for m1
+acc_20974_arima.m1 <- accuracy(forecast(ts_20974_train.arima.m1, h = 10), ts_20974_test)
+# Accuracy for m2
+acc_20974_arima.m2 <- accuracy(forecast(ts_20974_train.arima.m2, h = 10), ts_20974_test)
+# Accuracy for m3
+acc_20974_arima.m3 <- accuracy(forecast(ts_20974_train.arima.m3, h = 10), ts_20974_test)
+
+
+
+# Creating a dataframe and renaming the rows to avoid duplicates
+acc_20974_arima <- as.data.frame(rbind(acc_20974_arima.m1, acc_20974_arima.m2, acc_20974_arima.m3))
+row.names(acc_20974_arima) <- c("Training M1", "Test M1", "Training M2", "Test M2", "Training M3", "Test M3")
+
+# Creating a table for combined accuracy results
+# kable(acc_20974_arima, caption = "Out of Sample Performance for The three models", booktabs = T, format = "latex") %>% kable_styling() %>% group_rows("Self selected M1", 1, 2, latex_gap_space = "2em") %>% group_rows("Self selected M2", 3, 4, latex_gap_space = "2em")%>% group_rows("Auto Arima", 5, 6, latex_gap_space = "2em")
+
+# Model three performs the best
+```
+
+```{r 20974 ARIMA Training on all data and predicting, results='asis', include=FALSE}
+# Training on all data
+ts_20974.arima.m <- Arima(ts_20974_train, order = c(0, 0, 0), 
+                       seasonal = list(order = c(1, 0, 0), period = 7), lambda = 0)
+
+# Forecast for next two weeks
+ts_20974.arima.f <- forecast(ts_20974.arima.m, h = 14)
+
+# Final trained model output
+# texreg(ts_20974.arima.m, caption = "Final Model for Store 20974 (Trained on all data)")
+
+# Predictions output formatting
+ts_20974.arima.f.df <- as.data.frame(ts_20974.arima.f)
+final_forecast_20974 <- cbind(days, ts_20974.arima.f.df$`Point Forecast`)
+
+# Final Forecast
+# kable(final_forecast_20974, caption = "2 Week Prediction for Store 20974", col.names = c("Day", "Forecast for Store 20974"), align = 'c')
+```
+
+```{r 20974 Holt Winters Model, results='asis', include=FALSE}
+# Looking at the range bar plots we can see additive seasonality and linear(additive) 
+# Range bar plots
+# ts_20974_train %>% stl(s.window = "period") %>% autoplot
+# Seasonality and trend has a magnitude which is less than the stochastic component. 
+# Seasonality ranges from +25 to -65. Indicating some days have higher sales than others
+# Trend shows a continuos rise till week 15. Followed by a drastic dip in sales in week 16
+# Further a rise till 18 and decrease after that
+
+# trend 
+ts_20974.ets1 <- ets(ts_20974_train, model = "AAA")
+# Automatic approach
+ts_20974.ets2 <- ets(ts_20974_train, model = "ZZZ")
+
+# Model 2 performs better in BIC terms
+
+# Output
+# texreg(list(ts_20974.ets1, ts_20974.ets2), caption = "Holt Winters Self selected(A,A,A) V/s automatically selected model(A,N,A) for Store 20974",model.names = c("Self", "Automatic"), single.row = T)
+```
+
+```{r 20974 Holt Winters Model Out of sample accuracy, include=FALSE}
+# Forecast
+# Model 1
+ts_20974.ets1.f <- forecast(ts_20974.ets1, h = 10)
+# Model 2
+ts_20974.ets2.f <- forecast(ts_20974.ets2, h = 10)
+
+
+# Out of sample accuracy
+# Model 1
+acc_20974_hw.m1 <- accuracy(ts_20974.ets1.f, ts_20974_test)
+# Model 2
+acc_20974_hw.m2 <- accuracy(ts_20974.ets2.f, ts_20974_test)
+
+# Model 2 performs marginally better
+
+# Creating a dataframe and renaming the rows to avoid duplicates
+acc_20974_hw <- as.data.frame(rbind(acc_20974_hw.m1, acc_20974_hw.m2))
+row.names(acc_20974_hw) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# Creating a table for combined accuracy results
+# kable(acc_20974_hw, caption = "Out of Sample Performance for The three models", format = "html") %>% group_rows("Self selected", 1, 2) %>% group_rows("Automatic", 3, 4) %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+```{r 20974 Holt Winter Training on all data and predicting, include=FALSE}
+# Training on all data
+ts_20974.ets <- ets(ts_20974, model = "ANA")
+# Forecast for next two weeks
+ts_20974.ets.f <- forecast(ts_20974.ets, h = 14)
+
+# Predictions output formatting
+ts_20974.ets.f.df <- as.data.frame(ts_20974.ets.f)
+final_forecast_20974_hw <- cbind(days, ts_20974.ets.f.df$`Point Forecast`)
+
+# Final Forecast
+# kable(final_forecast_20974_hw, caption = "2 Week Prediction for Store 20974 using HW model", col.names = c("Day", "Forecast for Store 20974"), align = 'c', booktabs = T, format = "latex")
+```
+
+```{r 20974 2 week forecast, fig.align = "center", include=FALSE}
+# par(mfrow=c(2,1)) 
+# plot(ts_20974.arima.f)
+# plot(ts_20974.ets.f)
+```
+
+```{r 20974 2 week forecast comparison, include=FALSE}
+forecast_20974 <- cbind(days, ts_20974.arima.f.df$`Point Forecast`, ts_20974.ets.f.df$`Point Forecast`)
+colnames(forecast_20974) <- c("Day", "Arima Model Forecast", "HW Model Forecast")
+forecast_20974['diff'] <- forecast_20974$`Arima Model Forecast` - forecast_20974$`HW Model Forecast`
+
+# kable(forecast_20974, caption = "Prediction Comparison 20974", align = 'c')
+```
+
+```{r 20974 Out of sample performance comparison, include=FALSE}
+acc_20974_final <- as.data.frame(rbind(acc_20974_arima.m2, acc_20974_hw.m2))
+row.names(acc_20974_final) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# kable(acc_20974_final, caption = "Out of Sample Performance Comparison ARIMA v/s Holt-Winters for Store 20974", booktabs = T) %>% kable_styling() %>% group_rows("ARIMA", 1, 2, latex_gap_space = "2em") %>% group_rows("Holt-Winters", 3, 4, latex_gap_space = "2em")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r Store 46673, include=FALSE}
+# Creating time series object
+ts_46673 <- ts((data_46673$total_lettuce), frequency = 7, start = c(10, 1))
+# Splitting into train and test
+ts_46673_train <- subset(ts_46673, end = 93)
+ts_46673_test <- subset(ts_46673, start = 94)
+```
+
+```{r 46673 Plotting, include=FALSE}
+# Plot
+# autoplot(ts_46673_train)
+
+# Seasonality plot
+# ggseasonplot(ts_46673_train)
+
+# Sub series plot
+# ggsubseriesplot(ts_46673_train)
+```
+
+```{r 46673 ARIMA Stationary Test, include=FALSE}
+# stationary test
+
+# Dickey Fuller Test
+adf_46673 <- adf.test(log(ts_46673_train))
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# Phillips - Perron Test
+pp_46673 <- pp.test(log(ts_46673_train))
+# Rejected the null that the sereis contain a unit root in favour of stationarity
+
+# KPSS test
+kpss_46673 <- kpss.test(log(ts_46673_train))
+# Fail to reject the null that the proces is STATIONARY at 1% cf level
+
+# Confirming using Ndiffs
+ndiffs(log(ts_46673_train))
+
+# Confirming using Nsdiffs
+nsdiffs(log(ts_46673_train))
+
+# Creating a table to summarize first test results
+test_results_46673<- data.frame(Test=c("Dickey Fuller", "Phillips - Perron", "KPSS"),
+                       "P Value" = c(adf_46673$p.value,pp_46673$p.value,kpss_46673$p.value),
+                       "Null Hypothesis" = c("Unit Root", "Unit Root", "Stationary"),
+                       Conclusion = c("Stationary", "Stationary", "Stationary"))
+
+# Final test results
+final_test_results_46673 <- test_results_46673
+row.names(final_test_results_46673) <- c(1, 2, 3)
+# Creating a table to present these results after taking 1st difference
+# kable(final_test_results_46673, caption = "Stationary Test Results for Store 46673", format = "latex", booktabs = T, align = 'l')
+
+# Taking a seasonal difference
+ts_46673_train.sdiff1 <- diff(log(ts_46673_train), differences = 1, lag = 7)
+
+# Plotting the time series to see if stationary
+# autoplot(ts_46673_train.sdiff1)
+# Does look stationary
+```
+
+```{r 46673 ARIMA Plotting time series data, include=FALSE}
+# PACF AND ACF
+# ggtsdisplay(ts_46673_train.sdiff1, lag.max = 49)
+
+# Looking at the ACF and PACF model
+# p = 0, q = 0 (white noise)
+# Seasonal - ACF tails off and PACF tails off at 1 Q = 1, P = 1
+```
+
+```{r 46673 ARIMA Chosing best model, include=FALSE}
+auto.arima(ts_46673_train, trace = TRUE, ic = 'bic', lambda = 0) 
+# Best model is ARIMA(0,0,0)(0,1,1) (BIC - -25.97)
+
+# Using PACF AND ACF Model we get ARIMA(0,0,0)(1,1,1)
+
+ts_46673_train.arima.m1 <- Arima(ts_46673_train, order = c(0, 0, 0), 
+                       seasonal = list(order = c(1, 1, 1), period = 7), lambda = 0)
+
+ts_46673_train.arima.m2 <- Arima(ts_46673_train, order = c(0, 0, 0), 
+                       seasonal = list(order = c(0, 1, 1), period = 7), lambda = 0)
+
+# Model 2 performs better than Model 1 in terms of BIC
+
+# texreg(list(ts_46673_train.arima.m1, ts_46673_train.arima.m2), caption = "ARIMA Self selected V/s automatically selected model for Store 46673",custom.model.names = c("Self", "Auto Arima"))
+```
+
+```{r 46673 ARIMA Checking residual, include=FALSE}
+# Model 1
+# checkresiduals(ts_46673_train.arima.m1, test=FALSE)
+# Model 2
+# checkresiduals(ts_46673_train.arima.m2, test=FALSE)
+
+# p values
+# model 1 - 0.145
+# model 2 - 0.2038
+
+# Ljung-Box test
+ljung_box_test_46673 <- data.frame(Model = c("ARIMA(0,0,0)(1,1,1)", "ARIMA(0,0,0)(0,1,1)"),
+                             "p-value" = c(0.145, 0.2038))
+
+# Print output
+# kable(ljung_box_test_46673, caption = "Ljung-Box test result for the three candidate models (Store 46673)", format = "latex", booktabs = T, align = 'l')
+```
+
+```{r 46673 ARIMA accuracy test, include=FALSE}
+# Accuracy test for best model
+acc_46673_arima.m1 <- accuracy(forecast(ts_46673_train.arima.m1, h = 10), ts_46673_test)
+# Accuracy test for best aacording to auto arima test
+acc_46673_arima.m2 <- accuracy(forecast(ts_46673_train.arima.m2, h = 10), ts_46673_test)
+
+# Model 1 outperforms Model 2
+
+# Creating a dataframe and renaming the rows to avoid duplicates
+acc_46673_arima <- as.data.frame(rbind(acc_46673_arima.m1, acc_46673_arima.m2))
+row.names(acc_46673_arima) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# Creating a table for combined accuracy results
+# kable(acc_46673_arima, caption = "Out of Sample Performance for The two models", booktabs = T, format = "latex") %>% kable_styling() %>% group_rows("Self selected", 1, 2, latex_gap_space = "2em") %>% group_rows("Auto Arima", 3, 4, latex_gap_space = "2em")
+```
+
+```{r 46673 ARIMA Training on all data and predicting, results='asis', include=FALSE}
+# Training on all data
+ts_46673.arima.m <- Arima(ts_46673_train, order = c(0, 0, 0), 
+                       seasonal = list(order = c(1, 1, 1), period = 7), lambda = 0)
+
+# Forecast for next two weeks
+ts_46673.arima.f <- forecast(ts_46673.arima.m, h = 14)
+
+# Final trained model output
+# texreg(ts_46673.arima.m, caption = "Final Model for Store 46673 (Trained on all data)")
+
+# Predictions output formatting
+ts_46673.arima.f.df <- as.data.frame(ts_46673.arima.f)
+final_forecast_46673 <- cbind(days, ts_46673.arima.f.df$`Point Forecast`)
+
+# Final Forecast
+# kable(final_forecast_46673, caption = "2 Week Prediction for Store 46673", col.names = c("Day", "Forecast for Store 46673"), align = 'c')
+```
+
+```{r 46673 Holt Winters Model, results='asis', include=FALSE}
+# Looking at the range bar plots we can see additive seasonality and linear(additive) 
+# Range bar plots
+# ts_46673_train %>% stl(s.window = "period") %>% autoplot
+# Seasonality has a magnitude which is less than the stochastic component. Trend here 
+# is strong and explain a good amount of variation
+# Seasonality ranges from +20 to -60. Indicating some days have higher sales than others
+# Trend shows a continuos rise till week 16. Followed by a small dip in sales in week 
+# 16 to 22. 
+# trend 
+ts_46673.ets1 <- ets(ts_46673_train, model = "AAA")
+# Automatic approach
+ts_46673.ets2 <- ets(ts_46673_train, model = "ZZZ")
+
+# Output
+# texreg(list(ts_46673.ets1, ts_46673.ets2), caption = "Holt Winters Self selected(A,A,A) V/s automatically selected model(A,N,A) for Store 46673",model.names = c("Self", "Automatic"), single.row = T)
+```
+
+```{r 46673 Holt Winters Model Out of sample accuracy, include=FALSE}
+# Forecast
+# Model 1
+ts_46673.ets1.f <- forecast(ts_46673.ets1, h = 10)
+# Model 2
+ts_46673.ets2.f <- forecast(ts_46673.ets2, h = 10)
+
+# Out of sample accuracy
+# Model 1
+acc_46673_hw.m1 <- accuracy(ts_46673.ets1.f, ts_46673_test)
+# Model 2
+acc_46673_hw.m2 <- accuracy(ts_46673.ets2.f, ts_46673_test)
+
+# Creating a dataframe and renaming the rows to avoid duplicates
+acc_46673_hw <- as.data.frame(rbind(acc_46673_hw.m1, acc_46673_hw.m2))
+row.names(acc_46673_hw) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# Creating a table for combined accuracy results
+# kable(acc_46673_hw, caption = "Out of Sample Performance for Self selected Model V/s Auto selected Model (HW) Store 46673", booktabs = T) %>% kable_styling() %>% group_rows("Self selected", 1, 2, latex_gap_space = "2em") %>% group_rows("Automatic", 3, 4, latex_gap_space = "2em")
+
+# Model 1 performs better here so we use Model 1.
+```
+
+```{r 46673 Holt Winter Training on all data and predicting, include=FALSE}
+# Training on all data
+ts_46673.ets <- ets(ts_46673, model = "AAA")
+# Forecast for next two weeks
+ts_46673.ets.f <- forecast(ts_46673.ets, h = 14)
+
+# Predictions output formatting
+ts_46673.ets.f.df <- as.data.frame(ts_46673.ets.f)
+final_forecast_46673_hw <- cbind(days, ts_46673.ets.f.df$`Point Forecast`)
+
+# Final Forecast
+# kable(final_forecast_46673_hw, caption = "2 Week Prediction for Store 46673 using HW model", col.names = c("Day", "Forecast for Store 46673"), align = 'c', booktabs = T, format = "latex")
+```
+
+```{r 46673 2 week forecast, fig.align = "center", include=FALSE}
+# par(mfrow=c(2,1)) 
+# plot(ts_46673.arima.f)
+# plot(ts_46673.ets.f)
+```
+
+```{r 46673 2 week forecast comparison, include=FALSE}
+forecast_46673 <- cbind(days, ts_46673.arima.f.df$`Point Forecast`, ts_46673.ets.f.df$`Point Forecast`)
+colnames(forecast_46673) <- c("Day", "Arima Model Forecast", "HW Model Forecast")
+forecast_46673['diff'] <- forecast_46673$`Arima Model Forecast` - forecast_46673$`HW Model Forecast`
+
+# kable(forecast_46673, caption = "Prediction Comparison 46673", align = 'c')
+```
+
+```{r 46673 Out of sample performance comparison, include=FALSE}
+acc_46673_final <- as.data.frame(rbind(acc_46673_arima.m2, acc_46673_hw.m2))
+row.names(acc_46673_final) <- c("Training M1", "Test M1", "Training M2", "Test M2")
+
+# kable(acc_46673_final, caption = "Out of Sample Performance Comparison ARIMA v/s Holt-Winters for Store 46673", booktabs = T) %>% kable_styling() %>% group_rows("ARIMA", 1, 2, latex_gap_space = "2em") %>% group_rows("Holt-Winters", 3, 4, latex_gap_space = "2em")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Introduction {.tabset .tabset-fade .tabset-pills}
+
+
+
+This report aims to forecast two-week demand for lettuce for four stores (store number - 12631, 20974, 46673 and 4904). This project will first consider the methodology, which will include a discussion about the two models used for demand forecasting. Following this, time series data for each store will be analysed. After this, two-week predictions and a comparison of the two models will be presented in the Results section.
+
+Finally, the report will provide a conclusion about the overall project.
+
+*Please use the subsection buttons to navigate through them.
+
+#Methodology {.tabset .tabset-fade .tabset-pills}
+
+
+
+This section will cover a discussion about data aggregation, followed by a brief overview of Arima and Holt-Winters model. This section will also briefly go over some of the limitations and concerns about the data.
+
+##Data Aggregation
+
+The provided SQL code shows how the datasets were obtained from the provided data. The main idea here was to aggregate all the data for lettuce usage and group it by the store as well as the date which provided the required format for time series analysis. The importing.sql file was used to import all the datasets into SQL. The extracting.sql file was used to obtain the time series dataset for the four stores. Please refer to these file for more information.
+
+##Demand Forecasting Models
+
+###ARIMA model
+
+In time series analysis, an autoregressive integrated moving average (ARIMA) model is a generalisation of an autoregressive moving average (ARMA) model. ARIMA models are applied in some cases where data show evidence of non-stationarity [@autoregressive].
+
+###Holt-Winters Model
+
+Triple Exponential Smoothing, also known as the Holt-Winters method, is one of the many techniques or algorithms that can be used to forecast data points in a series, provided that the sequence is seasonal, i.e. repetitive over some period [@trubetskoy].
+
+
+#Limitations/Concerns about Data
+
+
+While compiling the data, outliers were checked by plotting the lettuce used for all the transactions for each store. The graph below also shows the distribution of lettuce usage per transaction. These figures indicate the presence of outliers (The green line is a cutoff calculated by the following formula: mean + 3* standard deviations). However, it is essential to see the time series plot to evaluate this in a much accurate manner. 
+
+```{r report limitations outliers plots, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+# Histogram
+grid.arrange(repice_hist, sub_hist, ncol=2)
+# Plot per transaction - outlier cut off
+grid.arrange(sub_out, repice_out, nrow=2)
+```
+
+
+It is clear from the plot of the aggregated data that there are significant variations in the data. A log transformation was applied to all the time series to deal with this issue. To rescale the predictions lambda parameter was used in the Arima function.
+
+```{r report Limitations time series plot, echo=FALSE, fig.align='center'}
+# Plotting time series
+plot_12631 <- autoplot(ts_12631_train) + labs(y = "Store 12631 Lettuce", x = "Week")+ theme_few()
+plot_20974 <- autoplot(ts_20974_train) + labs(y = "Store 20974 Lettuce", x = "Week")+ theme_few()
+plot_46673 <- autoplot(ts_46673_train) + labs(y = "Store 46673 Lettuce", x = "Week")+ theme_few()
+plot_4904 <- autoplot(ts_4904_train) + labs(y = "Store 4904 Lettuce", x = "Week")+ theme_few()
+grid.arrange(plot_12631, plot_20974, plot_46673, plot_4904, nrow=2)
+```
+
+Further to this, store 20974 had inconsistent data for the first two weeks which had to be removed to get meaningful estimates.
+
+
+# Analysis {.tabset .tabset-fade .tabset-pills}
+
+
+
+Divided into five parts: Plots, Stationary Test, Model Selection, Residual Analysis and Model Evaluation, this section will present the time series analysis for each store by considering Arima Model and Holt-Winters Model respectively.
+
+## Store 12631
+
+### Arima Model
+
+#### Plots
+
+We can see some evidence of seasonality from the time series plot, further supported by sub-series and day-wise plot. 
+
+```{r report 12631 ARIMA Plots, echo=FALSE, fig.align='center'}
+# Plot
+autoplot(ts_12631_train, main = "Store 12631 Time Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+
+# Seasonality plot
+ggseasonplot(ts_12631_train, main = "Store 12631 Time Series Plot (Seasonality check)", 
+         xlab = "Weeks") + theme_few()
+
+# Sub series plot
+ggsubseriesplot(ts_12631_train , main = "Store 12631 Sub Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Demand") + theme_few()
+```
+
+#### Stationary Test
+
+Test including Dicker Fuller, Phillips-Perron and KPSS were conducted to test for stationarity of the time series. The table above summaries the results of these test.  We can see that a first difference was required for the time series to be stationary according to all three criteria. 
+
+```{r report 12631 ARIMA Stationary Test, echo=FALSE}
+# Creating a table to present these results
+kable(final_test_results_12631, caption = "Stationary Test Results for Store 12631", format = "html", align = 'l') %>% kable_styling() %>% group_rows("Before 1st diff", 1, 3) %>% group_rows("After 1st diff", 4, 6)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+
+The plot of the time series after the transformations can be seen below:
+
+```{r report 12631 ARIMA Stationary Time Series Plot, echo=FALSE, fig.align='center'}
+# Plotting the time series to see if stationary
+autoplot(ts_12631_train.diff1, main = "Store 12631 Time Series Plot (Stationary)", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+# Looks stationary
+```
+
+#### Model Selection
+
+Looking at the ACF and PACF plots, we can see that for non-seasonality ACF cuts off at 1 and PACF tails off suggesting an MA process of order 1 for the non-seasonality component. For the seasonality component, we can observe that ACF cuts off at 4 and PACF tails off suggesting an MA process of order 4 for the seasonal part as well. Since we take a difference, we have to set d = 1 (ARIMA(0, 1, 1)(0, 0, 4)). However, the ACF also have a spike which is close to the 95% confidence interval on lag 14. Therefore these two models were compared and ARIMA(0, 1, 1)(0, 0, 2) outperformed ARIMA(0, 1, 1)(0, 0, 4) in terms of BIC.
+
+```{r report 12631 ARIMA ACF and PACF Plot, echo=FALSE, fig.align='center'}
+# PACF AND ACF
+ggtsdisplay(ts_12631_train.diff1, lag.max = 49, main = "Store 12631 Time Series (Stationary), ACF and PACF Plots", 
+            xlab = "Weeks", theme = theme_few())
+```
+
+
+Let's consider the model generated by auto.arima function in R. The best model had the following specification: ARIMA(0, 1, 1)(0, 0, 1) with a BIC of -60.24 compared to -59.25 for ARIMA(0, 1, 1)(0, 0, 2).
+
+```{r report 12631 ARIMA models, echo=FALSE, results='asis'}
+# Arima Models
+htmlreg(list(ts_12631_train.arima.m1, ts_12631_train.arima.m2), 
+       caption = "ARIMA Self selected V/s automatically selected model for Store 12631",
+       custom.model.names = c("Self", "Auto Arima"))
+```
+
+#### Residual Analysis
+
+The plot below shows the residual analysis for the self-selected model (ARIMA(0, 1, 1)(0, 0, 2)). It is evident that these plots seem satisfactory as the residual plot looks like white noise. There is no presence of correlation in the residuals. Also, residuals appear to be normally distributed. 
+
+```{r report 12631 ARIMA Residual Analysis Model 1 Plot, echo=FALSE, fig.align='center'}
+# Model 1
+checkresiduals(ts_12631_train.arima.m1, xlab = "weeks", theme = theme_few(), test=FALSE)
+```
+
+Similarly, the plot for automatically selected model (ARIMA(0, 1, 1)(0, 0, 1)) has similar characteristics. However, one of the spikes is outside the 95% confidence interval which can also be just because of chance alone. 
+
+```{r report 12631 ARIMA Residual Analysis Model 2 Plot, echo=FALSE, fig.align='center'}
+# Model 2
+checkresiduals(ts_12631_train.arima.m2, xlab = "Weeks", theme = theme_few(), test=FALSE)
+```
+
+
+The Ljung box-test results for both models are summarised in the table below which also are satisfactory.
+
+```{r report 12631 ARIMA Residual Analysis Box-Test, echo=FALSE, fig.align='center'}
+# Print output
+kable(ljung_box_test_12631, caption = "Ljung-Box test result for the two candidate models (Store 12631)", format = "html", align = 'c')%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+
+
+#### Model Evaluation
+
+To decide the best model we calculate several out of sample performance measures and choose the model which performs better according to the majority of the measures. The table below clearly shows that on the test data Model 1 (ARIMA(0, 1, 1)(0, 0, 2)) outperforms the other model.
+
+```{r report 12631 ARIMA Model Evaluation, echo=FALSE}
+kable(acc_12631_arima, caption = "Out of Sample Performance for Self selected Model V/s Auto Arima Model (Store 12631)", format = "html") %>% group_rows("Self selected", 1, 2) %>% group_rows("Auto Arima", 3, 4)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+
+
+### Holt-Winters Model
+
+#### Plots
+
+Looking at the range bar plots, we can see that the trend is linear and variation in the seasonality is constant over time. The analysis suggests an 'A, A, A' model for Holt-Winters where  'A' stands for additive and the first letter denotes error type, the second letter denotes the trend type, and the third letter denotes the season type. 
+
+```{r report 12631 HW Plot, echo=FALSE, fig.align='center'}
+# Range bar plots
+ts_12631_train %>% stl(s.window = "period") %>% autoplot + theme_few() + labs(x = "Weeks")
+# Seasonality and trend has a magnitude which is less than the stochastic component.
+# Seasonality ranges from +30 to -30. Indicating some days have higher sales than others
+# Trend shows a continuos rise till week 18. Followed by a drastic dip in sales in week 
+# 22 to 24. 
+```
+
+#### Model Selection
+
+The automatically selected model here is 'M, N, M' where M stands for multiplicative and N stands for none. According to BIC, the automatically selected model outperforms the manually chosen model. 
+
+```{r report 12631 HW Models, echo=FALSE, results='asis'}
+# Output
+htmlreg(list(ts_12631.ets1, ts_12631.ets2), 
+       caption = "Holt Winters Self selected(A,A,A) V/s automatically selected model(M,N,M) for Store 12631",
+       model.names = c("Self", "Automatic"), single.row = T)
+```
+
+#### Model Evaluation
+
+To decide the best model we calculate several out of sample performance measures and choose the model which performs better according to the majority of the measures. The table below clearly shows that on the test data Model 1 outperforms Model 2.
+
+```{r report 12631 HW Model Evaluation, echo=FALSE}
+# Creating a table for combined accuracy results
+kable(acc_12631_hw, caption = "Out of Sample Performance for Self selected Model V/s Auto selected Model (HW) Store 12631", format = "html") %>% group_rows("Self selected", 1, 2) %>% group_rows("Automatic", 3, 4) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+
+## Store 4904
+
+### Arima Model
+
+#### Plots
+
+We can see some evidence of seasonality from the time series plot, further supported by sub-series and day-wise plot.
+
+```{r report 4904 ARIMA Plots, echo=FALSE, fig.align='center'}
+# Plot
+autoplot(ts_4904_train, main = "Store 4904 Time Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+
+# Seasonality plot
+ggseasonplot(ts_4904_train, main = "Store 4904 Time Series Plot (Seasonality check)", 
+         xlab = "Weeks") + theme_few()
+
+# Sub series plot
+ggsubseriesplot(ts_4904_train , main = "Store 4904 Sub Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Demand") + theme_few()
+```
+
+
+#### Stationary Test
+
+Test including Dicker Fuller, Phillips-Perron and KPSS were conducted to test for stationarity of the time series. The table below summaries the results of this analysis.  Using the nsdiffs function in R, we can see that a first seasonal difference was required for the time series to be stationary according to all three criteria. 
+
+```{r report 4904 ARIMA Stationary Test, echo=FALSE}
+# Creating a table
+kable(final_test_results_4904, caption = "Stationary Test Results for Store 4904", format = "html", align = 'l')%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+The plot of the time series after the transformations can be seen below:
+
+```{r report 4904 ARIMA Stationary Time Series Plot after seasonal diff, echo=FALSE, fig.align='center'}
+# Plot after seasonal diff
+autoplot(ts_4904_train.sdiff1, main = "Store 4904 Time Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+```
+
+Since this plot didn't seem satisfactory, a first difference was taken from the time series. We will be using both these models and comparing them in the residual analysis section.
+
+```{r report 4904 ARIMA Stationary Time Series Final Plot, echo=FALSE, fig.align='center'}
+# Plot after seasonal and first diff
+autoplot(ts_4904_train.sdiff1.diff1, main = "Store 4904 Time Series Plot (Stationary)", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+```
+
+#### Model Selection
+
+##### Model 1 (Only seasonal difference)
+
+Looking at the ACF and PACF plots, we can see that for non-seasonality both ACF, and PACF look like white noise. For the seasonality component, we observe that ACF and PACF tail off after lag 1. Since we take a seasonal difference, we have to set D = 1 (ARIMA(0, 0, 0)(1, 1, 1)). The model ARIMA(0, 0, 0)(1, 1, 1) has a  BIC of -31.8.
+
+```{r report 4904 ARIMA ACF and PACF Plot Model 1, echo=FALSE, fig.align='center'}
+# PACF AND ACF
+ggtsdisplay(ts_4904_train.sdiff1, lag.max = 49, main = "Store 4904 Time Series (Stationary), ACF and PACF Plots Model 1", 
+            xlab = "Weeks", theme = theme_few())
+```
+
+
+##### Model 2 (both seasonal and first difference)
+
+Looking at the ACF and PACF plots, we can see that for non-seasonality both ACF and PACF tail off at lag one, therefore; we set p and q to be 1. For the seasonality component, we observe that ACF cuts off at lag one and PACF tails off. Since we take a seasonal difference, we have to set D = 1 (ARIMA(1, 1, 1)(0, 1, 1)). This model has a BIC of -34.26.
+
+```{r report 4904 ARIMA ACF and PACF Plot Model 2, echo=FALSE, fig.align='center'}
+# PACF AND ACF
+ggtsdisplay(ts_4904_train.sdiff1.diff1, lag.max = 49, main = "Store 4904 Time Series (Stationary), ACF and PACF Plots Model 2", 
+            xlab = "Weeks", theme = theme_few())
+```
+
+Let's consider the model generated by auto.arima function in R. The best model had the following specification: ARIMA(0, 0, 0)(2, 1, 0) with a BIC of -27.06. Model 2 performs best here. Let us look at Residual Analysis section for more insight.
+
+```{r report 4904 ARIMA models, echo=FALSE, results='asis'}
+# Arima Models
+htmlreg(list(ts_4904_train.arima.m1, ts_4904_train.arima.m2, ts_4904_train.arima.m3), 
+       caption = "ARIMA Two Self selected V/s automatically selected model for Store 4904",
+       custom.model.names = c("Self (only seasonal)", "Self (both 1st and seasonal diff)", "Auto Arima"))
+```
+
+#### Residual Analysis
+
+The plot below shows the residual analysis for the self-selected model (ARIMA(0, 0, 0)(1, 1, 1)).  The residual plot is not entirely satisfactory here. 
+The residuals have some auto-correlation.
+
+```{r report 4904 ARIMA Residual Analysis Model 1 Plot, echo=FALSE, fig.align='center'}
+# Model 1
+checkresiduals(ts_4904_train.arima.m1, test=FALSE, xlab = "weeks", theme = theme_few())
+```
+
+On the other hand, the plot for model 2(ARIMA(1, 1, 1)(0, 1, 1)) looks satisfactory. Furthermore, the residual ACF plot for auto-arima model is also not adequate; having similar characteristics to model 1.
+
+```{r report 4904 ARIMA Residual Analysis Model 2 Plot, echo=FALSE, fig.align='center'}
+# Model 2
+checkresiduals(ts_4904_train.arima.m2, test=FALSE, xlab = "weeks", theme = theme_few())
+```
+
+```{r report 4904 ARIMA Residual Analysis Model 3 Plot, echo=FALSE, fig.align='center'}
+# Model 3
+checkresiduals(ts_4904_train.arima.m3, test=FALSE, xlab = "weeks", theme = theme_few())
+```
+
+The Ljung box-test results for the three models are summarised in the table below.
+
+```{r report 4904 ARIMA Residual Analysis Box-Test, echo=FALSE}
+# Print output
+kable(ljung_box_test_4904, caption = "Ljung-Box test result for the three candidate models (Store 4904)", format = "html", align = 'c')%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+Apart from model 2, the Ljung box-test for all other models reject the Null of the residual been random overall at 1% significance level.
+
+#### Model Evaluation
+
+The table below clearly shows that on the test data Model 1 (ARIMA(0, 0, 0)(1, 1, 1)) outperforms the other model.
+
+```{r report 4904 ARIMA Model Evaluation, echo=FALSE}
+# Creating a table for combined accuracy results
+kable(acc_4904_arima, caption = "Out of Sample Performance for The three models", format = "html") %>% group_rows("Self selected M1", 1, 2) %>% group_rows("Self selected M2", 3, 4)%>% group_rows("Auto Arima", 5, 6)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+### Holt-Winters Model
+
+#### Plots
+
+Looking at the range bar plots, we can see that the trend is linear and variation in the seasonality is constant over time. The analysis suggests an 'A, A, A' model for Holt-Winters where  'A' stands for additive and the first letter denotes error type, the second letter denotes the trend type, and the third letter denotes the season type. 
+
+```{r report 4904 HW Plot, echo=FALSE, fig.align='center'}
+# Range bar plots
+ts_4904_train %>% stl(s.window = "period") %>% autoplot + theme_few() + labs(x = "Weeks")
+# Seasonality and trend has a magnitude which is less than the stochastic component.
+# Seasonality ranges from +50 to -65. Indicating some days have higher sales than others
+# Trend shows a continuos rise till week 15. Followed by a drastic dip in sales in week 
+# 20 to 21. 
+```
+
+#### Model Selection
+
+The automatically selected model here is 'A, N, A' where N stands for none.  According to BIC, the automatically selected model outperforms the manually chosen model. 
+
+```{r report 4904 HW Models, echo=FALSE, results='asis'}
+# Output
+htmlreg(list(ts_4904.ets1, ts_4904.ets2), 
+       caption = "Holt Winters Self selected(A,A,A) V/s automatically selected model(A,N,A) for Store 4904",
+       model.names = c("Self", "Automatic"), single.row = T)
+```
+
+#### Model Evaluation
+
+To decide the best model we calculate several out of sample performance measures and choose the model which performs better according to the majority of the measures. The table below clearly shows that on the test data Model 2 'A, N, A' outperforms the other model.
+
+```{r report 4904 HW Model Evaluation, echo=FALSE}
+# Creating a table for combined accuracy results
+kable(acc_4904_hw, caption = "Out of Sample Performance for Self selected Model V/s Auto selected Model (HW) Store 4904", format = "html") %>% group_rows("Self selected", 1, 2) %>% group_rows("Automatic", 3, 4)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+## Store 20974
+
+### Arima Model
+
+#### Plots
+
+We can see some evidence of seasonality from the time series plot, further supported by sub-series and day-wise plot. 
+
+```{r report 20974 ARIMA Plots, echo=FALSE, fig.align='center'}
+# Plot
+autoplot(ts_20974_train, main = "Store 20974 Time Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+
+# Seasonality plot
+ggseasonplot(ts_20974_train, main = "Store 20974 Time Series Plot (Seasonality check)", 
+         xlab = "Weeks") + theme_few()
+
+# Sub series plot
+ggsubseriesplot(ts_20974_train, main = "Store 20974 Sub Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Demand") + theme_few()
+```
+
+
+#### Stationary Test
+
+Test including Dicker Fuller, Phillips-Perron and KPSS were conducted to test for stationarity of the time series. The table below summaries the results of this analysis.  Using the nsdiffs function in R, we can see that a first seasonal difference was not required. 
+
+```{r report 20974 ARIMA Stationary Test, echo=FALSE}
+# Creating a table to present these results
+kable(final_test_results_20974, caption = "Stationary Test Results for Store 20974", format = "html", align = 'l')%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+The plot of the time series after the transformations can be seen below:
+
+```{r report 20974 ARIMA Stationary Time Series Plot M1, echo=FALSE, fig.align='center'}
+# Plotting the time series to see if stationary
+autoplot(log(ts_20974_train), main = "Store 20974 Time Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+# looks like a trend
+```
+
+Since this plot didn't seem satisfactory, a first difference was taken from the time series. We will be using both these models and comparing them in the residual analysis section.
+
+```{r report 20974 ARIMA Stationary Time Series Plot Final, echo=FALSE, fig.align='center'}
+# Plotting the time series to see if stationary
+autoplot(ts_20974_train.diff1, main = "Store 20974 Time Series Plot (Looks Stationary)", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+# Does look stationary
+```
+
+#### Model Selection
+
+##### Model 1 (No difference)
+
+Looking at the ACF and PACF plots, we can see that for non-seasonality both ACF and PACF there is no significant spike. For the seasonality component, we observe that ACF and PACF tail off after lag 1 (ARIMA(0, 0, 0)(1, 0, 1)). The model ARIMA(0, 0, 0)(1, 0, 1) has a  BIC of 74.07.
+
+```{r report 20974 ARIMA ACF and PACF Plot Model 1, echo=FALSE, fig.align='center'}
+# PACF AND ACF
+ggtsdisplay(log(ts_20974_train), lag.max = 49, main = "Store 20974 Time Series, ACF and PACF Plots Model 1", 
+            xlab = "Weeks", theme = theme_few())
+```
+
+##### Model 2 (with first difference)
+
+Looking at the ACF and PACF plots, we can see that for non-seasonality PACF tail off at lag one, and ACF cuts off at lag 1, therefore; we set p to be 0 q to be 1. For the seasonality component, we observe that ACF and PACF tail off after lag 1 (ARIMA(0, 1, 1)(1, 0, 1)). This model has a BIC of 75.89.
+
+```{r report 20974 ARIMA ACF and PACF Plot Model 2, echo=FALSE, fig.align='center'}
+# PACF AND ACF
+ggtsdisplay(ts_20974_train.diff1, lag.max = 49, main = "Store 20974 Time Series, ACF and PACF Plots Model 2", 
+            xlab = "Weeks", theme = theme_few())
+```
+
+Let's consider the model generated by auto.arima function in R. The best model had the following specification: ARIMA(0, 0, 0)(1, 0, 0) with a BIC of 76.54. Model 3 performs best here. Let us look at Residual Analysis section for more insight.
+
+```{r report 20974 ARIMA models, echo=FALSE, results='asis'}
+# Arima Models
+htmlreg(list(ts_20974_train.arima.m1, ts_20974_train.arima.m2, ts_20974_train.arima.m3), caption = "ARIMA Two Self selected V/s automatically selected model for Store 20974",custom.model.names = c("Self (No diff)", "Self (1st diff)", "Auto Arima"))
+```
+
+#### Residual Analysis
+
+The plot below shows the residual analysis for the self-selected model 1. This looks satisfactory. 
+
+```{r report 20974 ARIMA Residual Analysis Model 1 Plot, echo=FALSE, fig.align='center'}
+# Model 1
+checkresiduals(ts_20974_train.arima.m1, test=FALSE, xlab = "weeks", theme = theme_few())
+```
+
+The plot for model 2 has similar characteristics to model 1. 
+
+```{r report 20974 ARIMA Residual Analysis Model 2 Plot, echo=FALSE, fig.align='center'}
+# Model 2
+checkresiduals(ts_20974_train.arima.m2, test=FALSE, xlab = "weeks", theme = theme_few())
+```
+
+The results from the residual plots of model 3 are similar to the other two model and look satisfactory
+
+```{r report 20974 ARIMA Residual Analysis Model 3 Plot, echo=FALSE, fig.align='center'}
+# Model 3
+checkresiduals(ts_20974_train.arima.m3, test=FALSE, xlab = "weeks", theme = theme_few())
+```
+
+The Ljung box-test results for the three models are summarised in the table below.
+
+```{r report 20974 ARIMA Residual Analysis Box-Test, echo=FALSE}
+# Print output
+kable(ljung_box_test_20974, caption = "Ljung-Box test result for the three candidate models (Store 20974)", format = "html", align = 'c')%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+All three models fail to reject the null that the residuals are random overall.
+
+#### Model Evaluation
+
+The table below clearly shows that on the test data Model 3 (ARIMA(0, 0, 0)(1, 0, 0)) outperforms the other models.
+
+```{r report 20974 ARIMA Model Evaluation, echo=FALSE}
+# Creating a table for combined accuracy results
+kable(acc_20974_arima, caption = "Out of Sample Performance for The three models", format = "html") %>% group_rows("Self selected M1", 1, 2) %>% group_rows("Self selected M2", 3, 4)%>% group_rows("Auto Arima", 5, 6)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+### Holt-Winters Model
+
+#### Plots
+
+Looking at the range bar plots, we can see that the trend is linear and variation in the seasonality is constant over time. The analysis suggests an 'A, A, A' model for Holt-Winters where  'A' stands for additive and the first letter denotes error type, the second letter denotes the trend type, and the third letter denotes the season type. 
+
+```{r report 20974 HW Plot, echo=FALSE, fig.align='center'}
+# Range bar plots
+ts_20974_train %>% stl(s.window = "period") %>% autoplot + theme_few() + labs(x = "Weeks")
+```
+
+#### Model Selection
+
+The automatically selected model here is 'A, N, A' where N stands for none.  According to BIC, the automatically selected model outperforms the manually chosen model. 
+
+```{r report 20974 HW Models, echo=FALSE, results='asis'}
+# Output
+htmlreg(list(ts_20974.ets1, ts_20974.ets2), 
+       caption = "Holt Winters Self selected(A,A,A) V/s automatically selected model(A,N,A) for Store 20974",
+       model.names = c("Self", "Automatic"), single.row = T)
+```
+
+#### Model Evaluation
+
+To decide the best model we calculate several out of sample performance measures and choose the model which performs better according to the majority of the measures. The table below shows that both models perform similarly to each other. We choose model 2 here based on Residual Mean Squared Error.
+
+```{r report 20974 HW Model Evaluation, echo=FALSE}
+kable(acc_20974_hw, caption = "Out of Sample Performance for The three models", format = "html") %>% group_rows("Self selected", 1, 2) %>% group_rows("Automatic", 3, 4)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+## Store 46673
+
+### Arima Model
+
+#### Plots
+
+We can see some evidence of seasonality from the time series plot, further supported by sub-series and day-wise plot. 
+
+```{r report 46673 ARIMA Plots, echo=FALSE, fig.align='center'}
+# Plot
+autoplot(ts_46673_train, main = "Store 46673 Time Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+
+# Seasonality plot
+ggseasonplot(ts_46673_train, main = "Store 46673 Time Series Plot (Seasonality check)", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+
+# Sub series plot
+ggsubseriesplot(ts_46673_train, main = "Store 4904 Sub Series Plot", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+```
+
+
+#### Stationary Test
+
+Test including Dicker Fuller, Phillips-Perron and KPSS were conducted to test for stationarity of the time series. The table below summaries the results of this analysis.  Using the nsdiffs function in R, we can see that a first seasonal difference was required. 
+
+```{r report 46673 ARIMA Stationary Test, echo=FALSE}
+# Creating a table to present these results
+kable(final_test_results_46673, caption = "Stationary Test Results for Store 46673", format = "html", align = 'l')%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+The plot of the time series after the transformations can be seen below:
+
+```{r report 46673 ARIMA Stationary Time Series Plot Final, echo=FALSE, fig.align='center'}
+autoplot(ts_46673_train.sdiff1, main = "Store 46673 Time Series Plot (Stationary)", 
+         xlab = "Weeks", ylab = "Lettuce Ussage") + theme_few()
+```
+
+#### Model Selection
+
+##### Model 1 (Seasonal Difference)
+
+Looking at the ACF and PACF plots, we can see that for non-seasonality both ACF and PACF there is no significant spike. For the seasonality component, we observe that ACF and PACF tail off after lag 1 (ARIMA(0, 0, 0)(1, 01 1)). The model ARIMA(0, 0, 0)(1, 1, 1) has a  BIC of -21.67.
+
+```{r report 46673 ARIMA ACF and PACF Plot Model 1, echo=FALSE, fig.align='center'}
+# PACF AND ACF
+ggtsdisplay(ts_46673_train.sdiff1, lag.max = 49, main = "Store 46673 Time Series, ACF and PACF Plots", 
+            xlab = "Weeks", theme = theme_few())
+```
+
+Let's consider the model generated by auto.arima function in R. The best model had the following specification: ARIMA(0, 0, 0)(0, 1, 1) with a BIC of -25.97.
+
+```{r report 46673 ARIMA models, echo=FALSE, results='asis', fig.align='center'}
+# Arima Models
+htmlreg(list(ts_46673_train.arima.m1, ts_46673_train.arima.m2), 
+       caption = "ARIMA Self selected V/s automatically selected model for Store 46673",
+       custom.model.names = c("Self", "Auto Arima"))
+```
+
+#### Residual Analysis
+
+The plot below shows the residual analysis for the self-selected model 1. This looks satisfactory. 
+
+```{r report 46673 ARIMA Residual Analysis Model 1 Plot, echo=FALSE, fig.align='center'}
+# Model 1
+checkresiduals(ts_46673_train.arima.m1, test=FALSE, xlab = "weeks", theme = theme_few())
+```
+
+The plot for model 2 has similar characteristics to model 1. 
+
+```{r report 46673 ARIMA Residual Analysis Model 2 Plot, echo=FALSE, fig.align='center'}
+# Model 2
+checkresiduals(ts_46673_train.arima.m2, test=FALSE, xlab = "weeks", theme = theme_few())
+```
+
+The Ljung box-test results for the three models are summarised in the table below.
+
+```{r report 46673 ARIMA Residual Analysis Box-Test, echo=FALSE}
+# Print output
+kable(ljung_box_test_46673, caption = "Ljung-Box test result for the three candidate models (Store 46673)", format = "html", align = 'c')%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+The two models fail to reject the null that the residuals are random overall.
+
+#### Model Evaluation
+
+The table below clearly shows that on the test data Model 1 (ARIMA(0, 0, 0)(1, 1, 1)) outperforms the other models.
+
+```{r report 46673 ARIMA Model Evaluation, echo=FALSE}
+# Creating a table for combined accuracy results
+kable(acc_46673_arima, caption = "Out of Sample Performance for The two models", format = "html") %>% group_rows("Self selected", 1, 2) %>% group_rows("Auto Arima", 3, 4)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+### Holt-Winters Model
+
+#### Plots
+
+Looking at the range bar plots, we can see that the trend is linear and variation in the seasonality is constant over time. The analysis suggests an 'A, A, A' model for Holt-Winters where  'A' stands for additive and the first letter denotes error type, the second letter denotes the trend type, and the third letter denotes the season type.
+
+```{r report 46673 HW Plot, echo=FALSE, fig.align='center'}
+# Range bar plots
+ts_46673_train %>% stl(s.window = "period") %>% autoplot + theme_few() + labs(x = "Weeks")
+```
+
+#### Model Selection
+
+The automatically selected model here is 'A, N, A' where N stands for none. According to BIC, the automatically selected model outperforms the manually chosen model. 
+
+```{r report 46673 HW Models, echo=FALSE, results='asis'}
+# Output
+htmlreg(list(ts_46673.ets1, ts_46673.ets2), caption = "Holt Winters Self selected(A,A,A) V/s automatically selected model(A,N,A) for Store 46673",model.names = c("Self", "Automatic"), single.row = T)
+```
+
+#### Model Evaluation
+
+To decide the best model we calculate several out of sample performance measures and choose the model which performs better according to the majority of the measures. The table below shows that model 1 outperforms model 2.
+
+```{r report 46673 HW Model Evaluation, echo=FALSE}
+kable(acc_46673_hw, caption = "Out of Sample Performance for Self selected Model V/s Auto selected Model (HW) Store 46673", format = "html") %>% group_rows("Self selected", 1, 2) %>% group_rows("Automatic", 3, 4)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+# Results {.tabset .tabset-fade .tabset-pills}
+
+
+## Store 12631
+
+### Comparison of the forecast
+
+The two-week forecast from the selected ARIMA and Holt-Winters model have been summarised in the table below. The table also shows the differences between the two predictions.
+
+```{r report Results 12631 2 week forecast, echo=FALSE}
+kable(forecast_12631, caption = "Prediction Comparison Store 12631", align = 'c', format = "html")%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+The two graphs below also show the forecast along with the 80% and 95% confidence interval.
+
+```{r report Results 12631 2 week forecast plot, echo=FALSE, fig.align='center'}
+par(mfrow=c(2,1)) 
+plot(ts_12631.arima.f)
+plot(ts_12631.ets.f)
+```
+
+### Comparison of the Out of sample performance
+
+Since the predictions will judged on Mean Squared Error (MSE), we use Root Mean Squared Error(RMSE) to choose between the selected ARIMA and  Holt-Winters model for our final predictions.
+
+The table below summarises the result according to which Holt-Winters model has a better out of sample performance based on RMSE.
+
+```{r report Results 12631 Out of sample performance, echo=FALSE}
+kable(acc_12631_final, caption = "Out of Sample Performance Comparison ARIMA v/s Holt-Winters for Store 12631", format = "html") %>% group_rows("ARIMA", 1, 2) %>% group_rows("Holt-Winters", 3, 4)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+## Store 4904
+
+### Comparison of the forecast
+
+The two-week forecast from the selected ARIMA and Holt-Winters model have been summarised in the table below. The table also shows the differences between the two predictions.
+
+```{r report Results 4904 2 week forecast, echo=FALSE}
+kable(forecast_4904, caption = "Prediction Comparison Store 4904", align = 'c', format = "html")%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+The two graphs below also show the forecast along with the 80% and 95% confidence interval.
+
+```{r report Results 4904 2 week forecast plot, echo=FALSE, fig.align='center'}
+par(mfrow=c(2,1)) 
+plot(ts_4904.arima.f)
+plot(ts_4904.ets.f)
+```
+
+### Comparison of the Out of sample performance
+
+Since the predictions will judged on MSE, we use RMSE to choose between the selected ARIMA and  Holt-Winters model for our final predictions.
+
+The table below summarises the result according to which Holt-Winters model has a better out of sample performance based on RMSE.
+
+```{r report Results 4904 Out of sample performance, echo=FALSE}
+kable(acc_4904_final, caption = "Out of Sample Performance Comparison ARIMA v/s Holt-Winters for Store 4904", format = "html") %>% group_rows("ARIMA", 1, 2) %>% group_rows("Holt-Winters", 3, 4)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+## Store 20974
+
+### Comparison of the forecast
+
+The two-week forecast from the selected ARIMA and Holt-Winters model have been summarised in the table below. The table also shows the differences between the two predictions.
+
+```{r report Results 20974 2 week forecast, echo=FALSE}
+kable(forecast_20974, caption = "Prediction Comparison Store 20974", align = 'c', format = "html")%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+The two graphs below also show the forecast along with the 80% and 95% confidence interval.
+
+```{r report Results 20974 2 week forecast plot, echo=FALSE, fig.align='center'}
+par(mfrow=c(2,1)) 
+plot(ts_20974.arima.f)
+plot(ts_20974.ets.f)
+```
+
+### Comparison of the Out of sample performance
+
+Since the predictions will judged on MSE, we use RMSE to choose between the selected ARIMA and  Holt-Winters model for our final predictions.
+
+The table below summarises the result according to which ARIMA model has a marginally better out of sample performance based on RMSE.
+
+```{r report Results 20974 Out of sample performance, echo=FALSE}
+kable(acc_20974_final, caption = "Out of Sample Performance Comparison ARIMA v/s Holt-Winters for Store 20974", format = "html") %>% group_rows("ARIMA", 1, 2) %>% group_rows("Holt-Winters", 3, 4)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+## Store 46673
+
+### Comparison of the forecast
+
+The two-week forecast from the selected ARIMA and Holt-Winters model have been summarised in the table below. The table also shows the differences between the two predictions.
+
+```{r report Results 46673 2 week forecast, echo=FALSE}
+kable(forecast_46673, caption = "Prediction Comparison Store 46673", align = 'c', format = "html")%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+The two graphs below also show the forecast along with the 80% and 95% confidence interval.
+
+```{r report Results 46673 2 week forecast plot, echo=FALSE, fig.align='center'}
+par(mfrow=c(2,1)) 
+plot(ts_46673.arima.f)
+plot(ts_46673.ets.f)
+```
+
+### Comparison of the Out of sample performance
+
+Since the predictions will judged on MSE, we use RMSE to choose between the selected ARIMA and  Holt-Winters model for our final predictions.
+
+The table below summarises the result according to which Holt-Winters model has a better out of sample performance based on RMSE.
+
+```{r report Results 46673 Out of sample performance, echo=FALSE}
+kable(acc_46673_final, caption = "Out of Sample Performance Comparison ARIMA v/s Holt-Winters for Store 46673", format = "html") %>% group_rows("ARIMA", 1, 2) %>% group_rows("Holt-Winters", 3, 4)%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+
+# Conclusion {.tabset .tabset-fade .tabset-pills}
+
+This section will be summarising our final predictions for the four stores for two weeks from 16/06/2015 to 29/06/2015.
+
+```{r report final predictions, echo=FALSE, message=FALSE, warning=FALSE}
+final_predictions <- data.frame(
+  "Model/days" = c("Model", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14),
+  Store_12631 = c("ETS(A,Ad,A)",ts_12631.ets.f.df$`Point Forecast`),
+  Store_4904 = c("ETS(A,N,A)",ts_4904.ets.f.df$`Point Forecast`),
+  Store_20974 = c("ARIMA (0,0,0)(1,0,0)",ts_20974.arima.f.df$`Point Forecast`),
+  Store_46673 = c("ETS(A,Ad,A)",ts_46673.ets.f.df$`Point Forecast`))
+
+# Final predictions Table
+kable(final_predictions, caption = "Final Predictions for the Four Stores for two weeks from 16/06/2015 to 29/06/2015", format = "html", digits = 0) %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), position = "center", full_width = F)
+```
+
+
+# Bibliography {.tabset .tabset-fade .tabset-pills}

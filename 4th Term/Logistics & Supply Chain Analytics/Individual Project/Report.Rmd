@@ -1,0 +1,483 @@
+---
+title: "Individual Project: Demand Forecasting for A Fast-Food Restaurant Chain"
+author: "Qian Zhang"
+date: "2021年3月15日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(forecast)
+library(tseries)
+library(ggplot2)
+```
+### Section 1: Data Processing:
+I used Python to calculate the daily demand of lettuce for each store. The python code is attacted in the appendix. The demand for store 4904, 12631, 20974, and 46673 are stored in lettuce_demand_4904.csv, lettuce_demand_12631.csv, lettuce_demand_20974.csv, lettuce_demand_46673.csv, respectively. The calculated daily demand of lettuce of store 46673 are compared to the first few observations provided by professor and they are identical.   
+
+### Section 2: Forcasting The Demand of Store 4904
+The first step is to import the data, and divide the dataset into training dataset and testing dataset appropriately. In general, if the training dataset is too large and the testing dataset is too small, we will have less data to test the performance of the model and the variance will be larger. On the other hand, if the training dataset is too small and the testing dataset is too large, we will have to use older data to generate the forcast. For this question, since we are predicting the demand of lettuces for the next 14 days, we could use the data of last 14 days in the dataset as testing dataset, and all other data as training dataset.
+
+```{r Section 2, echo=FALSE}
+data <- read.csv(file = "lettuce_demand_4904.csv", header = TRUE)
+lettuce_demand_4904 <- ts(data[, 4], frequency = 7)
+lettuce_demand_4904.training = window(lettuce_demand_4904, end = c(12,4))
+lettuce_demand_4904.testing = window(lettuce_demand_4904, start = c(12,5))
+lettuce_demand_4904
+```
+
+#### Secton 2.1: Applying the ARIMA Model
+
+##### Section 2.1.1: Verifying the Stationarity of the Training Set of Dataset. 
+From the plot of datast, there is no obvious trend or seasonal effects, but if we plot the dataset for each cycle, it is obvious that the dataset follows some seasonal patterns. However, we could not determine whether the dataset is stationary or not without running tests. 
+```{r echo=FALSE}
+ggtsdisplay(lettuce_demand_4904.training)
+boxplot(lettuce_demand_4904.training ~ cycle(lettuce_demand_4904.training))
+```
+
+Therefore, ADF, PP and KPSS tests are used to formally test the stationarity of time series. The p-value from the PP tests are smaller than 0.05, and the p-value from KPSS tests is larger than 0.05. Therefore, based on all three tests, the non-seasonal part of the training dataset is most likely to be stationary. 
+```{r echo=FALSE}
+adf_4904_training <- adf.test(lettuce_demand_4904)
+pp_4904_training <- pp.test(lettuce_demand_4904)
+kpss_4904_training <- kpss.test(lettuce_demand_4904)
+test_results_4904 <- data.frame(Test=c("ADF", "PP", "KPSS"),
+                       "P Value" =c(adf_4904_training$p.value,pp_4904_training$p.value,kpss_4904_training$p.value))
+knitr::kable(test_results_4904, caption = "Tests for the non-seasonal part of training dataset")
+```
+
+Second, we could use ndiffs to verify the stationarity of the non-seasonal part of the training dataset, and use nsdiffs to determine the stationarity of the seasonal part. The results verify the analysis above that the non-seasonal part of the training dataset is stationary, and the seasonal part requires a first level differencing. 
+```{r echo=FALSE}
+ndiffs_4904_training <- ndiffs(lettuce_demand_4904)
+nsdiffs_4904_training <- nsdiffs(lettuce_demand_4904)
+differencing_4904 <- data.frame(Test=c("ndiffs", "nsdiffs"),
+                       "P Value" =c(ndiffs_4904_training,nsdiffs_4904_training))
+knitr::kable(differencing_4904, caption = "Differencing for the non-seasonal and seasonal part of training dataset")
+```
+
+We could verify the analysis above by taking a first level seasonal differencing and replot the dataset or re-run nsdiffs test. From the plots below, we could see that the seasonal pattern no longer exists, and the dataset is now stationary.
+```{r echo=FALSE}
+lettuce_demand_4904.training.diff = diff(lettuce_demand_4904.training,differences = 1, lag = 7)
+autoplot(lettuce_demand_4904.training.diff)
+boxplot(lettuce_demand_4904.training.diff ~ cycle(lettuce_demand_4904.training.diff))
+```
+
+##### Section 2.1.2: Searching For The Best ARIMA Models
+We could use auto.arima() to search for the best ARIMA models. The three best models that the corresponding BICs are shown below. While the BIC of best model is 814.8431, there are some other models that return the comparable BICs as the best model. Therefore, we chose two models that have the lowest BIC. 
+Both models match the result of earily analysis that the non-seasonal part is stationary, while the seasonal part requires first level differencing. 
+
+```{r include=FALSE}
+auto.arima(lettuce_demand_4904.training, trace = TRUE, ic = 'bic')
+```
+
+```{r echo=FALSE}
+# Best Model: ARIMA(0,0,0)(2,1,0)[7]  (814.8431)
+# Second Best Model: ARIMA(1,0,1)(2,1,0)[7]  (815.9494)
+# Third Best Model: ARIMA(0,0,0)(1,1,0)[7]  (816.4742)
+
+best_model_4904 <- data.frame('Ranks'=c("Best Model", "Second Best Model","Third Best Model"),
+                              'Models' = c("ARIMA(0,0,0)(2,1,0)[7]","ARIMA(1,0,1)(2,1,0)[7]","ARIMA(0,0,0)(1,1,0)[7]"),
+                              "BIC" =c(814.8431,815.9494,816.4742))
+knitr::kable(best_model_4904, caption = "The Best Three ARIMA Models for Store 4904")
+lettuce_demand_4904.training.m1 <- Arima(lettuce_demand_4904.training, order = c(0, 0, 0),seasonal = list(order = c(2, 1, 0), period = 7),include.drift = FALSE)
+lettuce_demand_4904.training.m2 <- Arima(lettuce_demand_4904.training, order = c(1, 0, 1),seasonal = list(order = c(2, 1, 0), period = 7),include.drift = FALSE)
+lettuce_demand_4904.training.m3 <- Arima(lettuce_demand_4904.training, order = c(0, 0, 0),seasonal = list(order = c(1, 1, 0), period = 7),include.drift = FALSE)
+```
+
+##### Section 2.1.3: Calculating the Accuracy of the Best ARIMA Models 
+Calculate the out-of-sample performance of the best ARIMA models based on multi-step ahead forecast. Based on the accuracy of testing dataset, M2 has the best performance.
+```{r echo=FALSE}
+lettuce_demand_4904.training.m1.f <- forecast(lettuce_demand_4904.training.m1, h = 14)
+lettuce_demand_4904.training.m2.f <- forecast(lettuce_demand_4904.training.m2, h = 14)
+lettuce_demand_4904.training.m3.f <- forecast(lettuce_demand_4904.training.m3, h = 14)
+
+accuracy_m1 = accuracy(lettuce_demand_4904.training.m1.f,lettuce_demand_4904.testing)
+accuracy_m2 = accuracy(lettuce_demand_4904.training.m2.f,lettuce_demand_4904.testing)
+accuracy_m3 = accuracy(lettuce_demand_4904.training.m3.f,lettuce_demand_4904.testing)
+
+accuracy_4904_arima <- as.data.frame(x=rbind(accuracy_m1, accuracy_m2, accuracy_m3), row.names = c("M1 Training Dataset", "M1 Testing Dataset", "M2 Training Dataset", "M2 Testing Dataset", "M3 Training Dataset", "M3 Testing Dataset"))
+knitr::kable(accuracy_4904_arima, caption = "Accuracy of The Three Best ARIMA Models")
+```
+
+##### Section 2.1.4: Checking the Residuals of the Best ARIMA Model
+We could also run the ljung-box test on M2. Based on the analysis below, there is no correlation in the residuals that is significant. Meanwhile, residuals follow a normal distribution. Therefore, we consider Second Best Model: ARIMA(1,0,1)(2,1,0)[7] as the best ARIMA model. 
+```{r}
+checkresiduals(lettuce_demand_4904.training.m2)
+```
+
+
+#### Secton 2.2 : Applying the Holt-Winters Model
+
+##### Section 2.2.1 Decompose the Training Dataset and Select the Model
+By decomposing the original time series into trend, seasonal factors, and random error terms, we could see the relative importance of different components that are indicated by the grey bars in the plots. The grey bar for trend is long, while the grey bar for seasonal is short. Therefore, the decomposed plots suggest a ETS(A,N,A) model for Holt-Winters
+```{r echo=FALSE}
+lettuce_demand_4904.training %>% stl(s.window = "period") %>% autoplot
+lettuce_demand_4904.training.ets1 <- ets(lettuce_demand_4904.training , model = "ANA")
+```
+
+##### Section 2.2.2 Use ets to Select the Best Model
+While using ets(), the best model for Holt-Winters is ETS(A,N,A), which matchs the analysi above. 
+```{r echo=FALSE}
+lettuce_demand_4904.training.ets2 <- ets(lettuce_demand_4904.training , model = "ZZZ")
+lettuce_demand_4904.training.ets2
+```
+
+##### Section 2.2.3 Calculating the Accuracy of the Best Holt-Winters Model
+Calculate the out-of-sample performance based on multi-step ahead forecast
+```{r echo=FALSE}
+lettuce_demand_4904.training.ets1.f <- forecast(lettuce_demand_4904.training.ets1, h = 14)
+
+accuracy_ets1 <- accuracy(lettuce_demand_4904.training.ets1.f,lettuce_demand_4904.testing)
+accuracy_4904_ets <- as.data.frame(x=rbind(accuracy_ets1), row.names = c("ETS1 Training Dataset","ETS2 Testing Dataset"))
+knitr::kable(accuracy_4904_ets, caption = "Accuracy of The Best Holt-Winters Model")
+```
+
+#### Secton 2.3: Final Forcast
+
+##### Section 2.3.1: Comparing the forcast based on ARIMA and Holt-Winters Model
+```{r echo=FALSE}
+lettuce_demand_4904.training.m1.f.df <- as.data.frame(lettuce_demand_4904.training.m1.f)
+ARIMA <- lettuce_demand_4904.training.m1.f.df$'Point Forecast'
+
+lettuce_demand_4904.training.ets1.f.df <- as.data.frame(lettuce_demand_4904.training.ets1.f)
+Holt.Winters <- lettuce_demand_4904.training.ets1.f.df$'Point Forecast'
+
+Days = seq(1, 14, by=1)
+
+df <- data.frame(Days,ARIMA, Holt.Winters)
+knitr::kable(df, caption = "Comparing the result of ARIMA and Holt Winters Model")
+```
+
+##### Section 2.3.2: Selecting Better Model from ARIMA and Holt-Winters Model
+The table below compares the performance of the best ARIMA and Holt-Winters models, and as we care about the accuracy of forcesting the future demand, we should focus on the error on the testing dataset. It appears that the ME, MAE, MPE, MAPE, MASE of the best Holt-Winters Model is lower than those of best ARIMA model. The RMSE of the best Holt-Winters Model is slightly higher than that of the best ARIMA model. Therefore, in conclusion, Holt-Winters Model has a better performance while predicting the demand of lettuces of store 4904. Therefore, we use ets(ANA) to forcast the demand of lettuce for store 4904 for the next 14 days.
+```{r echo=FALSE}
+accuracy_4904_final <- as.data.frame(x=rbind(accuracy_m2,accuracy_ets1), row.names = c("M2 Training Dataset", "M2 Testing Dataset","ets1 Training Dataset","ets2 Testing Dataset"))
+knitr::kable(accuracy_4904_final, caption = "Accuracy of Best ARIMA and Holt-Winter Models")
+```
+
+##### Section 2.3.3: Generate the Final Forcast Using the Best Model
+```{r echo=FALSE}
+knitr::kable(lettuce_demand_4904.training.ets1.f, caption = "2 Week Prediction for Store 4904")
+autoplot(lettuce_demand_4904.training.ets1.f)
+```
+
+### Section 3: Forcasting The Demand of Store 12631
+#### Secton 3.1: Applying the ARIMA Model
+```{r Section 3.1, echo=FALSE}
+data <- read.csv(file = "lettuce_demand_12631.csv", header = TRUE)
+lettuce_demand_12631 <- ts(data[, 4], frequency = 7)
+lettuce_demand_12631.training = window(lettuce_demand_12631, end = c(13,5))
+lettuce_demand_12631.testing = window(lettuce_demand_12631, start = c(13,6))
+lettuce_demand_12631
+```
+##### Section 3.1.1: Verifying the Stationarity of the Training Set of Dataset. 
+For this dataset, we still need to verify the stationarity, while it shows similar patterns as the data of store 4904
+```{r echo=FALSE}
+ggtsdisplay(lettuce_demand_12631.training)
+boxplot(lettuce_demand_12631.training ~ cycle(lettuce_demand_12631.training))
+```
+
+To simplify the analysis, for store 12631, we could use ndiffs and nsdiffs to directly determine the level of differences. The results is different from the data of store 4904. For store 12631, that the seasonal part of the training dataset is stationary, and the non-seasonal part requires a first level differencing. 
+```{r echo=FALSE}
+ndiffs_12631_training <- ndiffs(lettuce_demand_12631)
+nsdiffs_12631_training <- nsdiffs(lettuce_demand_12631)
+differencing_12631 <- data.frame(Test=c("ndiffs", "nsdiffs"),
+                       "P Value" =c(ndiffs_12631_training,nsdiffs_12631_training))
+knitr::kable(differencing_12631, caption = "Differencing for the non-seasonal and seasonal part of training dataset")
+```
+
+##### Section 3.1.2: Searching For The Best ARIMA Models
+We could use auto.arima() to search for the best ARIMA models. The three best models that the corresponding BICs are shown below. While the BIC of best model is 922.2888, there are some other models that return the comparable BICs as the best model. Therefore, we chose two models that have the lowest BIC. Moreover, since we detect the seasonality from the boxplot, we could add another ARIMA model with D = 1. 
+
+```{r include=FALSE}
+auto.arima(lettuce_demand_12631.training, trace = TRUE, ic = 'bic')
+```
+
+```{r echo=FALSE}
+# Best Model: ARIMA(0,1,1)(2,0,0)[7] (922.2888)
+# Second Best Model: ARIMA(0,1,1)(1,0,0)[7]  (922.9761)
+
+best_model_12631 <- data.frame('Ranks'=c("Best Model", "Second Best Model"),
+                              'Models' = c("ARIMA(0,1,1)(2,0,0)[7]","ARIMA(0,1,1)(1,0,0)[7]"),
+                              "BIC" =c(922.2888,922.9761))
+knitr::kable(best_model_12631, caption = "The Best Two ARIMA Models for Store 4904")
+lettuce_demand_12631.training.m1 <- Arima(lettuce_demand_12631.training, order = c(0, 1, 1),seasonal = list(order = c(2, 0, 0), period = 7),include.drift = FALSE)
+lettuce_demand_12631.training.m2 <- Arima(lettuce_demand_12631.training, order = c(0, 1, 1),seasonal = list(order = c(1, 0, 0), period = 7),include.drift = FALSE)
+lettuce_demand_12631.training.m3 <- Arima(lettuce_demand_12631.training, order = c(0, 1, 1),seasonal = list(order = c(2, 1, 0), period = 7),include.drift = FALSE)
+```
+
+##### Section 3.1.3: Calculating the Accuracy of the Best ARIMA Models 
+Calculate the out-of-sample performance of the best ARIMA models based on multi-step ahead forecast. Based on the accuracy of testing dataset, M1 and M3 have the best performance, while the performance of M3 is slightly better than M1. Therefore, we consider ARIMA(0,1,1)(2,1,0)[7] as the best ARIMA model. 
+```{r echo=FALSE}
+lettuce_demand_12631.training.m1.f <- forecast(lettuce_demand_12631.training.m1, h = 14)
+lettuce_demand_12631.training.m2.f <- forecast(lettuce_demand_12631.training.m2, h = 14)
+lettuce_demand_12631.training.m3.f <- forecast(lettuce_demand_12631.training.m3, h = 14)
+
+accuracy_12631_m1 = accuracy(lettuce_demand_12631.training.m1.f,lettuce_demand_12631.testing)
+accuracy_12631_m2 = accuracy(lettuce_demand_12631.training.m2.f,lettuce_demand_12631.testing)
+accuracy_12631_m3 = accuracy(lettuce_demand_12631.training.m3.f,lettuce_demand_12631.testing)
+
+accuracy_12631_arima <- as.data.frame(x=rbind(accuracy_12631_m1, accuracy_12631_m2, accuracy_12631_m3), row.names = c("M1 Training Dataset", "M1 Testing Dataset", "M2 Training Dataset", "M2 Testing Dataset", "M3 Training Dataset", "M3 Testing Dataset"))
+knitr::kable(accuracy_12631_arima, caption = "Accuracy of The Three Best ARIMA Models")
+```
+
+#### Secton 3.2 : Applying the Holt-Winters Model
+
+##### Section 3.2.1 Use ets to Select the Best Model
+To simplifying the analysis, we sill use ets() to determine the best model for Holt-Winters. For store 12631, the best Holt-Winters to predict the demand is ETS(M,Ad,M). 
+```{r echo=FALSE}
+lettuce_demand_12631.training.ets1 <- ets(lettuce_demand_12631.training , model = "ZZZ")
+lettuce_demand_12631.training.ets1
+```
+
+##### Section 3.2.2 Calculating the Accuracy of the Best Holt-Winters Model
+Calculate the out-of-sample performance based on multi-step ahead forecast
+```{r echo=FALSE}
+lettuce_demand_12631.training.ets1.f <- forecast(lettuce_demand_12631.training.ets1, h = 14)
+
+accuracy_12631_ets1 <- accuracy(lettuce_demand_12631.training.ets1.f,lettuce_demand_12631.testing)
+accuracy_12631_ets.df <- as.data.frame(x=rbind(accuracy_12631_ets1), row.names = c("ETS1 Training Dataset","ETS2 Testing Dataset"))
+knitr::kable(accuracy_12631_ets.df, caption = "Accuracy of The Best Holt-Winters Model")
+```
+
+#### Secton 3.3: Final Forcast
+##### Section 3.3.1: Comparing the forcast based on ARIMA and Holt-Winters Model
+```{r echo=FALSE}
+lettuce_demand_12631.training.m3.f.df <- as.data.frame(lettuce_demand_12631.training.m3.f)
+ARIMA <- lettuce_demand_12631.training.m3.f.df$'Point Forecast'
+
+lettuce_demand_12631.training.ets1.f.df <- as.data.frame(lettuce_demand_12631.training.ets1.f)
+Holt.Winters <- lettuce_demand_12631.training.ets1.f.df$'Point Forecast'
+
+Days = seq(1, 14, by=1)
+
+df <- data.frame(Days,ARIMA, Holt.Winters)
+knitr::kable(df, caption = "Comparing the result of ARIMA and Holt Winters Model")
+```
+
+##### Section 3.3.2: Selecting Better Model from ARIMA and Holt-Winters Model
+The table below compares the performance of the best ARIMA and Holt-Winters models. It appears that ARIMA model has a better performance than Holt-Winters model. Therefore, we consider ARIMA(0,1,1)(2,1,0)[7] as the best model 
+```{r echo=FALSE}
+accuracy_12631_final <- as.data.frame(x=rbind(accuracy_12631_m3,accuracy_12631_ets1), row.names = c("M3 Training Dataset", "M3 Testing Dataset","ets1 Training Dataset","ets2 Testing Dataset"))
+knitr::kable(accuracy_12631_final, caption = "Accuracy of Best ARIMA and Holt-Winter Models")
+```
+
+##### Section 3.3.3: Generate the Final Forcast Using the Best Model
+```{r echo=FALSE}
+knitr::kable(lettuce_demand_12631.training.m3.f, caption = "2 Week Prediction for Store 12631")
+autoplot(lettuce_demand_12631.training.m3.f)
+```
+
+
+### Section 4: Forcasting The Demand of Store 20974
+#### Secton 4.1: Applying the ARIMA Model
+```{r Section 4.1, echo=FALSE}
+data <- read.csv(file = "lettuce_demand_20974.csv", header = TRUE)
+lettuce_demand_20974 <- ts(data[, 4], frequency = 7)
+lettuce_demand_20974.training = window(lettuce_demand_20974, end = c(11,4))
+lettuce_demand_20974.testing = window(lettuce_demand_20974, start = c(11,5))
+lettuce_demand_20974.testing
+```
+##### Section 4.1.1: Verifying the Stationarity of the Training Set of Dataset. 
+```{r echo=FALSE}
+ggtsdisplay(lettuce_demand_20974.training)
+boxplot(lettuce_demand_20974.training ~ cycle(lettuce_demand_20974.training))
+```
+
+To simplify the analysis, for store 20974, we could use ndiffs and nsdiffs to directly determine the level of differences. For store 20974, that the seasonal part of the training dataset is stationary, and the non-seasonal part is also stationary.  
+```{r echo=FALSE}
+ndiffs_20974_training <- ndiffs(lettuce_demand_20974)
+nsdiffs_20974_training <- nsdiffs(lettuce_demand_20974)
+differencing_20974 <- data.frame(Test=c("ndiffs", "nsdiffs"),
+                       "P Value" =c(ndiffs_20974_training,nsdiffs_20974_training))
+knitr::kable(differencing_20974, caption = "Differencing for the non-seasonal and seasonal part of training dataset")
+```
+
+##### Section 4.1.2: Searching For The Best ARIMA Models
+We could use auto.arima() to search for the best ARIMA models. The three best models that the corresponding BICs are shown below. While the BIC of best model is 778.9095, there are some other models that return the comparable BICs as the best model. Therefore, we chose two models that have the lowest BIC. Moreover, since we detect the seasonality from the boxplot, we could add another ARIMA model with D = 1. 
+
+```{r include=FALSE}
+auto.arima(lettuce_demand_20974.training, trace = TRUE, ic = 'bic')
+```
+
+```{r echo=FALSE}
+# Best Model: ARIMA(0,0,1)(1,0,0)[7] with non-zero mean (778.9095)
+# Second Best Model:ARIMA(1,0,0)(1,0,0)[7] with non-zero mean (779.0975)
+
+best_model_20974 <- data.frame('Ranks'=c("Best Model", "Second Best Model"),
+                              'Models' = c("ARIMA(0,0,1)(1,0,0)[7]","ARIMA(1,0,0)(1,0,0)[7]"),
+                              "BIC" =c(778.9095,779.0975))
+knitr::kable(best_model_20974, caption = "The Best Two ARIMA Models for Store 4904")
+lettuce_demand_20974.training.m1 <- Arima(lettuce_demand_20974.training, order = c(0, 0, 1),seasonal = list(order = c(1, 0, 0), period = 7),include.drift = FALSE)
+lettuce_demand_20974.training.m2 <- Arima(lettuce_demand_20974.training, order = c(1, 0, 0),seasonal = list(order = c(1, 0, 0), period = 7),include.drift = FALSE)
+lettuce_demand_20974.training.m3 <- Arima(lettuce_demand_20974.training, order = c(0, 0, 1),seasonal = list(order = c(1, 1, 0), period = 7),include.drift = FALSE)
+```
+
+##### Section 4.1.3: Calculating the Accuracy of the Best ARIMA Models 
+Calculate the out-of-sample performance of the best ARIMA models based on multi-step ahead forecast. Based on the accuracy of testing dataset, M1 and M2 have the best performance, while the performance of M1 is slightly better than M2. Therefore, we consider ARIMA(0,0,1)(1,0,0)[7] with non-zero mean as the best ARIMA model. 
+```{r echo=FALSE}
+lettuce_demand_20974.training.m1.f <- forecast(lettuce_demand_20974.training.m1, h = 14)
+lettuce_demand_20974.training.m2.f <- forecast(lettuce_demand_20974.training.m2, h = 14)
+lettuce_demand_20974.training.m3.f <- forecast(lettuce_demand_20974.training.m3, h = 14)
+
+accuracy_20974_m1 = accuracy(lettuce_demand_20974.training.m1.f,lettuce_demand_20974.testing)
+accuracy_20974_m2 = accuracy(lettuce_demand_20974.training.m2.f,lettuce_demand_20974.testing)
+accuracy_20974_m3 = accuracy(lettuce_demand_20974.training.m3.f,lettuce_demand_20974.testing)
+
+accuracy_20974_arima <- as.data.frame(x=rbind(accuracy_20974_m1, accuracy_20974_m2, accuracy_20974_m3), row.names = c("M1 Training Dataset", "M1 Testing Dataset", "M2 Training Dataset", "M2 Testing Dataset", "M3 Training Dataset", "M3 Testing Dataset"))
+knitr::kable(accuracy_20974_arima, caption = "Accuracy of The Three Best ARIMA Models")
+```
+
+#### Secton 4.2 : Applying the Holt-Winters Model
+
+##### Section 4.2.1 Use ets to Select the Best Model
+To simplifying the analysis, we sill use ets() to determine the best model for Holt-Winters. For store 20974, the best Holt-Winters to predict the demand is ETS(A,N,A). 
+```{r echo=FALSE}
+lettuce_demand_20974.training.ets1 <- ets(lettuce_demand_20974.training , model = "ZZZ")
+lettuce_demand_20974.training.ets1
+```
+
+##### Section 4.2.2 Calculating the Accuracy of the Best Holt-Winters Model
+Calculate the out-of-sample performance based on multi-step ahead forecast
+```{r echo=FALSE}
+lettuce_demand_20974.training.ets1.f <- forecast(lettuce_demand_20974.training.ets1, h = 14)
+
+accuracy_20974_ets1 <- accuracy(lettuce_demand_20974.training.ets1.f,lettuce_demand_20974.testing)
+accuracy_20974_ets.df <- as.data.frame(x=rbind(accuracy_20974_ets1), row.names = c("ETS1 Training Dataset","ETS2 Testing Dataset"))
+knitr::kable(accuracy_20974_ets.df, caption = "Accuracy of The Best Holt-Winters Model")
+```
+
+#### Secton 4.3: Final Forcast
+##### Section 4.3.1: Comparing the forcast based on ARIMA and Holt-Winters Model
+```{r echo=FALSE}
+lettuce_demand_20974.training.m1.f.df <- as.data.frame(lettuce_demand_20974.training.m1.f)
+ARIMA <- lettuce_demand_20974.training.m1.f.df$'Point Forecast'
+
+lettuce_demand_20974.training.ets1.f.df <- as.data.frame(lettuce_demand_20974.training.ets1.f)
+Holt.Winters <- lettuce_demand_20974.training.ets1.f.df$'Point Forecast'
+
+Days = seq(1, 14, by=1)
+
+df <- data.frame(Days,ARIMA, Holt.Winters)
+knitr::kable(df, caption = "Comparing the result of ARIMA and Holt Winters Model")
+```
+
+##### Section 4.3.2: Selecting Better Model from ARIMA and Holt-Winters Model
+The table below compares the performance of the best ARIMA and Holt-Winters models. It appears that the performance of ARIMA model and Holt-Winters are similar. As the RMSe of M3 has a better performance than Holt-Winters model. Therefore, we consider ARIMA(0,0,1)(1,0,0)[7] as the best model 
+```{r echo=FALSE}
+accuracy_20974_final <- as.data.frame(x=rbind(accuracy_20974_m1,accuracy_20974_ets1), row.names = c("M1 Training Dataset", "M1 Testing Dataset","ets1 Training Dataset","ets2 Testing Dataset"))
+knitr::kable(accuracy_20974_final, caption = "Accuracy of Best ARIMA and Holt-Winter Models")
+```
+
+##### Section 4.3.3: Generate the Final Forcast Using the Best Model
+```{r echo=FALSE}
+knitr::kable(lettuce_demand_20974.training.m1.f, caption = "2 Week Prediction for Store 20974")
+autoplot(lettuce_demand_20974.training.m1.f)
+```
+
+
+
+### Section 5: Forcasting The Demand of Store 46673
+#### Secton 5.1: Applying the ARIMA Model
+```{r Section 5.1, echo=FALSE}
+data <- read.csv(file = "lettuce_demand_46673.csv", header = TRUE)
+lettuce_demand_46673 <- ts(data[, 4], frequency = 7)
+lettuce_demand_46673.training = window(lettuce_demand_46673, end = c(13,5))
+lettuce_demand_46673.testing = window(lettuce_demand_46673, start = c(13,6))
+```
+
+##### Section 5.1.1: Verifying the Stationarity of the Training Set of Dataset. 
+```{r echo=FALSE}
+ggtsdisplay(lettuce_demand_46673.training)
+boxplot(lettuce_demand_46673.training ~ cycle(lettuce_demand_46673.training))
+```
+
+To simplify the analysis, for store 46673, we could use ndiffs and nsdiffs to directly determine the level of differences. For store 46673, that the seasonal part of the training dataset is stationary, while the non-seasonal part requires a first level differencing.  
+```{r echo=FALSE}
+ndiffs_46673_training <- ndiffs(lettuce_demand_46673)
+nsdiffs_46673_training <- nsdiffs(lettuce_demand_46673)
+differencing_46673 <- data.frame(Test=c("ndiffs", "nsdiffs"),
+                       "P Value" =c(ndiffs_46673_training,nsdiffs_46673_training))
+knitr::kable(differencing_46673, caption = "Differencing for the non-seasonal and seasonal part of training dataset")
+```
+
+##### Section 5.1.2: Searching For The Best ARIMA Models
+We could use auto.arima() to search for the best ARIMA models. The three best models that the corresponding BICs are shown below. While the BIC of best model is 781.1482, there are some other models that return the comparable BICs as the best model. Therefore, we chose three models that have the lowest BIC. 
+
+```{r echo=FALSE}
+auto.arima(lettuce_demand_46673.training, trace = TRUE, ic = 'bic')
+```
+
+```{r echo=FALSE}
+# Best Model: ARIMA(0,0,0)(0,1,1)[7]  (781.1482)
+# Second Best Model: ARIMA(0,0,1)(0,1,1)[7] (782.7104)
+# Second Best Model: ARIMA(1,0,0)(0,1,1)[7] (782.8503)
+
+best_model_46673 <- data.frame('Ranks'=c("Best Model", "Second Best Model", "Third Best Model"),
+                              'Models' = c("ARIMA(0,0,0)(0,1,1)[7]","ARIMA(0,0,1)(0,1,1)[7]","ARIMA(1,0,0)(0,1,1)[7]"),
+                              "BIC" =c(781.1482,782.7104,782.8503))
+knitr::kable(best_model_46673, caption = "The Best Three ARIMA Models for Store 46673")
+lettuce_demand_46673.training.m1 <- Arima(lettuce_demand_46673.training, order = c(0, 0, 0),seasonal = list(order = c(0, 1, 1), period = 7),include.drift = FALSE)
+lettuce_demand_46673.training.m2 <- Arima(lettuce_demand_46673.training, order = c(0, 0, 1),seasonal = list(order = c(0, 1, 1), period = 7),include.drift = FALSE)
+lettuce_demand_46673.training.m3 <- Arima(lettuce_demand_46673.training, order = c(1, 0, 0),seasonal = list(order = c(0, 1, 1), period = 7),include.drift = FALSE)
+```
+
+##### Section 5.1.3: Calculating the Accuracy of the Best ARIMA Models 
+Calculate the out-of-sample performance of the best ARIMA models based on multi-step ahead forecast. Based on the accuracy of testing dataset, M2 and M3 have the best performance, while the performance of M3 is slightly better than M2. Therefore, we consider ARIMA(1,0,0)(0,1,1)[7] as the best ARIMA model. 
+```{r echo=FALSE}
+lettuce_demand_46673.training.m1.f <- forecast(lettuce_demand_46673.training.m1, h = 14)
+lettuce_demand_46673.training.m2.f <- forecast(lettuce_demand_46673.training.m2, h = 14)
+lettuce_demand_46673.training.m3.f <- forecast(lettuce_demand_46673.training.m3, h = 14)
+
+accuracy_46673_m1 = accuracy(lettuce_demand_46673.training.m1.f,lettuce_demand_46673.testing)
+accuracy_46673_m2 = accuracy(lettuce_demand_46673.training.m2.f,lettuce_demand_46673.testing)
+accuracy_46673_m3 = accuracy(lettuce_demand_46673.training.m3.f,lettuce_demand_46673.testing)
+
+accuracy_46673_arima <- as.data.frame(x=rbind(accuracy_46673_m1, accuracy_46673_m2, accuracy_46673_m3), row.names = c("M1 Training Dataset", "M1 Testing Dataset", "M2 Training Dataset", "M2 Testing Dataset", "M3 Training Dataset", "M3 Testing Dataset"))
+knitr::kable(accuracy_46673_arima, caption = "Accuracy of The Three Best ARIMA Models")
+```
+
+#### Secton 5.2 : Applying the Holt-Winters Model
+
+##### Section 5.2.1 Use ets to Select the Best Model
+To simplifying the analysis, we sill use ets() to determine the best model for Holt-Winters. For store 46673, the best Holt-Winters to predict the demand is ETS(A,N,A). 
+```{r echo=FALSE}
+lettuce_demand_46673.training.ets1 <- ets(lettuce_demand_46673.training , model = "ZZZ")
+lettuce_demand_46673.training.ets1
+```
+
+##### Section 5.2.2 Calculating the Accuracy of the Best Holt-Winters Model
+Calculate the out-of-sample performance based on multi-step ahead forecast
+```{r echo=FALSE}
+lettuce_demand_46673.training.ets1.f <- forecast(lettuce_demand_46673.training.ets1, h = 14)
+
+accuracy_46673_ets1 <- accuracy(lettuce_demand_46673.training.ets1.f,lettuce_demand_46673.testing)
+accuracy_46673_ets.df <- as.data.frame(x=rbind(accuracy_46673_ets1), row.names = c("ETS1 Training Dataset","ETS2 Testing Dataset"))
+knitr::kable(accuracy_46673_ets.df, caption = "Accuracy of The Best Holt-Winters Model")
+```
+
+#### Secton 5.3: Final Forcast
+##### Section 5.3.1: Comparing the forcast based on ARIMA and Holt-Winters Model
+```{r echo=FALSE}
+lettuce_demand_46673.training.m3.f.df <- as.data.frame(lettuce_demand_46673.training.m3.f)
+ARIMA <- lettuce_demand_46673.training.m3.f.df$'Point Forecast'
+
+lettuce_demand_46673.training.ets1.f.df <- as.data.frame(lettuce_demand_46673.training.ets1.f)
+Holt.Winters <- lettuce_demand_46673.training.ets1.f.df$'Point Forecast'
+
+Days = seq(1, 14, by=1)
+
+df <- data.frame(Days,ARIMA, Holt.Winters)
+knitr::kable(df, caption = "Comparing the result of ARIMA and Holt Winters Model")
+```
+
+##### Section 5.3.2: Selecting Better Model from ARIMA and Holt-Winters Model
+The table below compares the performance of the best ARIMA and Holt-Winters models. It appears that the performance of ARIMA model and Holt-Winters are similar. As the RMSe of M3 has a better performance than Holt-Winters model. Therefore, we consider ARIMA(1,0,0)(0,1,1)[7] as the best model 
+```{r echo=FALSE}
+accuracy_46673_final <- as.data.frame(x=rbind(accuracy_46673_m3,accuracy_46673_ets1), row.names = c("M3 Training Dataset", "M3 Testing Dataset","ets1 Training Dataset","ets2 Testing Dataset"))
+knitr::kable(accuracy_46673_final, caption = "Accuracy of Best ARIMA and Holt-Winter Models")
+```
+
+##### Section 5.3.3: Generate the Final Forcast Using the Best Model
+```{r echo=FALSE}
+knitr::kable(lettuce_demand_46673.training.m3.f, caption = "2 Week Prediction for Store 46673")
+autoplot(lettuce_demand_46673.training.m1.f)
+```

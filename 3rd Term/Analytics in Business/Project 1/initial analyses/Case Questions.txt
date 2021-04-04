@@ -1,0 +1,59 @@
+Case Questions
+
+
+1. How could they improve their pricing strategy
+Mention the duration of different segments and discuss if there is a specific target group
+Different pricing for different clubs or different segments e.g. students/retiree etc
+Price discrimination: the price for different clubs should be flexible, depending on the change of customers social class and the peak/offpeak preference over years 
+
+
+2. What happened when the price was increased
+Churn increase, how the revenue affected include those plots and include the analysis in Appendix
+How the price increase afffect different segments  e.g effect on growth rate of new memberships by segments 
+
+3. What does this suggest as possible options going forward
+Except for adjustment in pricing maybe adaprt a new model , combining specialised services on a budget to reduce churn etc?
+Maybe some clubs are not so profitable??
+try to reduce churn rate, by giving better deal for people stay more than 12 months, by holding more group exercise, try to target better member to join -- can this link with our segment analysis?
+
+4. In additional to price, what other factors influence whether a member is going to leave
+Gym environment (Visitins hours - peak times etc)? age of the club? 
+Location, which also affect increase in new membership - there is membership boots when new gym ope
+
+5. Bonus: Given this, to what degree can we predict individual n-pea
+Using KNN model to predict the duration of customers based on the provided information. The accuracy rate is about 30%
+----------------------------------
+## Report Structure (based on guidelines)
+
+### Title pagr
+
+### Summary
+
+###Introduction
+
+An overview of the context for the analysis, including a clear statement of the business problem -> plot the revenue over time and state the not so big growth 
+Clear statement of your hypotheses and predictions
+* churn has played a big role in the phenomenon of not high enough revenue growth, plot churn over time
+* churn affected differently different customers segments
+A brief overview of the approach used in your analysis. -> Identify our customers profile (include summary graphs for customer profile), how the price increase affect the different segments and what trategies should we follow
+
+### Technologies and techniques ???
+An exact process description used in the analysis
+Sufficient detail of the data analysis for someone to replicate the results (this should
+be automatic in Jupyter Notebook).
+
+###Results
+A presentation and summary of the data using means, histograms and other descriptive statistics
+Figures, tables and graphs, insofar as they help to enhance the clarity of the  information (include captions)
+An explanation of any figures, tables or graphs
+
+### Discussion
+A short paragraph summarising the overall trend of the findings
+A clear statement of whether your hypothesis is correct (include caveats where necessary) -> indeed the chur was incresed on 2016, affected differently tdifferent segments refert to those
+An explanation of any errors
+A discussion of the strengths and limitations of the analysis. -> e.g on question 5, or on further segmentation, as well as statistical analysis e.g regression etc
+In the discussion , also discuss the underlying trends that may affect other factors e.g the increasing revenue may be influenced by the increase in the number of Clubs 
+
+
+###References**
+Accurate documentation of sources (following convention) -> The industry research

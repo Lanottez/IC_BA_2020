@@ -1,0 +1,387 @@
+---
+title: "Resource Allocation Application"
+output: html_document
+---
+
+
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+library(knitr)
+library(kableExtra)
+library(readxl)
+
+#install.packages("forecast")
+#install.packages("tseries")
+library(forecast)
+library(tseries)
+library(vars)
+
+#install.packages("stargazer")
+library(stargazer)
+
+```
+
+<br/>
+<br/>
+
+<br/>
+<br/>
+
+
+---
+
+## Application Exercise
+
+In this session we evaluated the resource allocation between advertising effort in adwords and flyers spending. Now it is your time to apply what you've learned in another real world data!
+
+In the file *resource_allocation_application.xlsx*, you are given 70 weeks' sales information (*Revenue* in the dataset) of another kithen appliance brand. More importantly, you are also given the online Google Adwords spending (*Adwords* in the dataset) and spending on offline flyer advertising (*Flyers* in the dataset). 
+
+Can you help the firm evaluate the short-term and long-term impact of adwords and flyer advertising spending, and determine the optimal budget allocation between them? 
+
+---
+
+<br/>
+<br/>
+
+
+```{r echo=FALSE}
+data <- read_excel("~/Dropbox/resource_allocation_application.xlsx")
+data_view <- data [1:10, 1:4]
+data_view %>%
+  kable() %>%
+  kable_styling()
+```
+
+<br/>
+<br/>
+To get a feel for the data patterns, we need to perform a visual inspection through time series plots.
+<br/>
+
+```{r}
+ts.plot(data$Revenues, col="blue", main="Revenue")
+ts.plot(data$Adwords, col="darkgreen", main="Adwords")
+ts.plot(data$Flyers, col="red", main="Flyers")
+
+```
+
+<br/>
+<br/>
+
+
+
+Recall the analysis steps:
+<br/>
+
+* Perform unit root tests to check for non-stationary variables and take differences of the variables that are evolving.
+
+* Estimate a vector autoregressive (VAR) model and interpret the coefficients.
+
+* Estimate impulse response functions (IRFs) of sales to spending varialbes (i.e., adwords and flyer spending).
+
+* Evaluate the current and optimal budget allocation and make informed decisions regarding marketing resource allocation.
+
+<br/>
+
+```{r}
+data$LRev <- log(data$Revenues+1)
+data$LAd <- log(data$Adwords+1)
+data$LFLYER <- log(data$Flyers+1)
+```
+
+
+## Plot the data to observe trend
+
+```{r}
+Revenue <- ts(data$Revenues, frequency = 4, start = c(1, 1))
+
+#test trend, there are multiple ways to plot
+ggtsdisplay(Revenue) #trend plot and ACF and PACF.
+
+```
+
+
+```{r}
+AD <- ts(data$Adwords, frequency = 4, start = c(1, 1))
+
+#test trend, multiple ways to plot
+
+ggtsdisplay(AD)  #trend plot and ACF and PACF.
+
+```
+
+
+```{r}
+FLYER <- ts(data$Flyers, frequency = 4, start = c(1, 1))
+
+#test trend, multiple ways to plot
+#plot.ts(ADV)
+#autoplot(ADV)
+ggtsdisplay(FLYER) #trend plot and ACF and PACF.
+
+```
+
+
+**Unit Root Testing**
+<br/>
+
+```{r}
+LRev <- ts(data$LRev, frequency = 4, start = c(1, 1))
+LAd <- ts(data$LAd, frequency = 4, start = c(1, 1))
+LFlyer <- ts(data$LFLYER, frequency = 4, start = c(1, 1))
+
+adf.test(LRev)
+adf.test(LAd)
+adf.test(LFlyer)
+
+```
+
+<br/>
+Take first difference of evolving variables
+
+```{r warning=FALSE}
+#Take first difference of distribution spending series
+DLRev <- diff(LRev, differences = 1)
+DLAd <- diff(LAd, differences = 1)
+
+adf.test(DLRev)
+adf.test(DLAd)
+adf.test(LFlyer)
+
+
+```
+
+Stationary tests suggest that now the three variables (with distribution spending first-differenced) are all stationary.
+
+<br/>
+
+## Construct a VAR model
+
+<br/>
+
+Build a dataset for VAR model. 
+
+```{r warning=FALSE}
+data.ts.d1 <- window(cbind(DLRev,DLAd, LFlyer), start = c(1, 2))
+```
+<br/>
+
+Estimate VAR and summarize the results in the table below. 
+
+```{r warning=FALSE}
+
+varp <- VAR(data.ts.d1, ic="AIC", lag.max=1, type="both")
+
+lmp <- varp$varresult
+
+
+stargazer(lmp$DLRev, lmp$DLAd, lmp$LFlyer, column.labels = c('DLRev', 'DLAD', 'LFlyer'), type = "text", dep.var.labels.include = FALSE )
+
+
+```
+
+<br/>
+
+
+Having estimated the VAR and discuss the relationships between sales, advertising spending, and distribution spending, now we are able to explore:
+
+* Short vs long-term effects of Advertising and Distribution 
+
+* Optimal allocation between advertising and distribution spending 
+
+To do these, we need GIRF analysis
+
+\bigbreak 
+
+## GIRF Analysis
+
+First, let's have a look at the graphs. GIRF plots help you see visually when the peak effects occur. 
+
+\bigbreak 
+
+```{r}
+irfs <- irf(varp, impulse = c('DLAd', 'LFlyer'), response = 'DLRev', 
+            runs = 100, n.ahead = 7, ortho = TRUE, ci=0.95)
+
+plot(irfs)
+```
+
+
+## Immediate and Long-Term Effects
+
+
+Along the GIRF coefficient, the model also generates the 95% confidence intervals, we can use that to impute the significance of the coefficient. If the 95% confidence intervals cross the zero value then it means at 5% significance level we don't have sufficient statistical evidence to reject the hypothesis that the coefficient is different from 0, hence the IRF coefficient is insignificant. 
+
+<br/>
+<br/>
+
+
+
+```{r}
+
+irf.table.ci <- round(data.frame(period = seq(1, 8), 
+                           response.Adv = irfs$irf$DLAd, 
+                           Adv.lower = irfs$Lower$DLAd, 
+                           Adv.upper = irfs$Upper$DLAd, 
+                           response.Flyer = irfs$irf$LFlyer, 
+                           Flyer.lower = irfs$Lower$LFlyer, 
+                           Flyer.upper = irfs$Upper$LFlyer),4)
+colnames(irf.table.ci) <- c('Period', 'DLAd', 'DLAd Lower', 'DLAd Upper','LDistribution', 
+                             
+                            'LDistribution Lower', 'LDistribution Upper')
+
+knitr::kable(irf.table.ci)
+```
+
+<br/>
+
+```{r}
+#Make a table to summarize IRF coefficients and their confidence intervals
+
+irf.table.ci <- round(data.frame(period = seq(1, 8), 
+                           response.Adwords = irfs$irf$DLAd, 
+                           Adwords.lower = irfs$Lower$DLAd, 
+                           Adwords.upper = irfs$Upper$DLAd, 
+                           response.flyer = irfs$irf$LFlyer, 
+                           flyer.lower = irfs$Lower$LFlyer, 
+                           flyer.upper = irfs$Upper$LFlyer),4)
+colnames(irf.table.ci) <- c('Period', 'DLAdwords', 'DLAdwords Lower', 'DLAdwords Upper','LFLYER', 
+                            'LFLYER Lower', 'LFLYER Upper')
+
+knitr::kable(irf.table.ci)
+```
+Now we apply the t>1 criteria to determine coefficient significance and calculate long-term elasticities of adwords and flyer advertising spending.
+
+
+```{r}
+#Adwords
+result_irf_adwords<-matrix(nrow = 8, ncol = 1)
+
+for (i in 2:8) {
+  se <- (irfs$Upper$DLAd[i]-irfs$Lower$DLAd[i])/(2*1.96)
+  t_irf_adwords<- irfs$irf$DLAd[i]/se
+   
+   if (t_irf_adwords>1) {
+    result_irf_adwords[i] <- irfs$irf$DLAd[i]
+   } else {
+      result_irf_adwords[i] <-0
+      }
+}
+result_irf_adwords[1] <-0
+result_irf_adwords #print out the results
+lr_adwords <- sum(result_irf_adwords)
+lr_adwords
+```
+<br/>
+
+```{r}
+#Flyer spending
+
+result_irf_flyers<-matrix(nrow = 8, ncol = 1)
+
+for (i in 2:8) {
+  se <- (irfs$Upper$LFlyer[i]-irfs$Lower$LFlyer[i])/(2*1.96)
+  t_irf_flyers<- irfs$irf$LFlyer[i]/se
+   
+   if (t_irf_flyers>1) {
+    result_irf_flyers[i] <- irfs$irf$LFlyer[i]
+   } else {
+      result_irf_flyers[i] <- 0
+      }
+}
+result_irf_flyers[1]<-0
+result_irf_flyers #print out the results
+lr_flyers <- sum(result_irf_flyers)
+lr_flyers
+```
+
+## Optimal Allocation between Advertising and Distribution Spending
+
+Before we figure out the optimal budget allocation between advertising and distribution, we can first take a look at what the current budget allocation of the firm looks like. We just need to review the dataset we have and visualize the proportion that the firm is spending on advertising and distribution, respectively.
+
+<br/>
+<br/>
+```{r}
+#Current budget allocation
+
+cost_ad<-sum(data$Adwords)
+cost_flyer <-sum(data$Flyers)
+cost_total <- cost_ad + cost_flyer
+
+costshare_ad<-cost_ad/cost_total
+costshare_flyer<-cost_flyer/cost_total
+
+
+
+```
+<br/>
+
+Now we can create a pie chart to visualize the current budget allocation of the firm.
+
+```{r}
+# Ingredients for the pie-chart 
+slices_actual<-c(costshare_ad, costshare_flyer )
+lbls_actual<-c("Adwords", "Flyer")
+pct_actual<-round(slices_actual*100)
+lbls_actual<-paste(lbls_actual, pct_actual)          # add data to labels
+lbls_actual<-paste(lbls_actual, "%", sep="")  # add % sign to labels
+
+# Get the pie-chart
+pie(slices_actual, labels=lbls_actual, col=rainbow(length(lbls_actual)), main="Actual Budget Allocation" )
+```
+
+<br/>
+<br/>
+
+We can see that the firm is currently putting more emphasize on advertising, since it spends 64% of its budget on it and only 36% on distribution channel.
+
+<br/>
+
+
+
+```{r}
+
+#Get the coefficients from GIRF results
+beta_ad<-lr_adwords
+beta_flyers<-lr_flyers
+
+#The sum of all elasticities 
+beta_all<-beta_ad+beta_flyers
+
+#Optimal resource allocation
+optim_ad<-beta_ad/beta_all
+optim_flyer<-beta_flyers/beta_all
+```
+<br/>
+<br/>
+
+
+Having figured out the optimal budget allocation between advertising and distribution, we can now create another pie chart so that we can compare:
+
+<br/>
+
+
+```{r}
+## Pie-chart ingredients 
+optimal_spend<-c(optim_ad,optim_flyer)
+optimal_spend=round(optimal_spend, digits=3)
+optimal_spend
+
+slices_optim<-c(optim_ad, optim_flyer)
+lbls_optim<-c("Adwords", "Flyers")
+pct_optim<-round(slices_optim*100)
+lbls_optim<-paste(lbls_optim, pct_optim)   # paste variable names to data labels 
+lbls_optim<-paste(lbls_optim, "%", sep="") # add % sign to labels
+
+# Get the pie-chart
+pie(slices_optim, labels=lbls_optim, col=rainbow(length(lbls_optim)), main="Optimal Budget Allocation" )
+
+```
+
+<br/>
+
+The optimal budget allocation should be that the firm spends 77% of its marketing budget on offline flyer channel, while 16% on adwords. 
+
+<br/>
+<br/>
+<br/>

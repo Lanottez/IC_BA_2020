@@ -1,0 +1,535 @@
+---
+title: "Resource Allocation Application BVAR"
+output: html_document
+---
+
+
+<br/>
+<br/>
+
+---
+
+## Application Exercise
+
+In this session we evaluated the resource allocation between advertising effort in adwords and flyers spending. Now it is your time to apply what you've learned in another real world data!
+
+In the file *resource_allocation_application.xlsx*, you are given 70 weeks' sales information (*Revenue* in the dataset) of another kithen appliance brand. More importantly, you are also given the online advertising spending (*Online* in the dataset) and spending on offline channel (*Offline* in the dataset). 
+
+Can you help the firm evaluate the short-term and long-term impact of online and offline spending, and determine the optimal budget allocation between them? 
+
+---
+
+<br/>
+<br/>
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+
+
+library(knitr)
+library(kableExtra)
+library(readxl)
+#install.packages("bvartools",repos = "http://cran.us.r-project.org")
+#install.packages("forecast")
+#install.packages("tseries")
+library(forecast)
+library(tseries)
+library(bvartools)
+
+#install.packages("stargazer")
+library(stargazer)
+
+```
+
+<br/>
+<br/>
+
+
+```{r echo=FALSE}
+data <- read_excel("~/Dropbox/resource_allocation_application2.xlsx")
+data_view <- data [1:10, 1:4]
+data_view %>%
+  kable() %>%
+  kable_styling()
+```
+
+<br/>
+To get a feel for the data patterns, we need to perform a visual inspection through time series plots.
+<br/>
+
+```{r}
+ts.plot(data$Revenues, col="blue", main="Revenues")
+ts.plot(data$Adwords, col="darkgreen", main="Adwords")
+ts.plot(data$Flyer, col="red", main="Flyers")
+
+```
+
+<br/>
+<br/>
+
+---
+
+**Group Activity**: Looking at these plots, what do you observe? Do increases and decreases in sales coincide with adwords and flyers spending? Do you see any seasonality or trend patterns? 
+
+---
+
+<br/>
+
+Given the available data, the key question is: are increases in adwords and flyer spending necessary to keep up the sales gains?  As a marketing analyst, you would like to find an answer to this question by using an econometric approach. 
+
+<br/>
+<br/>
+
+## Analysis Steps:
+
+<br/>
+
+* Perform unit root tests to check for non-stationary variables and take differences of the variables that are evolving.
+
+* Estimate a vector autoregressive (VAR) model and interpret the coefficients.
+
+* Estimate generalized impulse response functions (GIRFs) of sales to spending varialbes (i.e., Adwords and flyers).
+
+* Evaluate the current and optimal budget allocation and make informed decisions regarding marketing resrouce allocation.
+
+
+<br/>
+Now let's start!
+<br/>
+
+## Preparations for a VAR Model
+
+<br/>
+First, given the large swings/turbulance of variables in the data, *taking log* can help to smooth out the series.
+
+
+```{r}
+data$LRevenue <- log(data$Revenues+1)
+data$LAd <- log(data$Adwords+1)
+data$LFlyer <- log(data$Flyer+1)
+```
+
+<br/>
+To determine if the series are evolving or stationary over time, we can plot ACF and(or) PACF for each variable to visualise first:
+
+<br/>
+**ACF and PACF plots**
+<br/>
+
+```{r}
+Revenue <- ts(data$Revenues, frequency = 4, start = c(1, 1))
+
+#test trend, there are multiple ways to plot
+#plot.ts(Revenue)
+#autoplot(Revenue)
+ggtsdisplay(Revenue) #trend plot and ACF and PACF.
+
+```
+<br/>
+
+```{r}
+ADV <- ts(data$Adwords, frequency = 4, start = c(1, 1))
+
+#test trend, multiple ways to plot
+
+ggtsdisplay(ADV)  #trend plot and ACF and PACF.
+
+```
+<br/>
+
+```{r}
+FLYER <- ts(data$Flyer, frequency = 4, start = c(1, 1))
+
+#test trend, multiple ways to plot
+ggtsdisplay(FLYER) #trend plot and ACF and PACF.
+
+```
+
+<br/>
+**Unit Root Testing**
+<br/>
+
+Are Adwords and Flyer Spending and Revenues stable or evolving? The ACF and PACF graphs suggest the three variables are not stationary. Now we will run some hypothesis testing to confirm that. There are multiple tests *adf.test*, *pp.test*, *kpss.test*. For the adf.test and pp.test, if the p-value is smaller than significance level then we can reject the null hypothesis that the variable is not stationary; kpss.test is the reverse, the null hypothesis is that it is stationary. 
+
+```{r}
+LRev <- ts(data$LRevenue, frequency = 4, start = c(1, 1))
+LAd <- ts(data$LAd, frequency = 4, start = c(1, 1))
+LFLYER <- ts(data$LFlyer, frequency = 4, start = c(1, 1))
+
+
+adf.test(LRev)
+adf.test(LAd)
+adf.test(LFLYER)
+
+```
+<br/>
+Stationary tests have failed only for adwords spending (p-value>0.05)--there are serial correlation in the data. And that's why before estimating the VAR model, based on unit root test results we need to take first difference for the evolving variable.  
+
+<br/>
+**Take first difference for non-stationary variables**
+```{r}
+#Take first difference of adwords spending series
+DLRev <- diff(LRev, differences = 1)
+DLAd <-diff(LAd, differences = 1)
+```
+
+<br/>
+Now we do the ADF test again to make sure that all variables are stationary :
+<br/>
+```{r warning=FALSE}
+adf.test(DLRev)
+adf.test(DLAd)
+adf.test(LFLYER)
+```
+
+
+Stationary tests suggest that now the three variables (with adwords spending first-differenced) are all stationary.
+
+<br/>
+
+## Construct a VAR model
+
+<br/>
+
+First we need to build a dataset for VAR model. 
+
+```{r warning=FALSE}
+data.ts.d1 <- window(cbind(DLRev, DLAd, LFLYER), start = c(1, 2))
+data_for_var <- gen_var(data.ts.d1, p = 1, deterministic = "const")
+y <- data_for_var$Y[, 1:67]
+x <- data_for_var$Z[, 1:67]
+```
+
+<br/>
+
+**Bayesian estimator**
+
+<br/>
+The following code is a Gibbs sampler for a simple VAR model with non-informative priors.
+<br/>
+```{r}
+
+# Reset random number generator for reproducibility
+set.seed(1234567)
+
+iter <- 10000 # Number of iterations of the Gibbs sampler
+burnin <- 5000 # Number of burn-in draws
+store <- iter - burnin
+
+t <- ncol(y) # Number of observations
+k <- nrow(y) # Number of endogenous variables
+m <- k * nrow(x) # Number of estimated coefficients
+
+# Set (uninformative) priors
+a_mu_prior <- matrix(0, m) # Vector of prior parameter means
+a_v_i_prior <- diag(0, m) # Inverse of the prior covariance matrix
+
+u_sigma_df_prior <- 0 # Prior degrees of freedom
+u_sigma_scale_prior <- diag(0, k) # Prior covariance matrix
+u_sigma_df_post <- t + u_sigma_df_prior # Posterior degrees of freedom
+
+# Initial values
+u_sigma_i <- diag(.00001, k)
+u_sigma <- solve(u_sigma_i)
+
+# Data containers for posterior draws
+draws_a <- matrix(NA, m, store)
+draws_sigma <- matrix(NA, k^2, store)
+
+
+
+# Start Gibbs sampler
+for (draw in 1:iter) {
+  # Draw conditional mean parameters
+  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  
+  # Draw variance-covariance matrix
+  u <- y - matrix(a, k) %*% x # Obtain residuals
+  u_sigma_scale_post <- solve(u_sigma_scale_prior + tcrossprod(u))
+  u_sigma_i <- matrix(rWishart(1, u_sigma_df_post, u_sigma_scale_post)[,, 1], k)
+  u_sigma <- solve(u_sigma_i) # Invert Sigma_i to obtain Sigma
+  
+  # Store draws
+  if (draw > burnin) {
+    draws_a[, draw - burnin] <- a
+    draws_sigma[, draw - burnin] <- u_sigma
+  }
+}
+
+```
+
+<br/>
+
+**Results**
+
+<br/>
+
+After the Gibbs sampler has finished, point estimates can be obtained as the mean of the posterior draws:
+<br/>
+```{r}
+
+A <- rowMeans(draws_a) # Obtain means for every row
+A <- matrix(A, k) # Transform mean vector into a matrix
+A <- round(A, 3) # Round values
+dimnames(A) <- list(dimnames(y)[[1]], dimnames(x)[[1]]) # Rename matrix dimensions
+
+
+Sigma <- rowMeans(draws_sigma) # Obtain means for every row
+Sigma <- matrix(Sigma, k) # Transform mean vector into a matrix
+Sigma <- round(Sigma * 10^4, 2) # Round values
+dimnames(Sigma) <- list(dimnames(y)[[1]], dimnames(y)[[1]]) # Rename matrix dimensions
+
+
+
+A #Print results of BVAR
+
+```
+
+<br/>
+
+
+<br/>
+Having estimated the VAR and discuss the relationships between sales, adwords spending, and flyer spending, now we are able to explore:
+
+* Short vs long-term effects of Adwords and Flyer spending
+
+* Optimal allocation between Adwords and Flyer spending 
+
+To do these, we need GIRF analysis1
+
+<br/>
+**GIRF Analysis**
+<br/>
+The bvar function can be used to collect relevant output of the Gibbs sampler into a standardised object, which can be used by further functions such as predict to obtain forecasts or irf for impulse respons analysis.
+
+<br/>
+
+```{r}
+bvar_est <- bvar(y = y, x = x, A = draws_a[1:9,],
+                 C = draws_a[10:12, ], Sigma = draws_sigma)
+```
+<br/>
+
+Now we obtain the GIRF coefficients and plots for Adwords spending and flyer spending, respectively. 
+<br/>
+
+```{r}
+#Adwords
+GIR_Ad <- irf(bvar_est, impulse ="DLAd" , response = "DLRev", n.ahead = 7, type = "gir")
+plot(GIR_Ad, main = "Generalised Impulse Response: Adwords", xlab = "Period", ylab = "Response", col="blue")
+
+#Flyer
+GIR_FLYER <- irf(bvar_est, impulse ="LFLYER" , response = "DLRev", n.ahead = 7, type = "gir")
+plot(GIR_FLYER, main = "Generalised Impulse Response: Flyers", xlab = "Period", ylab = "Response", col="blue")
+
+```
+
+<br/>
+It seems that both adwords and flyer spending can cause an immediate boost of revenues; both spendings have some long-term impcat while the sign of the impacts alternate. Moreover, we can observe that these impacts all decay and get close to zero over time, mostly within 4 periods (weeks).
+
+<br/>
+Now let's evaluate GIRF coefficients in detail to calculate the long-run elasticities of adwords and flyer spending. 
+<br/>
+
+**Immediate and Long-Term Effects**
+<br/>
+In order to compute the immediate and long-term effects, the following steps should be taken. 
+
+- Evaluate the significance of each GIRF coefficient. If the t-statistics of the GIRF coefficient is greater than 1 (t-stat>1), then we treat it as signficant and keep the value of that coefficient; otherwise, we treat the coefficient as zero. 
+
+-	Since the given shock is a standard deviation shock, it is advised to divide the GIRF coefficient by the standard deviation of the variable.
+
+-	Finally, based on the above computations, the first period impact is called the immediate effect while the cumulative effect over 8 periods is called the long-run effect. 
+
+
+<br/>
+
+To calculate the t-statistics, we need to 
+
+* Derive the standard error $(se)$ of each coefficient from its confidence interval, since 
+$Lowerbound_{ci}= \beta - t*se$
+$Upperbound_{ci}= \beta + t*se$
+(Note that here the $t$ value is obtained from t-distribution for a given degree of freedom and significance level)
+
+* Calculat the t-statistics using $t_{stat} = \beta / se$. 
+
+<br/>
+
+```{r}
+#Adwords spending
+round(GIR_Ad,3) # Frist take a look at the GIRF coefficients (lower bound of confidence interval, estimated coefficient, upper bound of confidence interval)
+
+t_stat<-1.9823 
+
+se_GIR_Ad <- matrix(ncol = 1, nrow = 8) #set up a matrix to save standard error for each coefficient 
+t_GIR_Ad <- matrix(ncol=1, nrow=8) #set up a matrix to store t stat for each coefficient 
+result_GIR_Ad <- matrix(ncol=1, nrow=8) #set up a matrix to store significant coefficient and others as zeros
+
+for (i in 1:8) {
+  se <- (GIR_Ad[i,3]-GIR_Ad[i,1])/(2*t_stat)
+  se_GIR_Ad[i,1]<- se 
+   t_GIR_Ad[i,1]<- GIR_Ad[i,2]/se
+   
+   if (t_GIR_Ad[i,1]>1) {
+    result_GIR_Ad[i,1] <-GIR_Ad[i,2]
+   } else {
+      result_GIR_Ad[i,1] <-0
+      } #if the t-statistics is larger than 1, then we keep the coefficient, otherwise we treat it as zero
+}
+
+result_GIR_Ad #print the GIRF coefficients used for evaluating long-run elasticities
+
+lr_GIR_Ad <- round(sum(result_GIR_Ad/sd(DLAd)),4) #long-run elasticities
+lr_GIR_Ad
+```
+
+
+```{r}
+#Flyer spending
+round(GIR_FLYER,3)
+
+se_GIR_FLYER <- matrix(ncol = 1, nrow = 8)
+t_GIR_FLYER <- matrix(ncol=1, nrow=8)
+result_GIR_FLYER <- matrix(ncol=1, nrow=8)
+
+for (i in 1:8) {
+  se <- (GIR_FLYER[i,3]-GIR_FLYER[i,1])/(2*t_stat)
+  se_GIR_FLYER[i,1]<- se 
+   t_GIR_FLYER[i,1]<- GIR_FLYER[i,2]/se
+   
+   if (t_GIR_FLYER[i,1]>1) {
+    result_GIR_FLYER[i,1] <-GIR_FLYER[i,2]
+   } else {
+      result_GIR_FLYER[i,1] <-0
+      }
+}
+
+result_GIR_FLYER
+lr_GIR_FLYER <- round(sum(result_GIR_FLYER/sd(LFLYER)),4)
+lr_GIR_FLYER #long-run elasticities
+```
+
+<br/>
+
+
+## Optimal Allocation between Adwords and Flyer Spending
+<br/>
+
+Before we figure out the optimal budget allocation between adwords and flyer spending, we can first take a look at what the current budget allocation of the firm looks like. We just need to review the dataset we have and visualize the proportion that the firm is spending on adwords and flyers, respectively.
+<br/>
+```{r}
+#Current budget allocation
+
+cost_adwords<-sum(data$Adwords)
+cost_flyer<-sum(data$Flyer)
+cost_total <- cost_adwords + cost_flyer
+
+costshare_adwords<-cost_adwords/cost_total
+costshare_flyer<-cost_flyer/cost_total
+
+```
+
+Now we can create a pie chart to visualize the current budget allocation of the firm.
+
+```{r}
+# Ingredients for the pie-chart 
+slices_actual<-c(costshare_adwords, costshare_flyer )
+lbls_actual<-c("Adwords", "Flyer")
+pct_actual<-round(slices_actual*100)
+lbls_actual<-paste(lbls_actual, pct_actual)          # add data to labels
+lbls_actual<-paste(lbls_actual, "%", sep="")  # add % sign to labels
+
+# Get the pie-chart
+pie(slices_actual, labels=lbls_actual, col=rainbow(length(lbls_actual)), main="Actual Budget Allocation" )
+```
+
+<br/>
+<br/>
+
+We can see that the firm is currently putting a major proportion of 85% of its budget on flyer advertising and only 15% on Google adwords advertising.
+
+<br/>
+
+---
+
+**Question** Given what we have obtained from the VAR model, do you think the current budget allocation strategy of the firm is good/close to optimum? 
+
+---
+
+<br/>
+For the optimal allocation, we need to retrieve the impact of adwords and flyer spending from IRF analysis.
+More specifically, we will calculate the optimal allocation for each media using the following formula: 
+
+
+\[
+OptimalAllocation_i= \frac{\eta_i} {\sum_{i=1}^{I}{\eta_i}} 
+\]
+
+where $\eta_i$ is the sales elasticity of marketing tool $i$. As an example, for Adwords spending, we will calculate it as follows: 
+
+\[
+OptimalAllocation_{Adwords}= \frac{\eta_{Adwords}} {\eta_{Adwords} + \eta_{Flyer}} 
+\]
+
+<br/>
+
+Let's do this in R now: 
+<br/>
+
+```{r}
+
+#Get the coefficients from GIRF results
+beta_adwords<-lr_GIR_Ad
+beta_flyer<-lr_GIR_FLYER
+
+#The sum of all elasticities 
+beta_all<-beta_adwords+beta_flyer
+
+#Optimal resource allocation
+optim_adwords<-beta_adwords/beta_all
+optim_flyer<-beta_flyer/beta_all
+
+```
+
+Having figured out the optimal budget allocation between adwords and flyer, we can now create another pie chart so that we can compare:
+
+```{r}
+## Pie-chart ingredients 
+optimal_spend<-c(optim_adwords,optim_flyer)
+optimal_spend=round(optimal_spend, digits=5)
+optimal_spend
+
+slices_optim<-c(optim_adwords, optim_flyer)
+lbls_optim<-c("Adwords", "Flyer")
+pct_optim<-round(slices_optim*100)
+lbls_optim<-paste(lbls_optim, pct_optim)   # paste variable names to data labels 
+lbls_optim<-paste(lbls_optim, "%", sep="") # add % sign to labels
+
+# Get the pie-chart
+pie(slices_optim, labels=lbls_optim, col=rainbow(length(lbls_optim)), main="Optimal Budget Allocation" )
+
+```
+
+
+
+<br/>
+
+The optimal budget allocation is rather surprising--the firm should actually spend almost all of its marketing budget on Adwords advertising (94%) and should put marginal effort (6%) on offline flyers, given its very low effectiveness (i.e., long-term elasticities) compared with taht of Adwords. 
+
+<br/>
+Contrasting the optimal and actual budget allocation of the firm, it is quite obvious that currently the firm is wastng too much of its financial resource on flyers, which contribute very little to its revenues. 
+
+We can see that without analyzing resoruce allocation, a firm can be quite far away from what it "should" do. Taking a look at the optimal budget allocation is quite critical in managers' decision making, since utilizing the constrainted resource more wisely can potentially make a big difference to firm performance (e.g., revenues).
+
+<br/>
+<br/>
+
+This session talks about the allocation when the sales performance is taken into consideration. Brand managers may pursue different KPIs as well, such as market share, profits, and brand liking. With different KPIs pursued by the brand manager, allocation would be different. Moreover, instead of keeping the budget the same and reallocating  it, the brand manager may want to increase the budget. In such a case, the dynamics between marketing input and financial performance would be altered, leading to different optimal allocation
+
+<br/>
+<br/>
+
+
+<br/>
+<br/>
+

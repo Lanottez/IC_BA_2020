@@ -1,0 +1,572 @@
+---
+title: "Mindset Metrics Whatif Analysis"
+output: html_document
+---
+
+```{r include=FALSE}
+# If you are using Windows and cannot proceed with the installation and package loading, you might need to run the following codes in this chunk:
+
+#install.packages("installr",repos = "http://cran.us.r-project.org")
+#library(installr)
+
+#install.rtools()
+#install.pandoc()
+```
+
+```{r include=FALSE}
+
+install.packages("knitr",repos = "http://cran.us.r-project.org" )
+install.packages("readxl",repos = "http://cran.us.r-project.org")
+install.packages("tseries",repos = "http://cran.us.r-project.org")
+install.packages("vars",repos = "http://cran.us.r-project.org")
+install.packages("R6",repos = "http://cran.us.r-project.org")
+
+library(knitr)
+library(readxl)
+library(tseries)
+library(vars)
+library(R6)
+
+```
+
+</br>
+</br>
+
+## Preparations and Set Up
+
+Before we start, let us do some preparation work to get ready!
+
+We need to: 
+
+* Create a folder and set working directory to that folder on your device,
+
+* Download datasets needed for this tutorial onto your working directory, and
+
+* Load datasets for analysis later as we proceed
+
+
+The dataset of this tutorial are made availabe to you. 
+
+
+Create a folder in your computer for this tutorial and name the folder *mindset*. The dataset of this tutorial is made available to you. The file is named *mindset_shampoo*, and stored in a *xlsx* format. You need to download it to the folder (*mindset*) that you created. 
+
+And then let us download the data file *mindset_shampoo* to the folder (*mindset*) that you just created. 
+
+In order to load the datasets to R, we need to run only **part** of the following chunk of codes, depending on the **operating system** of your device. To avoid running the codes that are not applicable and receiving error messages, please add "#" before each line of non-applicable codes in the chunk below. For example, if you are using a Mac, you need to put "#" before code *setwd("H:/downloads/mindset")*.
+
+
+
+```{r}
+# Please run the following codes depending on the operating system on your laptop/PC. 
+
+# if you are using iOS, and your *mindset* folder is created under "Downloads" on your Mac: you will need to first set your working directory to *mindset* folder:
+
+setwd("~/Downloads/mindset")
+
+# if you are using Windows, and your *mindset* folder is created in your H drive: you will need to first set your working directory to *mindset* folder:
+
+#setwd("H:/downloads/mindset")
+
+# load the datasets
+
+data_shampoo <- read_excel("mindset_shampoo.xlsx")
+
+```
+
+</br>
+</br>
+
+**Now we are ready to go!**
+
+</br>
+</br>
+
+## 1. Introduction
+
+</br>
+
+The Zanten is a shampoo brand in the US. Mrs. Bo Zhang, who is the Chief Marketing Officer (CMO) of Zanten has several concerns regarding the marketing mix designed for Zanten and the financial performance that the brand achieves. In preparation for a meeting with Mrs. Jacqueline Fernande, the Chief Executive Officer (CE0), Mrs. Zhang would like to know (1) to what extent the advertising and promotional campaigns run over the last years affected consumers' attitudes toward the brand and (2) whether the changes in consumers' perceptions yielded some significant sales outcomes. 
+
+
+To help Mrs. Zhang, the brand management team pulls out the data with the following variables: 
+
+1) Brand sales performance. The brand performance measure is sales volume aggregated across all product forms of each brand (in millilitres, see *vol* in the data). 
+
+2) The marketing mix data. It includes the average price paid (*price* in the data), promotion (*promotion* in the data), and total spending on advertising media (*advertising* in the data).
+
+3) Three measures for the attitudinal metrics from tracking online advertising and survey data: (i) advertising awareness (%), (ii) inclusion in the consideration set (%), and (iii) brand liking (1-to-7). The team believes that this selection covers the three main stages of the purchase funnel. 
+
+
+Looking at the dataset and some basic figures, Mrs. Zhang ponders the following questions: 
+
+* "Which marketing mix instrument is more effective in winning customers' minds & hearts and creating a substantial sales lift: advertising or promotions?" 
+
+* "Should I fivefold my advertising spend or double the investment in promotional campaigns?" 
+
+ 
+Can you help Mrs. Zhang? 
+
+<br/>
+
+
+This tutorial builds on your knowledge of the session on consumer attitudinal metrics. By the end of this tutorial, you will be able to
+
+* make smart marketing mix decisions based on analytics, and improve consumers' attitudes and brand's financial outcomes 
+
+* quantify the short- and long-run gains in sales that originate from improvement in mindset metrics 
+
+
+</br>
+</br>
+
+## 2. Data
+
+</br>
+
+We can take a pre-view of the dataset.
+
+```{r warning=FALSE}
+
+# take a look at the data
+
+head(data_shampoo)
+
+```
+
+Now we start by calculating the *potential*, *stickiness*, and *responsiveness* of these mindset metrics via simple calculation and autoregressive models. And then we calculate how do these metrics contribute to sales (i.e., *conversion*). Finally, aggregating results from all these stages we can evaluate the *appeal* of each mindset metrics.
+
+</br>
+
+### 2.1 Potential
+
+</br>
+
+* For awareness and consideration, we need to calculate the average level of awareness and consideration for this shampoo brand, and then calculate the potential by deducting them from one. 
+
+* For liking, things are slightly more complicated, since those values are actually measured on seven-point scale. Therefore, we need to first transfer those values into percentages (e.g., if liking is 3.5 out of 7, then it is qctually 50% of the full score, and the value transformed should be 50), and then take the average and calculate the corresponding potential. 
+
+Let's realize these in R:
+
+```{r}
+
+# Calculate potential for awareness and consideration
+
+potential_awareness <- (100- mean(data_shampoo$awareness))/100
+potential_consideration <- (100-mean(data_shampoo$consideration))/100
+
+# Calculate potential for liking
+
+data_shampoo$liking_transformed <- data_shampoo$liking/7
+potential_liking <- 1- mean(data_shampoo$liking_transformed)
+
+```
+```{r echo=FALSE}
+table_potential<-data.frame(
+  potential=c("awareness", "liking", "consideration"), value = c(potential_awareness,potential_liking, potential_consideration)
+)
+
+table_potential
+```
+
+We get that potential is 0.725 for awareness, 0.263 for liking, and 0.825 for consideration.
+
+
+---
+</br>
+**Question**: Judging from what you have now, which mindset metric should you put more effort into? Why?
+</br>
+---
+
+</br>
+
+### 2.2 Stickiness
+
+</br>
+
+Stickiness, or inertia is the degree to which a change in the level of a metric is upheld over time, absent any new stimuli. This can be modeled by a simple univariate AR(p) process on the attitude metric, where stickiness is quantified as the sum of the AR coefficients.To do this, we need to run the following codes in R: (Note that the order of lags for these AR models are determined by AIC)
+
+```{r warning=FALSE}
+#awareness
+ar1 <- ar(data_shampoo$awareness, aic = TRUE)
+ar1
+#liking
+ar2 <- ar(data_shampoo$liking, aic = TRUE)
+ar2
+#consideration
+ar3 <- ar(data_shampoo$consideration, aic = TRUE)
+ar3
+
+```
+
+From the above results, we can calculate stickiness of mindset metrics by summing up their AR coefficients for each mindset metric:
+
+```{r}
+stick_awareness <-0.4524 + 0.0459 + 0.2660  
+stick_liking <- 0.4287 + 0.1136 + 0.2224
+stick_consideration <-  0.3028 + 0.3121  +0.1591 
+```
+
+
+</br>
+
+### 2.3 Responsiveness
+
+</br>
+
+Responsiveness or lift is the short-term response of the attitude metric with respect to a marketing stimulus. We propose to use well-established, robust response functions to estimate responsiveness. For example, the standard multiplicative response model produces elasticities as responsiveness metrics:
+
+\[ Y_t= cY_{t-1}^\gamma X_{1t}^{\beta_1} X_{2t}^{\beta_2} e_t^{u}  \] 
+
+where Y is an attitude metric and $X_i$ (i=1,2) are marketing instruments. Not only do such response models provide readily interpretable results, they have also been shown to outperform more complex specifications in forecasting product trial for consumer packaged goods.
+
+Note that responsiveness may be related to potential as follows: the closer the attitude metric is to its ceiling value, the more difficult it will be to register further increases through marketing. To reflect that in the calculation, once we get the responsiveness of each mindset metric and sales, we can multiply it with the corresponding potential.
+
+\[\theta_i = \beta_i * Potential_i\]
+
+Now to estimate the responsiveness model,which is multiplicative, an easy way to deal with it is to take the logorithm of both sides of the equation and estimate the model as a log-linear one. To be specific, we first take the log, so that:
+
+\[ log(Y_t)= c'+\gamma log(Y_{t-1}) + {\beta_1} log(X_{1t}) +  {\beta_2} log(X_{2t}) + e'_t  \] 
+
+
+Now we start fit log-linear model for each mindset metric and sales to get responsiveness:
+
+```{r warning=FALSE}
+#We start by generating lagged variables for each mindset metric and sales
+
+data_shampoo$lag_aware<-lag(data_shampoo$awareness)
+data_shampoo$lag_aware[1]<-0
+data_shampoo$lag_liking <-lag(data_shampoo$liking)
+data_shampoo$lag_liking[1]<-0
+data_shampoo$lag_consideration <-lag(data_shampoo$consideration)
+data_shampoo$lag_consideration[1]<-0
+data_shampoo$lag_sales <-lag(data_shampoo$vol)
+data_shampoo$lag_sales[1]<-0
+
+#Now estimate the log-linear model
+
+response_aware <- lm(log(data_shampoo$awareness+1)~log(lag_aware+1)+log(data_shampoo$price+1)+log(data_shampoo$promotion+1)+log(data_shampoo$advertising+1), data = data_shampoo)
+
+response_consideration <- lm(log(data_shampoo$consideration+1)~log(lag_consideration+1)+log(data_shampoo$price+1)+log(data_shampoo$promotion+1)+log(data_shampoo$advertising+1), data = data_shampoo)
+
+
+response_liking <- lm(log(data_shampoo$liking+1)~log(lag_liking+1)+log(data_shampoo$price+1)+log(data_shampoo$promotion+1)+log(data_shampoo$advertising+1), data = data_shampoo) 
+
+
+response_sales <- lm(log(data_shampoo$vol+1)~log(lag_sales+1)+log(data_shampoo$price+1)+log(data_shampoo$promotion+1)+log(data_shampoo$advertising+1), data = data_shampoo)
+
+#Summarize all the regression results here:
+
+summary(response_aware)
+summary(response_liking)
+summary(response_consideration)
+summary(response_sales)
+
+```
+
+<br/>
+
+Now we summarize our estimation results here in the below table:
+```{r echo=FALSE}
+table_response_aware<-data.frame(round(response_aware$coefficients,4))
+table_response_liking<-data.frame(round(response_liking$coefficients,4))
+table_response_consideration<-data.frame(round(response_consideration$coefficients,4))
+table_response_sales<-data.frame(round(response_sales$coefficients,4))
+
+ table_response_aware
+ table_response_consideration
+ table_response_liking
+ table_response_sales
+
+```
+
+
+</br>
+
+### 2.4 Conversion
+
+</br>
+
+An attitudinal metric would be "meaningless" for a brand if it cannot make any differences to sales. That's why we need to evaluate their poewr in terms of changing sales. Conversion is the degree to which movements in the attitudinal metric convert to sales, similar to a conversion rate of leads into customer orders in B2B. To calculate conversino, we again allow for a multiplicative funnel model that can be applied across conditions. 
+
+For example, with intermediate attitudinal metrics awareness ($A_t$), consideration ($C_t$ ) and liking ($L_t$), a multiplicative funnel model for sales revenue ($S_t$) would be:
+
+\[ S_t= cS_{t-1}^\gamma A_{t}^{\beta_1} C_{t}^{\beta_2} L_{t}^{\beta_3} e_t^{u}  \] 
+
+To estimate conversion model, we again take the log of both sides of the equation above and estimate a linear model.
+
+
+</br>
+```{r}
+
+conversion <- lm(log(data_shampoo$vol+1)~log(lag_sales+1)+log(data_shampoo$awareness)+log(data_shampoo$consideration)+log(data_shampoo$liking), data = data_shampoo)
+summary(conversion)
+```
+
+Summarizing model results, we get:
+
+```{r echo=FALSE}
+table_conversion<-data.frame(
+round(conversion$coefficients,4))
+
+ table_conversion
+
+```
+
+
+</br>
+
+### 2.5 Result Summary
+
+</br>
+		
+
+Now we are finally done with all the steps for analysis. We can aggregate results from each stage of estimation in the following table so that it is easier to make decisions.
+
+```{r echo=FALSE}
+table_final<-data.frame(
+  Item = c("beginning level", "potential", "stickiness", "responsiveness to advertising", "responsiveness to promotion",   "conversion"), awareness=c(round(mean(data_shampoo$awareness)/100,3),round(1-mean(data_shampoo$awareness)/100,3),round(stick_awareness,3),	0.0490,	0.0174,0.7630), consideration=c(round(mean(data_shampoo$consideration)/100,3), round(1-mean(data_shampoo$consideration)/100,3), round(stick_consideration,3),0.0154,0.0494,0.3140), liking = c(round(mean(data_shampoo$liking_transformed)/100,3), round(1- mean(data_shampoo$liking_transformed),3), round(stick_liking,3),0.0025, 0.0180,2.9632))
+
+
+table_final
+```
+</br>
+
+</br>
+
+### 2.5 Appeal
+
+</br>
+
+Finally, Appeal of each mindset metric is calculated by multiplying potential, long-run stickiness, short-run responsiveness, and conversion for each marketing tool (i.e., promotion and advertising, respectively). 
+            
+             \[ Appeal = Potential * 1/(1-Stickiness) * Reponsiveness_{short-run} * Conversion \]
+
+</br>
+
+```{r echo=FALSE}
+
+#calculate appeal from model estimations; Note that we do not multiply potential here since responsiveness we get from the model already incoporates potential. 
+
+appeal_adv_awareness <-  round(0.725*(1/(1-stick_awareness)) *0.049*0.763	,4)
+appeal_promo_awareness <- round(0.725*(1/(1-stick_awareness)) *0.0174*0.763,4)	
+appeal_adv_consideration <- round(0.825*(1/(1-stick_consideration)) * 0.0154 * 0.3140,4)
+appeal_promo_consideration <- round(0.825*(1/(1-stick_consideration)) * 0.0494 * 0.3140,4)
+appeal_adv_liking <- round(0.263*(1 /(1-stick_liking)) * 0.0025	*2.9632,4)
+appeal_promo_liking <- round(0.263*(1 /(1-stick_liking)) * 0.0180 *2.9632,4)
+
+table_final<-data.frame(
+  Item = c("appeal_advertising", "appeal_promotion"), awareness=c(appeal_adv_awareness,appeal_promo_awareness), consideration=c( appeal_adv_consideration, appeal_promo_consideration), liking = c( appeal_adv_liking,appeal_promo_liking))
+
+table_final
+```
+</br>
+
+---
+
+**Question**: What is your take away from these metrics? Which marketing tool (i.e., promotion or advertising) is more effecitve for brand manager to improve consumer awareness, consideration, and liking? If you are the manager of this shampoo brand, what type of marketing strategy would you like to adopt in general? Can you give a description?
+
+---
+
+</br>
+
+## 3. Managerial Implication--What-if Analysis
+
+</br>
+
+As managers and analysts, we typically face questions like "what will happen if we fivefold our advertising expenditure?" or "what will happen if we double our effort and investment in promotion". To answer these types of questions, we need to evaluate what is the long-term effect of making these decisions. 
+
+Given that this session focuses on the value of marketing activities through consumer mindset metrics on brand sales, we would like to evaluate the impact of change in a particular marketing tool on long term sales and decompose such effect into gain/loss due to mindset metrics and gain/loss due to transactions. 
+
+We will keep using the same dataset and hence the parameters we estimated from the previous analysis.
+
+
+</br>
+
+### 3.1 Fivefolding Advertising Expense
+
+</br>
+
+Now imagine that we decided to fivefold our advertising expenditure from 100K USD to 500K USD per month and keep promotion the same.
+
+How do we make the calucation then? Let us visualize the logics by using the table below: 
+
+
+```{r echo=FALSE}
+
+table_whatif<-data.frame(
+  Item = c("Advertising", "Promotion" ,"Awareness", "Consideration", "Liking", "Sales"), Start=c(100,100, round(mean(data_shampoo$awareness)/100,3), round(mean(data_shampoo$consideration)/100,3), round(mean(data_shampoo$liking_transformed),3),round(mean(data_shampoo$vol),3)), New=c( 500, 100, "?" ,"?" ,"?" ,"?" ), Gain = c(400, 0, "?" ,"?" ,"?" ,"?"  ), LRGain = c( "/", "/", "?" ,"?" ,"?" ,"?" ), Conversion =c("/", "/", "?", "?", "?", "/"))
+
+table_whatif
+```
+
+The cells with "?" are the ones that need us to calculate and fill in.
+
+To briefly summarize, we need to:
+
+(1) Firstly, derive the new level of each mindset metric and sales based on the changes that we decide to make to the marketing mix (i.e., advertising and promotion). 
+
+</br>
+
+(2) Then by comparing the new and the old level we can derive immediate or short run gain for each metric and sales. 
+
+</br>
+
+(3) Next, with the help of carry-over parameters from responsiveness models, we trasform those short-run gain to corresponding long-run gain. 
+
+</br>
+
+(4) And lastly, to decompose long-run gain in sales and attribute it to gains due to mindset metrics and gains due to transaction, we calculate how much do those long-run gain from step (3) translate to actual increase in sales. 
+
+</br>
+
+
+#### 3.1.1 New Values
+
+From the table, the column "Start" summarizes all the base values for each item. For example, the average level of awareness, expressed in percentage terms, is 27.5%, leaving a 72.5% potential. 
+
+Now we need to decide what happens to all the mindset metrics and sales after we fivefold advertising (from 100 to 500). First, we need to determine what is the new level of each metric and sales after the change to marketing mix. More specifically, change in marketing mix exerts its impact on each metric through short-run responsiveness. Therefore, we need to go back to our previous analysis and use the model parameters in responsiveness models. For mindset metric $M_i$ (i=1,2,3 in our case), we apply the formula below:
+
+
+\[
+New_{M_i} = Start_{M_i} *(Advertising_{new}/Advertising_{old})^{Responsiveness_{Advertising_{M_i}}})
+\]
+</br>
+
+```{r}
+#Note that we do not include short run impact of change in promotion on each mindset metric becuase there is no change (100/100=1)
+
+new_awareness <- round(0.275 * (500/100)^(0.0490) ,3)
+new_consideration <- round(0.175 * (500/100) ^ (0.0154),3)
+new_liking <- round(0.737 * (500/100) ^ (0.0025),3)
+#the responsiveness of sales to advertising can be found in the "table_response_sales"
+new_sales <- round(1800.391 * (500/100) ^ (0.0578),3)
+
+  
+```
+
+</br>
+
+#### 3.1.2 Gain (Short Run)
+
+</br>
+We derive the gain (loss if negative) of each mindset metric and sales by simply calculating a growth rate. 
+```{r}
+#Calculate gain (from "start" to "new")
+gain_awareness <- round((new_awareness/0.275)	-1,3)
+gain_consideration <- round((new_consideration/0.175)-1,3)
+gain_liking <-round( (new_liking/0.737)-1,3)
+gain_sales <-round((new_sales/1800.391)-1,3)
+
+
+```
+
+
+</br>
+
+#### 3.1.3 Gain (Long Run)
+
+</br>
+
+Now we can "translate" the short run gain to long run gain for each metric and sales. 
+To do this, we need to make use of the carryover (gamma) we get from responsiveness models (you may want to go back and check the tables named "table_responsive_xxx"). Again, for each mindset metric $M_i$ (and also for sales):
+
+\[LRGain_{M_i} = Gain_{M_i}/(1-Carryover_{M_i}) \]
+
+```{r}
+#Calculate long run gain for each mindset metric and sales
+
+lrgain_awareness <- round(gain_awareness/(1-0.0921),3)
+lrgain_consideration <-round(gain_consideration/(1-0.2081),3)
+lrgain_liking <- round(gain_liking/(1-0.0164),3)
+lrgain_sales <- round(gain_sales/(1-0.1115),3)
+
+```
+
+</br>
+
+#### 3.1.4 Conversion
+
+</br>
+
+To finish the final step, we need to go back and refer to conversion model (you may want to go back and check the table named "table_conversion"):
+
+\[Conversion_{M_i} = LRGain_{M_i} * Conversion_{M_i}\]
+
+		
+```{r}
+#Calculate conversion, i.e., decompose the gain and attribute to awareness, consideration, and liking
+
+conversion_awareness <- round(lrgain_awareness * 0.7630,3)
+conversion_consideration <-round(lrgain_consideration * 0.3140,3)
+conversion_liking <- round(lrgain_liking * 2.9632,3)
+  		
+```
+
+</br>
+
+#### 3.1.5 Final Output
+
+</br>
+
+Finally, we are able to fill in all the blanks:
+
+
+```{r echo=FALSE}
+
+table_whatif<-data.frame(
+  Item = c("Advertising", "Promotion" ,"Awareness", "Consideration", "Liking", "Sales"), Start=round(c(100,100, mean(data_shampoo$awareness)/100, mean(data_shampoo$consideration)/100, mean(data_shampoo$liking_transformed),mean(data_shampoo$vol)),3), New=round(c( 500, 100, new_awareness ,new_consideration, new_liking ,new_sales ),3), Gain = round(c(400, 0, gain_awareness, gain_consideration, gain_liking, gain_sales  ),3), LRGain = c( "/", "/", lrgain_awareness, round(lrgain_consideration,3), round(lrgain_liking,3), round(lrgain_sales,3) ) , conversion =c("/", "/", round(conversion_awareness,3),round(conversion_consideration,3), round(conversion_liking,3),"/"))
+
+table_whatif
+
+```
+
+</br>
+
+Summing $Conversion_{awareness}$, $Conversion_{consideration}$, and $Conversion_{liking}$, we can get the total long run gain in sales that originates from improvement in mindset metrics. 
+
+* We have: 0.071+0.009+0.012 = 0.092
+
+Given that there is a 10.9% gain in sales, we can tell that:
+
+* Long term sales gain = 10.9%
+
+* Sales gain due to mindset metrics = 9.2%
+
+* Sales gain due to transactions = 10.9% - 9.2% = 1.7%
+
+Therefore, we can tell that by fivefolding advertising, there is increase in mindset metrics, and such improvement can contribute to a 9.2% increase in sales. However, the eventual "net" effect on long run sales is a 10.9% increase, and this is due to a 1.7% increase in sales due to transactions. 
+
+In this way, managers can conduct scenario analysis by making different assumptions and compare the estimated long run outcome. Moreover, the eventual decision will be also contingent on several other considerations. For example, if the brand emphasizes on improving their image in consumers' mind, then managers might pick the strategy that results in more gains due to mindset metrics instead of transactions, as long as the final "net" outcome remains positive.
+
+
+</br>
+</br>
+
+---
+
+</br>
+
+## Application Exercise
+
+</br>
+
+Now it is your time to apply what we have learned in this session! 
+
+Imagine you are the brand manager of this shampoo brand. Would you agree to **double** the promotion effort while remain advertising the same instead? How is that compared with the strategy that fivefolds advertising instead? Please show your calculations and discuss the pros and cons.
+
+</br>
+</br>
+---
+
+</br>
+</br>
+
+** **END OF THIS TUTORIAL** **
+
+</br>
+</br>
+
+
+
+
+
