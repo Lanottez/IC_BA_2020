@@ -134,10 +134,10 @@ In Figure 3, the relationship between price and sales suggests demand is relativ
 p1 <- beer %>% ggplot() + geom_line(aes(x=Week, y=sales_1), colour="blue") + geom_line(aes(x = Week, y = price_1*10000), colour="red") + scale_y_continuous(limits = c(0,75000), sec.axis = sec_axis(~. / 10000 , name="Brand 1 Price")) + labs(y="Brand 1 Sales", title = "Figure 3: Sales and Price Relationship", x = NULL) +
 theme(text = element_text(size=9))
 
-p2 <- beer %>% ggplot() + geom_line(aes(x=Week, y=sales_1), colour="blue") + geom_line(aes(x = Week, y = price_1*10000), colour="red") + scale_y_continuous(limits = c(0,75000), sec.axis = sec_axis(~. / 10000 , name="Brand 2 Price")) + labs(y="Brand 2 Sales", x=NULL) +
+p2 <- beer %>% ggplot() + geom_line(aes(x=Week, y=sales_2), colour="blue") + geom_line(aes(x = Week, y = price_3*10000), colour="red") + scale_y_continuous(limits = c(0,75000), sec.axis = sec_axis(~. / 10000 , name="Brand 2 Price")) + labs(y="Brand 2 Sales", x=NULL) +
 theme(text = element_text(size=9))
 
-p3 <- beer %>% ggplot() + geom_line(aes(x=Week, y=sales_1), colour="blue") + geom_line(aes(x = Week, y = price_1*10000), colour="red") + scale_y_continuous(limits = c(0,75000), sec.axis = sec_axis(~. / 10000 , name="Brand 3 Price")) + labs(y="Brand 3 Sales") +
+p3 <- beer %>% ggplot() + geom_line(aes(x=Week, y=sales_3), colour="blue") + geom_line(aes(x = Week, y = price_3*10000), colour="red") + scale_y_continuous(limits = c(0,75000), sec.axis = sec_axis(~. / 10000 , name="Brand 3 Price")) + labs(y="Brand 3 Sales") +
 theme(text = element_text(size=9))
 
 grid.arrange(p1,p2,p3,nrow=3)
@@ -238,6 +238,17 @@ beer$lsales_3 <- log(beer$sales_3)
 beer$lprice_1 <- log(beer$price_1)
 beer$lprice_2 <- log(beer$price_2)
 beer$lprice_3 <- log(beer$price_3)
+
+beer$ldisplay_1 <- log(beer$display_1+1)
+beer$ldisplay_2 <- log(beer$display_2+1)
+beer$ldisplay_3 <- log(beer$display_3+1)
+
+beer$lfeature_1 <- log(beer$feature_1+1)
+beer$lfeature_2 <- log(beer$feature_2+1)
+beer$lfeature_3 <- log(beer$feature_3+1)
+
+
+
 ```
 
 The regression results are shown in Table 2.
@@ -251,11 +262,11 @@ beer_test <- beer[(train_ind+1):227,]
 <div style="line-height: 2em;"> 
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE, results='asis'}
-mlr_1 <- lm(lsales_1 ~ lprice_1 + lprice_2 + lprice_3  + feature_1 + feature_2 + feature_3 + display_1 + display_2 + display_3 + oct + nov + decem + jan + feb + mar + apr + may + june + aug + sept + holiday, data=beer_train)
+mlr_1 <- lm(lsales_1 ~ lprice_1 + lprice_2 + lprice_3  + lfeature_1 + lfeature_2 + lfeature_3 + ldisplay_1 + ldisplay_2 + ldisplay_3 + oct + nov + decem + jan + feb + mar + apr + may + june + aug + sept + holiday, data=beer_train)
 
-mlr_2 <- lm(lsales_2 ~ lprice_1 + lprice_2 + lprice_3 + feature_1 + feature_2 + feature_3 + display_1 + display_2 + display_3 + oct + nov + decem + jan +feb + mar + apr + may + june + aug + sept + holiday, data=beer_train)
+mlr_2 <- lm(lsales_2 ~ lprice_1 + lprice_2 + lprice_3 + lfeature_1 + lfeature_2 + lfeature_3 + ldisplay_1 + ldisplay_2 + ldisplay_3 + oct + nov + decem + jan +feb + mar + apr + may + june + aug + sept + holiday, data=beer_train)
 
-mlr_3 <- lm(lsales_3 ~ lprice_1 + lprice_2 + lprice_3 + feature_1 + feature_2 + feature_3 + display_1 + display_2 + display_3 + oct + nov + decem + jan +feb + mar + apr + may + june + aug + sept + holiday, data=beer_train)
+mlr_3 <- lm(lsales_3 ~ lprice_1 + lprice_2 + lprice_3 + lfeature_1 + lfeature_2 + lfeature_3 + ldisplay_1 + ldisplay_2 + ldisplay_3 + oct + nov + decem + jan +feb + mar + apr + may + june + aug + sept + holiday, data=beer_train)
 
 stargazer(mlr_1, mlr_2, mlr_3, header = FALSE, title="Table 2: Adjusted MLR Model Regression Results", type = "html")
 ```

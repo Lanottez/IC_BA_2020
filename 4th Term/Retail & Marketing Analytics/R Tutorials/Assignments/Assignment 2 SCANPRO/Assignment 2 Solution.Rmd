@@ -1,0 +1,127 @@
+---
+title: "Assignment 2 Solution"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(readxl)
+library(knitr)
+library(dplyr)
+```
+
+<br/>
+
+## 1.Introduction
+
+This assignment aims to assess the **effectiveness of different types of marketing efforts in terms of driving up brand monthly sales performance** using SCAN*PRO model. We are expected to elaborate on model results interpretation and further comment on possible ways to improve model performance. 
+
+<br/>
+
+## 2.Data and Model
+
+### 2.1 Data
+
+This report uses a dataset consisting of monthly sales of a world leading beauty product in a regional market in Asia for a 51-month period. 
+
+The dataset includes regional monthly **sales volume** (in thousands) of the beauty product, **monthly average price** (in cents) across all retailers in the region. Marketing varialbes include **presence**, which is  monthly retailer shelf presence index (i.e., a measure of shelf visibility developed by the brand internally; the higher the value, the higher the shelf visibility). We also have access to monthly **media** coverage index (i.e., a comprehensive measure of overall intensity of media exposure across all marketing channels of the brand; the higher the value, the more intensive the media exposure)
+
+
+```{r}
+
+#Download the data file "scanpro_application.xlsx" into a folder "assignment_2".
+
+# if you are using iOS, and your *assignment_2* folder is created under "Downloads" on your Mac: you will need to first set your working directory to *assignment_2* folder:
+
+setwd("~/Downloads/assignment_2")
+
+# if you are using Windows, and your *assignment_2* folder is created in your H drive: you will need to first set your working directory to *assignment_2* folder:
+
+#setwd("H:/downloads/assignment_2")
+
+# load the datasets
+data <- read_xlsx("scanpro_beauty.xlsx")
+
+```
+
+<br/>
+
+### 2.2 Model Specification
+
+To assess marketing effectiveness of shelf display and media coverage, we estimate a SCAN*PRO model of monthly brand sales specified as follows:
+
+<br/>
+
+$$ (1) \ Constant * (Monthly Price)^{OWNELAS} * (Shelf Presence)^{PRESENCE} * (Media Coverage)^{MEDIA}$$
+<br/>
+
+
+Given that Equation (1) is a **multiplicative** model, we can transform equation (1) by taking the **logarithm** of both sides of the equation and estimate a linear model through simple techniques such as OLS. 
+
+Compared with nonlinear optimization techniques, estimating a linear regression model always gives us a consistent set of model parameters as result. Further, nonlinear optimizations can be very sensitive to the choice of starting value and the step width you take when searching for global minimum in the solution space. Hence, it is recommended to transform the model into a linear one.
+
+Specifically, we have the transformed model written as:
+
+<br/>
+
+\[ (2)\ Log(Sales) = Constant' + {OWNELAS}* Log(Price) + {PRESENCE} * Log(Shelf Presence) + {MEDIA} * Log(Media Coverage)  \]
+
+<br/>
+
+Now we are able to estimate the linear model by first log-transforming model variables and then estimate a linear model using *lm* function in R.
+
+```{r}
+
+# take the logarithm of each variable
+
+data$log_sales <- log(data$sales) 
+data$log_price <- log(data$price)
+data$log_presence <-log(data$presence)
+data$log_media <-log(data$media)
+
+
+# estimate a linear model
+scanpro <- lm(log_sales~log_price+log_presence+log_media, data = data)
+summary(scanpro)
+
+```
+
+<br/>
+
+## 3. Results
+
+We can make the following interpretations from results displayed in the table above:
+
+1. The price elasticity for the product is -3.848. This implied that a 1 percent decrease in price of the product increases its sales by 3.848 percent. Note that an elasticity with absolute value greater than one means that the brand sales is quite elastic, or vulnerable to price change. On the other hand, this also indicates that price promotion might be very effective to boost sales. Additionally, the studied beauty brand needs to also take brand image into consideration when making pricing decisions. Specifically, the studied brand should not drastically or frequently adjust its price (downwards) if it positions itself as a premium brand.
+
+<br/>
+
+2. The elasciticity for shelf presence index is 2.911. This implies that a 1 percent increase in shelf presence index rises the brand's sales by 2.911 percent. 
+
+<br/>
+
+3. The elasciticity for media coverage index is -0.471. This implies that a 1 percent increase in media coverage index decreases the brand's sales by 0.471 percent. However, since the coefficient is not statistically significant, we cannot derive any convincing interpretations about the effectiveness of media exposure. Should this be statistically significant, managers need to investigate the reason why media exposure is harming brand sales. Possible reasons might be related to consumer annoyance or fatigue towards massive volume of advertising that brands are doing nowadays. For example, consumer might react negatively to the brand if they get exposed to the same brand campaining repeatedly from multiple channels (e.g., online display ads, banner ads, Google Ads, email marketing, TV and radio ads, newspaper and magazines, in-store promotions).
+
+<br/>
+
+Substituting model estimates into Equation (1), we can write the formula for monthly sales prediction as follows:
+
+<br/>
+
+\[ (3)\ Log(Sales) = 18.6305 + {-3.8481}* Log(Price) + {2.9117} * Log(Shelf Presence) -0.4705 * Log(Media Coverage)  \]
+
+<br/>
+
+## 4. Discussions
+
+The sales model we estimate in this assignment is a rather parsimonious one with few variables incorporated. The results we obtained from the model results can inform us, to a certain extent, the effectiveness of shelf display and media coverage, yet they are subject to several limitations. 
+
+For instance, we do not observe competing brand's price in our data, making it impossible to incorporate and evaluate cross-brand elasticity (i.e., how sensitive is the sales of the focal brand to competitor's price change). Further, brand sales are typically strongly influenced by seasonalities and exogenous events, which are not addressed in the model. Further, in light of the negative (though insignificant) effect of media coverage, we may consider examining media synergy effects by including interaction terms between different types of marketing variables to dive deeper into strategic insights. 
+
+
+<br/>
+<br/>
+
+
+
+
+

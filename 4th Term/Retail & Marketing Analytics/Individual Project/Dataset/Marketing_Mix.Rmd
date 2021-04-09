@@ -1,0 +1,287 @@
+---
+title: "Marketing_Mix"
+author: "Qian Zhang"
+date: "2021年4月8日"
+output: html_document
+---
+```{r}
+library(knitr)
+library(readxl)
+library(forecast)
+library(tseries)
+library(vars)
+library(stargazer)
+```
+```{r}
+
+```
+
+
+
+```{r}
+setwd("F:/IC_BA_2020/4th Term/Retail & Marketing Analytics/Individual Project/Dataset")
+data <- read_excel("b2b_furniture_omnichannel.xls")
+```
+
+```{r}
+ts.plot(data$Flyer, col="blue", main="Flyer")
+ts.plot(data$Catalog, col="blue", main="Catalog")
+ts.plot(data$Adwords, col="blue", main="Adwords")
+ts.plot(data$Emailing, col="blue", main="Emailing")
+ts.plot(data$Visits, col="blue", main="Visits")
+```
+
+
+```{r}
+data$LFlyer <- log(data$Flyer+1)
+data$LCatalog <- log(data$Catalog+1)
+data$LAdwords <- log(data$Adwords+1)
+data$LEmailing <- log(data$Emailing+1)
+data$LVisits <- log(data$Visits+1)
+```
+
+```{r}
+ts.plot(data$LFlyer, col="blue", main="LFlyer")
+ts.plot(data$LCatalog, col="blue", main="LCatalog")
+ts.plot(data$LAdwords, col="blue", main="LAdwords")
+ts.plot(data$LEmailing, col="blue", main="LEmailing")
+ts.plot(data$LVisits, col="blue", main="LVisits")
+```
+
+```{r}
+Flyer <- ts(data$Flyer, frequency = 52, start = c(1, 1))
+Catalog <- ts(data$Catalog, frequency = 52, start = c(1, 1))
+Adwords <- ts(data$Adwords, frequency = 52, start = c(1, 1))
+Emailing <- ts(data$Emailing, frequency = 52, start = c(1, 1))
+Visits <- ts(data$Visits, frequency = 52, start = c(1, 1))
+
+
+LFlyer <- ts(data$LFlyer, frequency = 52, start = c(1, 1))
+LCatalog <- ts(data$LCatalog, frequency = 52, start = c(1, 1))
+LAdwords <- ts(data$LAdwords, frequency = 52, start = c(1, 1))
+LEmailing <- ts(data$LEmailing, frequency = 52, start = c(1, 1))
+LVisits <- ts(data$LVisits, frequency = 52, start = c(1, 1))
+```
+
+
+```{r}
+ggtsdisplay(Flyer) 
+ggtsdisplay(Catalog) 
+ggtsdisplay(Adwords) 
+ggtsdisplay(Emailing) 
+ggtsdisplay(Visits) 
+```
+
+```{r}
+adf.test(LFlyer)
+adf.test(LCatalog)
+adf.test(LAdwords)
+adf.test(LEmailing)
+adf.test(LVisits)
+```
+
+```{r}
+DLAdwords <-diff(LAdwords, differences = 1)
+DLEmailing <-diff(LEmailing, differences = 1)
+DLVisits <-diff(LVisits, differences = 1)
+```
+
+```{r}
+adf.test(LFlyer)
+adf.test(LCatalog)
+adf.test(DLAdwords)
+adf.test(DLEmailing)
+adf.test(DLVisits)
+```
+
+```{r}
+data.ts.d1 <- window(cbind(LFlyer, LCatalog,DLAdwords,DLEmailing,DLVisits), start = c(1, 2))
+```
+
+```{r}
+varp <- VAR(data.ts.d1, ic="AIC", lag.max=1, type="const")
+
+lmp <- varp$varresult
+
+stargazer(lmp$LFlyer, lmp$LCatalog,lmp$DLAdwords, lmp$DLEmailing,lmp$DLVisits, column.labels = c('LFlyer', 'LCatalog', 'DLAdwords','DLEmailing','DLVisits'), type = "text", dep.var.labels.include = FALSE )
+```
+
+```{r}
+visits.residuals <- data.frame(residuals(varp))$DLVisits
+visits.residuals <- ts(visits.residuals, frequency = 4, start = c(1, 1))
+round(mean(visits.residuals),4)
+autoplot(visits.residuals)
+```
+
+```{r}
+irfs <- irf(varp, impulse = c('LFlyer', 'LCatalog','DLAdwords','DLEmailing'), response = 'DLVisits', 
+            runs = 100, n.ahead = 7 , ortho = TRUE, ci=0.95)
+
+plot(irfs)
+```
+
+```{r}
+irf.table.ci <- round(data.frame(period = seq(1, 8), 
+                           response.Flyer = irfs$irf$LFlyer, 
+                           Flyer.lower = irfs$Lower$LFlyer, 
+                           Flyer.upper = irfs$Upper$LFlyer,
+                           
+                           response.Catalog = irfs$irf$LCatalog, 
+                           Catalog.lower = irfs$Lower$LCatalog, 
+                           Catalog.upper = irfs$Upper$LCatalog,
+                           
+                           response.Adwords = irfs$irf$DLAdwords, 
+                           Adwords.lower = irfs$Lower$DLAdwords, 
+                           Adwords.upper = irfs$Upper$DLAdwords, 
+                           
+                           response.Emailing = irfs$irf$DLEmailing, 
+                           Emailing.lower = irfs$Lower$DLEmailing, 
+                           Emailing.upper = irfs$Upper$DLEmailing),4)
+colnames(irf.table.ci) <- c('Period', 'LFlyer', 'LFlyer Lower', 'LFlyer Upper','LCatalog', 
+                            'LCatalog Lower', 'LCatalog Upper','DLAdwords', 'DLAdwords Lower', 
+                            'DLAdwords Upper','DLEmailing', 
+                            'DLEmailing Lower', 'DLEmailing Upper')
+
+knitr::kable(irf.table.ci)
+```
+
+```{r}
+result_irf_Flyer<-matrix(nrow = 8, ncol = 1)
+
+for (i in 1:8) {
+  se <- (irfs$Upper$LFlyer[i]-irfs$Lower$LFlyer[i])/(2*1.96)
+  t_irf_Flyer<- irfs$irf$LFlyer[i]/se
+   
+   if (t_irf_Flyer>1) {
+    result_irf_Flyer[i] <- irfs$irf$LFlyer[i]
+   } else {
+      result_irf_Flyer[i] <-0
+      }
+}
+
+result_irf_Flyer 
+lr_Flyer <- sum(result_irf_Flyer)
+lr_Flyer
+```
+
+```{r}
+result_irf_Catalog<-matrix(nrow = 8, ncol = 1)
+
+for (i in 1:8) {
+  se <- (irfs$Upper$LCatalog[i]-irfs$Lower$LCatalog[i])/(2*1.96)
+  t_irf_Catalog<- irfs$irf$LCatalog[i]/se
+   
+   if (t_irf_Catalog>1) {
+    result_irf_Catalog[i] <- irfs$irf$LCatalog[i]
+   } else {
+      result_irf_Catalog[i] <-0
+      }
+}
+
+result_irf_Catalog 
+lr_Catalog <- sum(result_irf_Catalog)
+lr_Catalog
+```
+
+```{r}
+result_irf_Adwords<-matrix(nrow = 8, ncol = 1)
+
+for (i in 1:8) {
+  se <- (irfs$Upper$DLAdwords[i]-irfs$Lower$DLAdwords[i])/(2*1.96)
+  t_irf_Adwords<- irfs$irf$DLAdwords[i]/se
+   
+   if (t_irf_Adwords>1) {
+    result_irf_Adwords[i] <- irfs$irf$DLAdwords[i]
+   } else {
+      result_irf_Adwords[i] <-0
+      }
+}
+
+result_irf_Adwords 
+lr_Adwords <- sum(result_irf_Adwords)
+lr_Adwords
+```
+
+
+```{r}
+result_irf_Emailing<-matrix(nrow = 8, ncol = 1)
+
+for (i in 1:8) {
+  se <- (irfs$Upper$DLEmailing[i]-irfs$Lower$DLEmailing[i])/(2*1.96)
+  t_irf_Emailing<- irfs$irf$DLEmailing[i]/se
+   
+   if (t_irf_Emailing>1) {
+    result_irf_Emailing[i] <- irfs$irf$DLEmailing[i]
+   } else {
+      result_irf_Emailing[i] <-0
+      }
+}
+
+result_irf_Emailing 
+lr_Emailing <- sum(result_irf_Emailing)
+lr_Emailing
+```
+
+
+```{r}
+#Current budget allocation
+
+cost_Flyer<-sum(data$Adwords)
+cost_Adwords<-sum(data$Flyer)
+cost_Catalog<-sum(data$Catalog)
+cost_Emailing<-sum(data$Emailing)
+
+cost_total <- cost_Flyer + cost_Adwords + cost_Catalog + cost_Emailing
+
+costshare_Flyer<-cost_Flyer/cost_total
+costshare_Adwords<-cost_Adwords/cost_total
+costshare_Catalog<-cost_Catalog/cost_total
+costshare_Emailing<-cost_Emailing/cost_total
+```
+
+```{r}
+#Current budget allocation
+slices_actual<-c(costshare_Flyer, costshare_Adwords, costshare_Catalog,costshare_Emailing)
+lbls_actual<-c("Flyer", "Adwords","Catalog","Emailing")
+pct_actual<-round(slices_actual*100)
+lbls_actual<-paste(lbls_actual, pct_actual)          # add data to labels
+lbls_actual<-paste(lbls_actual, "%", sep="")  # add % sign to labels
+
+# Get the pie-chart
+pie(slices_actual, labels=lbls_actual, col=rainbow(length(lbls_actual)), main="Actual Budget Allocation" )
+```
+
+```{r}
+#Get the coefficients from IRF results
+beta_Flyer<-lr_Flyer
+beta_Adwords<-lr_Adwords
+beta_Catalog<-lr_Catalog
+beta_Emailing<-lr_Emailing
+
+#The sum of all elasticities 
+beta_all<-beta_Flyer+beta_Adwords+beta_Catalog+beta_Emailing
+
+#Optimal resource allocation
+optim_Flyer<-beta_Flyer/beta_all
+optim_Adwords<-beta_Adwords/beta_all
+optim_Catalog<-beta_Catalog/beta_all
+optim_Emailing<-beta_Emailing/beta_all
+
+## Pie-chart ingredients 
+optimal_spend<-c(optim_Flyer,optim_Adwords,optim_Catalog,optim_Emailing)
+optimal_spend=round(optimal_spend, digits=5)
+optimal_spend
+
+slices_optim<-c(optim_Flyer, optim_Adwords,optim_Catelog,optim_Emailing)
+lbls_optim<-c("Flyer", "Adwords","Catalog","Emailing")
+pct_optim<-round(slices_optim*100)
+lbls_optim<-paste(lbls_optim, pct_optim)   # paste variable names to data labels 
+lbls_optim<-paste(lbls_optim, "%", sep="") # add % sign to labels
+
+# Get the pie-chart
+pie(slices_optim, labels=lbls_optim, col=rainbow(length(lbls_optim)), main="Optimal Budget Allocation" )
+
+
+
+```
+

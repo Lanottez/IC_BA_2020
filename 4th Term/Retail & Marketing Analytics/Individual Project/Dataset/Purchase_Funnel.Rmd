@@ -1,0 +1,93 @@
+---
+title: "Marketing_Mix"
+author: "Qian Zhang"
+date: "2021年4月8日"
+output: html_document
+---
+```{r}
+library(knitr)
+library(readxl)
+library(forecast)
+library(tseries)
+library(vars)
+library(stargazer)
+```
+
+
+
+
+```{r}
+setwd("F:/IC_BA_2020/4th Term/Retail & Marketing Analytics/Individual Project/Dataset")
+data <- read_excel("b2b_furniture_omnichannel.xls")
+data
+```
+
+```{r}
+potential_Online_leads <- (100- mean(data$Online_leads))/100
+potential_Online_quotes <- (100-mean(data$Online_quotes))/100
+
+potential_Offline_leads <- (100- mean(data$Offline_leads))/100
+potential_Offline_quotes <- (100-mean(data$Offline_quotes))/100
+```
+
+
+```{r}
+ar_Online_leads <- ar(data$Online_leads, aic = TRUE)
+stick_Online_leads = sum(ar_Online_leads$ar)
+
+ar_Online_quotes <- ar(data$Online_quotes, aic = TRUE)
+stick_Online_quotes = sum(ar_Online_quotes$ar)
+
+ar_Offline_leads <- ar(data$Offline_leads, aic = TRUE)
+stick_Offline_leads = sum(ar_Offline_leads$ar)
+
+ar_Offline_quotes <- ar(data$Offline_quotes, aic = TRUE)
+stick_Offline_quotes = sum(ar_Offline_quotes$ar)
+```
+
+```{r}
+data$lag_Online_leads<-lag(data$Online_leads)
+data$lag_Online_leads[1]<-0
+data$lag_Online_quotes<-lag(data$Online_quotes)
+data$lag_Online_quotes[1]<-0
+data$lag_Online_orders<-lag(data$Online_orders)
+data$lag_Online_orders[1]<-0
+
+data$lag_Offline_leads<-lag(data$Offline_leads)
+data$lag_Offline_leads[1]<-0
+data$lag_Offline_quotes<-lag(data$Offline_quotes)
+data$lag_Offline_quotes[1]<-0
+data$lag_Offline_orders<-lag(data$Offline_orders)
+data$lag_Offline_orders[1]<-0
+```
+
+
+```{r}
+response_Online_leads <- lm(log(data$Online_leads+1)~log(lag_Online_leads+1)+log(data$Flyer+1)+log(data$Catalog+1)+log(data$Adwords+1)+log(data$Emailing+1)+log(data$Discounts+1), data = data)
+
+response_Online_quotes <- lm(log(data$Online_quotes+1)~log(lag_Online_quotes+1)+log(data$Flyer+1)+log(data$Catalog+1)+log(data$Adwords+1)+log(data$Emailing+1)+log(data$Discounts+1), data = data)
+
+response_Online_orders <- lm(log(data$Online_orders+1)~log(lag_Online_orders+1)+log(data$Flyer+1)+log(data$Catalog+1)+log(data$Adwords+1)+log(data$Emailing+1)+log(data$Discounts+1), data = data)
+```
+
+```{r}
+table_response_Online_leads<-data.frame(round(response_Online_leads$coefficients,4))
+table_response_Online_quotes<-data.frame(round(response_Online_quotes$coefficients,4))
+table_response_Online_orders<-data.frame(round(response_Online_orders$coefficients,4))
+
+table_response_Online_leads
+table_response_Online_quotes
+table_response_Online_orders
+```
+
+```{r}
+Online_conversion <- lm(log(data$Online_orders+1)~log(lag_Online_orders+1)+log(data$Online_leads+1)+log(data$Online_quotes+1), data = data)
+table_Online_conversion<-data.frame(round(Online_conversion$coefficients,4))
+table_Online_conversion
+```
+
+```{r}
+table_final<-data.frame(
+  Item = c("beginning level", "potential", "stickiness", "responsiveness to Flyer", "responsiveness to Catalog",  "responsiveness to Adwords", "responsiveness to Emailing","responsiveness to Discounts", "conversion"), Online_leads=c(round(mean(data$Online_leads)/100,3),round(1-mean(data$Online_leads)/100,3),round(stick_Online_leadsO,3),	0.0490,	0.0174,0.7630), consideration=c(round(mean(data$consideration)/100,3), round(1-mean(data$consideration)/100,3), round(stick_consideration,3),0.0154,0.0494,0.3140), liking = c(round(mean(data$liking_transformed)/100,3), round(1- mean(data$liking_transformed),3), round(stick_liking,3),0.0025, 0.0180,2.9632))
+```
+

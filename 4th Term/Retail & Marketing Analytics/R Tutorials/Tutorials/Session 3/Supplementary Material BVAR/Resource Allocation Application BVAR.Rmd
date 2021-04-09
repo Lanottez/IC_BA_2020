@@ -27,9 +27,9 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 
 
 library(knitr)
-library(kableExtra)
+
 library(readxl)
-#install.packages("bvartools",repos = "http://cran.us.r-project.org")
+install.packages("bvartools",repos = "http://cran.us.r-project.org")
 #install.packages("forecast")
 #install.packages("tseries")
 library(forecast)
@@ -46,7 +46,7 @@ library(stargazer)
 
 
 ```{r echo=FALSE}
-data <- read_excel("~/Dropbox/resource_allocation_application2.xlsx")
+data <- read_excel("resource_allocation_application.xlsx")
 data_view <- data [1:10, 1:4]
 data_view %>%
   kable() %>%
@@ -196,8 +196,14 @@ First we need to build a dataset for VAR model.
 ```{r warning=FALSE}
 data.ts.d1 <- window(cbind(DLRev, DLAd, LFLYER), start = c(1, 2))
 data_for_var <- gen_var(data.ts.d1, p = 1, deterministic = "const")
-y <- data_for_var$Y[, 1:67]
-x <- data_for_var$Z[, 1:67]
+
+#original code - threw error at line 229 when defining a_mu_prior
+#y <- data_for_var$Y  
+#x <- data_for_var$Z
+
+#new code  - fixes error from above, but throws error at line 248
+y <- t(data_for_var$data$Y)  #--> commented out the data index & added $data before Y
+x <- t(data_for_var$data$Z)
 ```
 
 <br/>
@@ -241,7 +247,7 @@ draws_sigma <- matrix(NA, k^2, store)
 # Start Gibbs sampler
 for (draw in 1:iter) {
   # Draw conditional mean parameters
-  a <- post_normal(y, x, u_sigma_i, a_mu_prior, a_v_i_prior)
+  a <- post_normal(y = y, x = x, u_sigma_i, a_mu_prior, a_v_i_prior)
   
   # Draw variance-covariance matrix
   u <- y - matrix(a, k) %*% x # Obtain residuals
@@ -305,7 +311,7 @@ The bvar function can be used to collect relevant output of the Gibbs sampler in
 <br/>
 
 ```{r}
-bvar_est <- bvar(y = y, x = x, A = draws_a[1:9,],
+bvar_est <- bvar(y = data_for_var$data$Y, x = data_for_var$data$Z, A = draws_a[1:9,],
                  C = draws_a[10:12, ], Sigma = draws_sigma)
 ```
 <br/>
