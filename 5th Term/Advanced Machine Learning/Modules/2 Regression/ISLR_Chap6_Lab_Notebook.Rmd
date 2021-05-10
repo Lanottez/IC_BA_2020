@@ -1,0 +1,170 @@
+---
+title: "ISLR Chapter 6 Lab Notebook"
+output: html_notebook
+---
+
+This R Notebook has been constructed from the Chapter 6 Lab 2 of ISLR by James, Witten, Hastie and Tibshirani. It has been edited to reflect the content of Advanced ML at ICBS and covers ridge regression and lasso.
+
+```{r}
+library(ISLR)
+names(Hitters)
+dim(Hitters)
+```
+
+Let's get a sense of the data by inspecting the first few rows
+```{r}
+head(Hitters)
+```
+
+Now let's tidy us the dataset in our workspace using the **fix** command
+```{r}
+sum(is.na(Hitters$Salary))
+fix(Hitters)
+Hitters = na.omit(Hitters)  # removing any rows that contain missing values in any variable
+dim(Hitters)
+sum(is.na(Hitters))
+```
+
+# Chapter 6 Lab 2: Ridge Regression and the Lasso
+The goal will be to use ridge regression and the Lasso to predict Salary using the Hitters data.
+The **model.matrix()** function is particularly useful for creating x; not only does it produce a matrix corresponding to the 19 predictors but it also automatically transforms any qualitative variables into dummy variables. The latter property is important because **glmnet()** can only take numerical, quantitative inputs.
+```{r}
+x = model.matrix(Salary~.,Hitters)[,-1]  # The [,-1] removes the intercept column
+y = Hitters$Salary
+library(glmnet)    # glmnet library can be used for both ridge and lasso
+```
+
+### Ridge Regression
+By default the glmnet() function performs ridge regression for an automatically selected range of $\lambda$ values. However, here we have chosen to implement the function over a grid of values ranging from $\lambda = 10^{10}$ to $\lambda = 10^{???2}$, essentially covering the full range of scenarios from the null model containing only the intercept, to the least squares fit. As we will see, we can also compute model fits for a particular value of $\lambda$ that is not one of the original grid values. Note that by default, the glmnet() function standardizes the variables so that they are on the same scale. To turn off this default setting, use the argument standardize=FALSE.
+
+```{r}
+grid = 10^seq(10,-2,length=100)
+ridge.mod = glmnet(x,y,alpha=0,lambda=grid)   # alpha = 0 corresponds to ridge
+```
+
+```{r}
+dim(coef(ridge.mod))   # should be 20 x 100 with each column corresponding to a value of lambda.
+```
+
+```{r}
+ridge.mod$lambda[50]
+coef(ridge.mod)[,50]
+sqrt(sum(coef(ridge.mod)[-1,50]^2))
+```
+Will now check that when we use a smaller value of $\lambda$ that the coefficients are larger in the (l2 norm sense).
+```{r}
+ridge.mod$lambda[60]
+coef(ridge.mod)[,60]
+sqrt(sum(coef(ridge.mod)[-1,60]^2))   #Note how 2-norm of fitted coefficients decreases in lambda
+```
+
+We can use the predict() function for a number of purposes. For instance,
+we can obtain the ridge regression coefficients for a new value of $\lambda$, say 50:
+```{r}
+predict(ridge.mod,s=50,type="coefficients")[1:20,]
+```
+## Constructing Training & Test Sets
+We now split the samples into a training set and a test set in order to estimate the test error of ridge regression and the lasso. There are two common ways to randomly split a data set. The first is to produce a random vector of TRUE, FALSE elements and select the observations corresponding to TRUE for the training data. The second is to randomly choose a subset of numbers between 1 and n; these can then be used as the indices for the training observations. The two approaches work equally well. ISLR used the former method in Section 6.5.3 and here we demonstrate the latter approach.
+```{r}
+set.seed(1)
+train = sample(1:nrow(x), nrow(x)/2)
+test = (-train)
+y.test = y[test]
+```
+
+Now run ridge regression (and then with $\lambda = 4$)
+```{r}
+ridge.mod = glmnet(x[train,],y[train],alpha=0,lambda=grid, thresh=1e-12)
+ridge.pred = predict(ridge.mod,s=4,newx=x[test,])   # Setting lambda = 4 here
+mean((ridge.pred-y.test)^2)  # Test error
+```
+
+```{r}
+mean((mean(y[train])-y.test)^2)  # Test error if we had fit a model that only had an intercept
+```
+Can get the same result running a ridge with a very large $\lambda$. Recall that ridge regression does not penalize the intercept.
+```{r}
+ridge.pred=predict(ridge.mod,s=1e10,newx=x[test,])
+mean((ridge.pred-y.test)^2)
+```
+Now run standard least squares regression. (This is achieved with lm() or simply setting $\lambda = 0$ in ridge regression.)
+
+```{r}
+ridge.pred = predict(ridge.mod,s=0,newx=x[test,],exact=T,x=x[train,],y=y[train])  # Setting lambda = 0. Setting exact=T yields the exact least squares coefficients
+mean((ridge.pred-y.test)^2)
+```
+Can achieve same result using lm() but the latter produces a lot of other output as well.
+```{r}
+lm(y~x, subset=train)
+```
+
+```{r}
+predict(ridge.mod,s=0,exact=T,x=x[train,],y=y[train],type="coefficients")[1:20,]
+```
+
+Setting $\lambda = 4$ is arbitrary. Instead we will use cross-validation to select a good value of $\lambda$. glmnet has a built-in cross-validation method and it does 10-fold cv by default.
+```{r}
+set.seed(1)  # setting the random seed so that results will be reproducable
+cv.out = cv.glmnet(x[train,],y[train],alpha=0) 
+```
+
+Now let's plot the cv error as a function of $\log(\lambda)$
+```{r}
+plot(cv.out)
+```
+
+
+```{r}
+bestlam = cv.out$lambda.min
+bestlam
+log(bestlam)
+```
+
+Let's compute the test MSE associated with this value of $\lambda$
+```{r}
+ridge.pred = predict(ridge.mod,s=bestlam,newx=x[test,])
+mean((ridge.pred-y.test)^2)
+```
+This is an improvement over the test error obtained when we used $\lambda = 4$.
+Finally, let's refit the ridge regression on the full data-set.
+```{r}
+out = glmnet(x,y,alpha=0)
+predict(out,type="coefficients",s=bestlam)[1:20,]
+
+```
+Note that (as expected) none of the coefficients are 0.
+
+# The Lasso
+Now let's do the same but with lasso instead of ridge
+```{r}
+lasso.mod = glmnet(x[train,],y[train],alpha=1,lambda=grid)   # alpha = 1 corresponds to lasso
+plot(lasso.mod)
+```
+
+Let's use cross-validation to select $\lambda$
+```{r}
+set.seed(1)
+cv.out = cv.glmnet(x[train,],y[train],alpha=1)
+plot(cv.out)
+```
+
+Now let's take the best value of $\lambda$ and use that model to predict on the test set
+```{r}
+bestlam=cv.out$lambda.min
+lasso.pred = predict(lasso.mod,s=bestlam,newx=x[test,])
+mean((lasso.pred-y.test)^2)
+```
+This test error is much lower than the test set MSE on the null model and the least squares model
+and similar to the MSE of the chosen ridge regression model.
+
+Let's now fit the Lasso on the entire data-set using the optimal value of $\lambda$.
+```{r}
+out = glmnet(x,y,alpha=1,lambda=grid)
+lasso.coef = predict(out,type="coefficients",s=bestlam)[1:20,]
+lasso.coef
+```
+And which coefficients are non-zero?
+```{r}
+lasso.coef[lasso.coef!=0]
+```
+So we see most coefficients are zero and this is the big advantage that that Lasso has over ridge regression.

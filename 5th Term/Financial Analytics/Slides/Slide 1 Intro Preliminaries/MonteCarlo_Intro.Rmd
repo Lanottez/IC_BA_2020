@@ -1,0 +1,109 @@
+---
+title: "Intro to Monte-Carlo"
+output: html_notebook
+---
+
+This R Notebook is intended to demonstrate various concepts from probability and Monte-Carlo simulation in R. It is intended for use in the "Financial Analytics" course in the MSc in Business Analytics program at Imperial College Business School.
+
+
+### Simulating from the Uniform Distribution
+First let's simulate from the U(a,b) distribution.
+```{r}
+n=10000
+a = 2
+b = 5
+U = runif(n, a, b)   # Don't need to specify min and max arguments if simulating from U(0,1)
+U[1:10]
+```
+### Setting the Seed
+It's often a good idea (for reproducibility reasons!) to set the seed of the random number generator.
+```{r}
+set.seed(42); 
+u1 = runif(10)
+u1
+```
+```{r}
+set.seed(42) 
+u2 = runif(10) 
+u2 # should be identical to u1 because we used identical seeds for each generation 
+```
+
+```{r}
+u3 = runif(10) 
+u3 # But this will be different
+```
+This works for all random numbers
+```{r}
+set.seed(42) 
+n1 = rnorm(5)
+n1
+
+set.seed(42) 
+n2 = rnorm(5) 
+n2 # should be identical to n1 because we used identical seeds for each generation 
+
+set.seed(8765)
+n3 = rnorm(5) 
+n3 # But this will be different
+```
+
+### An Aside: Plotting CDFs and PMFs / PDFs
+Our first curve plots the empirical CDF. The empirical CDF is the CDF that places a probability weight of 1/n on each of the n simulated data-points. We will also add the true uniform CDF to the plot.
+```{r}
+n=100
+U = runif(n, a, b)
+plot(ecdf(U))
+curve(punif(x, a, b), add=TRUE, lty=2,col=3)   # The uniform CDF
+```
+We can also plot the fitted density of the data using the **density** function as well as PDF of the true underlying distribution using the **curve** function. Note the fitted density doesn't know the true PDF and so it may place some probability outside the [a,b] interval which is actually where all the probability resides.
+```{r}
+plot(density(U)) 
+curve(dunif(x, a, b), add=TRUE, col=3)  
+```
+
+
+### Simulating from the Normal Distribution
+```{r}
+mu = 3
+sigma = 2
+n = 100000
+NormData = rnorm(n, mean=mu, sd=sigma);
+plot(density(NormData)) # the PDF estimated from the simulated data
+curve(dnorm(x, mean=mu, sd=sigma), add=TRUE, col=3)   # add the true normal PDF curve
+```
+May also want to see a histogram of the simulated data
+```{r}
+hist(NormData, col = "wheat", label = T)
+```
+
+### Simulating from a Discrete Distribution
+Want to simulate a value of X which takes on the value X[i] with probability Probs[i]
+```{r}
+Probs = c(0.35,.15,.4,.1)
+X = c(1,2,3,4);   
+P_cum = cumsum(Probs) # Let's compute the cumulative probability vector
+P_cum
+```
+The following code now simulates a point from this discrete distribution. Depending on the distribution there may be (much more) efficient ways of doing this.
+```{r}
+counter = 1;
+r = runif(1);
+while(r > P_cum[counter]){   
+  counter = counter + 1;
+}
+X[counter]
+```
+
+### Generating $\mbox{MN}_m(\mu, \Sigma)$ Random Vectors
+```{r}
+mu = c(0,0)
+rho = .5
+Sigma = matrix(c(1,rho,rho,1),nrow=2)
+Sigma
+
+NumSamples = 10000
+library(MASS)
+NormData = mvrnorm(NumSamples, mu, Sigma)
+cor(NormData)  # checking that the sample correlation matrix agrees with the true correlation matrix
+```
+Note that in practice you will generally want to **compute confidence intervals** for whatever quantity you're estimating.

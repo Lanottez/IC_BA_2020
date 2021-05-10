@@ -1,0 +1,190 @@
+---
+title: "ISLR Chapter 4 Lab Notebook"
+output: html_notebook
+---
+
+This R Notebook has been constructed from the Chapter 4 Lab of ISLR by James, Witten, Hastie and Tibshirani. It has been edited to reflect the content of the Advanced ML course at ICBS and covers logistic Regression, LDA and QDA.
+ 
+# The Stock Market Data
+This data set consists of percentage returns for the S&P 500 stock index over 1,250 days, from the
+beginning of 2001 until the end of 2005. For each date, we have recorded the percentage returns for each of the five previous trading days, Lag1 through Lag5. We have also recorded Volume (the number of shares traded on the previous day, in billions), Today (the percentage return on the date in question) and Direction (whether the market was Up or Down on this date).
+```{r}
+library(ISLR)
+names(Smarket)   # Contains % returns for S&P 500 for 1250 days from 2001 to 2005 
+dim(Smarket) # It also contains returns for 5 previous days and previous day's trading volume
+```
+
+Let's inspect the first few rows
+```{r}
+head(Smarket)
+```
+
+```{r}
+summary(Smarket)
+```
+
+Can view a matrix of scatterplots
+```{r}
+pairs(Smarket)
+```
+
+Now compute all correlations between predictors in the dataset. Not surprisingly there is little correlation between the lag variables and today's return. There is substantial correlation between Year and Volume, however.
+```{r}
+#cor(Smarket)  # will produce an error since Direction is a factor (with 2 levels: "Down" & "Up")
+cor(Smarket[,-9])  # As expected correlations between returns are close to 0
+attach(Smarket)  
+```
+
+```{r}
+plot(Volume)
+```
+# Logistic Regression
+Next, we will fit a logistic regression model in order to predict Direction using Lag1 through Lag5 and Volume. Logistic regression is a specific example of "Generalized Linear Regression" (GLM). We fit it with the **glm()** function which is similar to lm() except we must pass in the argument **family = binomial** to tell it to fit a logistic regression rather than some other type of generalized linear model.
+
+```{r}
+glm.fit = glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume,data=Smarket,family=binomial)
+summary(glm.fit)
+```
+The smallest p-value here is associated with Lag1. The negative coefficient for this predictor suggests that if the market had a positive return yesterday, then it is less likely to go up today. However, at a value of 0.15, the p-value is still relatively large, and so there is no clear evidence of a real association between Lag1 and Direction.
+
+We use the **coef()** function in order to access just the coefficients for this
+fitted model. We can also use the **summary()** function to access particular
+aspects of the fitted model, such as the p-values for the coefficients.
+
+```{r}
+coef(glm.fit)
+summary(glm.fit)$coef # coeffs, std. errors, z-values and p-values
+summary(glm.fit)$coef[,4]   # just the p-values
+```
+
+Now compute the predicted probabilities
+```{R}
+glm.probs = predict(glm.fit,type="response")  
+glm.probs[1:10]
+contrasts(Direction)  # 1 for up so predicted probs are for market going up
+```
+
+
+```{r}
+glm.pred = rep("Down",1250)  # A 1250 x 1 vector with "Down" in every position 
+glm.pred[glm.probs > .5]="Up" # Changing to "Up" those entries that are predicted to be "up"
+table(glm.pred,Direction)  # The confusion matrix
+```
+Calculate % of correct predictions
+```{r}
+(507+145)/1250   
+```
+
+```{r}
+mean(glm.pred==Direction)  # again, % of correct predictions on training set
+```
+The model is predicting correctly 52.2% of the time and its error rate is 1 - .522 = 47.8%. But this is just a training error rate. So let's divide the data up into training and test sets.
+
+### Creating separate training and test sets 
+To implement this strategy, we will first create a vector corresponding to the observations from 2001 through 2004. We will then use this vector to create a held out data set of observations from 2005.
+```{r}
+train = (Year<2005)     # train is a Boolean vector
+Smarket.2005=Smarket[!train,]
+dim(Smarket.2005)
+Direction.2005=Direction[!train]
+```
+
+Notice use of "subset = train"" argument on next line which ensures we only fit the model on the training data. We then apply our model to predict on the test data Smarket.2005
+```{r}
+glm.fit = glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume,data=Smarket,family=binomial,subset = train)
+glm.probs = predict(glm.fit,Smarket.2005,type="response")
+```
+
+Now we compute the predictions for 2005 (the test data) and compare them to the actual movements of the market over that time period.
+```{r}
+glm.pred=rep("Down",252)
+glm.pred[glm.probs>.5]="Up"
+table(glm.pred,Direction.2005) # confusion matrix for test set
+cat("Predictions on the test set were correct", 100*mean(glm.pred==Direction.2005),"% of the time \n")
+cat("And the test error rate is", 100*mean(glm.pred!=Direction.2005),"%\n")
+```
+We see the test error rate is 52% which is not good at all. This is worse than random guessing! But this result is not at all surprising. It's perhaps a good idea to interpret these results in terms of **market efficiency**.
+
+But let's fit the logistic regression again except this time we'll only include the Lag1 and Lag2 predictors. Recall they were the predictors with the smallest (albeit still not significant) p-values. Perhaps by removing the variables that appear not to be helpful in predicting Direction, we can obtain a more effective model. After all, using predictors that have no relationship with the response tends to cause a deterioration in the test error rate (since such predictors cause an increase in variance without a corresponding decrease in bias), and so removing such predictors may in turn yield an improvement.
+```{r}
+glm.fit = glm(Direction~Lag1+Lag2,data=Smarket,family=binomial,subset=train)  # Just using lag1 and lag2
+glm.probs = predict(glm.fit,Smarket.2005,type="response")
+glm.pred = rep("Down",252)
+glm.pred[glm.probs>.5] = "Up"
+table(glm.pred,Direction.2005)
+```
+
+```{r}
+mean(glm.pred==Direction.2005)   # results are "better": 56% of moves correctly predicted
+```
+56% success on the test set appears to be much better but .... it turns out that the market went up 56% of the time in 2005 so results are not very good really!
+
+Still we note that when the prediction was "Up" it was correct 58.2% of the time:
+```{r}
+106/(106+76)
+```
+One might want to consider a trading strategy based on this idea: go long when this model predicts the market will go up. But a lot more investigation would be required and once transactions costs are factored in, it's very unlikely that you'd find a profitable strategy. This simply reflects the efficiency of markets!
+
+
+Finally, suppose that we want to predict the returns associated with particular values of Lag1 and Lag2. In particular, we want to predict Direction on a day when Lag1 and Lag2 equal 1.2 and 1.1, respectively, and on a day when they equal 1.5 and ???0.8. We do this using the **predict()** function:
+```{r}
+predict(glm.fit,newdata=data.frame(Lag1=c(1.2,1.5),Lag2=c(1.1,-0.8)),type="response")
+```
+
+# Linear Discriminant Analysis
+We can run lda using the **lda()** function which is part of the MASS library.
+```{r}
+library(MASS)
+lda.fit = lda(Direction~Lag1+Lag2,data=Smarket,subset=train)  # fit LDA on same data
+lda.fit
+```
+The LDA output indicates that $\hat{\pi}_1 = 0.492$ and $\hat{\pi}_2 = 0.508$; in other words, 49.2% of the training observations correspond to days during which the market went down. It also provides the group means; these are the average of each predictor within each class, and are used by LDA as estimates of $\mu_k$. These suggest that there is a tendency for the previous 2 days' returns to be negative on days when the market increases, and a tendency for the previous days' returns to be positive on days when the market declines. The coefficients of linear discriminants output provides the linear combination of Lag1 and Lag2 that are used to form the LDA decision rule. 
+
+```{r}
+plot(lda.fit)
+```
+The plots show the linear discriminants $-0.642 \times Lag1 - 0.514 \times Lag2$ for
+each of the training observations.
+
+The **predict()** function returns a list with three elements. 
+
+1. The first element, class, contains LDA's predictions about the movement of the market.
+2. The second element, posterior, is a matrix whose kth column contains the posterior probability that the corresponding observation belongs to the $k^{th}$ class, computed from (4.10) in ISLR. 
+3. Finally, $x$ contains the linear discriminants, described earlier.
+```{r}
+lda.pred=predict(lda.fit, Smarket.2005)
+names(lda.pred)
+```
+Let's create the confusion matrix and we'll see that the LDA and logistic regression predictions are almost identical.
+```{r}
+lda.class = lda.pred$class
+table(lda.class,Direction.2005) 
+mean(lda.class==Direction.2005)
+```
+Applying a 50% threshold to the posterior probabilities allows us to recreate the predictions contained in lda.pred$class.
+```{r}
+sum(lda.pred$posterior[,1]>=.5)  # posterior is an n x K = 2  matrix of poserior probs (n = # of data points)
+sum(lda.pred$posterior[,1]<.5)
+```
+Notice that the posterior probability output by the model corresponds to the probability that the market will __decrease__:
+```{r}
+lda.pred$posterior[1:20,1]
+lda.class[1:20]
+```
+
+If we wanted to use a posterior probability threshold other than 50% in order to make predictions, then we could easily do so. For instance, suppose that we wish to predict a market decrease only if we are very certain that the market will indeed decrease on that day - say, if the posterior probability is at least 90%.
+```{r}
+sum(lda.pred$posterior[,1]>.9) # Using .9 as our threshold to predict market will decrease
+```
+# Quadratic Discriminant Analysis
+```{r}
+qda.fit = qda(Direction~Lag1+Lag2,data=Smarket,subset=train)
+qda.fit
+```
+The output contains the group means. But it does not contain the coefficients of the linear discriminants, because the QDA classifier involves a quadratic, rather than a linear, function of the predictors. The predict() function works in exactly the same fashion as for LDA.
+```{r}
+qda.class = predict(qda.fit,Smarket.2005)$class
+table(qda.class,Direction.2005)
+mean(qda.class==Direction.2005)  # Accurate almost 60% of the time. Not bad!
+```
+Interestingly, the QDA predictions are accurate almost 60% of the time, even though the 2005 data was not used to fit the model. This level of accuracy is quite impressive for stock market data, which is known to be quite hard to model accurately. This suggests that the quadratic form assumed by QDA may capture the true relationship more accurately than the linear forms assumed by LDA and logistic regression. However, we recommend evaluating this method's performance on a larger test set before betting that this approach will consistently beat the market!

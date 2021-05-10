@@ -1,0 +1,65 @@
+---
+title: "Simulating BM and GBM Paths"
+output: html_notebook
+---
+
+### 1. Simulating BM Paths
+Will plot paths of $X_t = x + \mu t + \sigma B_t$.
+```{r}
+x <- 0  # initial value of BM
+T <- 1  # time in years
+Num_Periods = 20
+dt <- T/Num_Periods # time
+mu <- .1   # Annualized drift
+sigma <- .3 # Annualized volatility 
+Num_Paths <- 5
+X <- matrix(rnorm(n=Num_Paths*Num_Periods, mu*dt, sigma*sqrt(dt)),Num_Paths,Num_Periods)
+X <- cbind(rep(x,Num_Paths),t(apply(X,1,cumsum)))
+Time_Periods = seq(0,T,dt)
+```
+Now plot the paths
+```{r}
+matplot(Time_Periods, t(X), type = "l", xlab = "Time", ylab = "Brownian Motion", 
+         main = "Simulated Paths of Brownian Motion")   
+grid()
+```
+Let's check the means and standard deviations of the Brownian paths at time $T$. They should be $\approx \mu T$ (for the mean) and $\approx \sigma \sqrt{T}$ (for the standard deviation) with the approximation being increasingly accurate as Num_Paths gets large. 
+```{r}
+Mean_BM = colMeans(X) 
+Mean_BM[Num_Periods]
+library("matrixStats")  # required for colSds
+Std_BM = colSds(X)
+Std_BM[Num_Periods]  
+```
+### 2. Simulating GBM Paths
+
+Now let's plot some GBM paths. We could use the BM paths we simulated above and just take their exponential but with a $(\mu,\sigma)$ GBM we have $\log(S_t) = \log(S_0) + (\mu - \sigma^2/2)t + \sigma B_t$, i.e. $\log(S_t)$ is a BM with drift $(\mu -\sigma^2/2)$ and volatility $\sigma$ rather than a BM with drift $\mu$ and volatility $\sigma$ so we may as well simulate it from scratch.
+```{r}
+S0 <- 100  # Initial stock price
+T <- 1  # time in years
+Num_Periods = 100
+dt <- T/Num_Periods # time
+mu <- .1   # Annualized drift
+sigma <- .3 # Annualized volatility 
+Num_Paths = 10
+
+X <- matrix(rnorm(n=Num_Paths*Num_Periods, (mu - (sigma^2)/2)*dt, sigma*sqrt(dt)),Num_Paths,Num_Periods)
+X <- cbind(rep(0,Num_Paths),t(apply(X,1,cumsum)))
+GBM <- S0*exp(X)
+Time_Periods = seq(0,T,dt)
+```
+Now plot the GBM paths
+```{r}
+matplot(Time_Periods, t(GBM), type = "l", xlab = "Time", ylab = "Geometric Brownian Motion", 
+         main = "Simulated Paths of Geometric Brownian Motion")   
+grid()
+```
+Check mean and standard deviations
+```{r}
+Mean_BM = colMeans(GBM) 
+Mean_BM[Num_Periods]
+library("matrixStats")  # required for colSds
+Std_BM = colSds(GBM)
+Std_BM[Num_Periods]  
+```
+

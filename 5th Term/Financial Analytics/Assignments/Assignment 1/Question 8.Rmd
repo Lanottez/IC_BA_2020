@@ -1,0 +1,88 @@
+---
+title: "Question 8"
+output: html_notebook
+---
+For this question, we use Monte-Carlo simulation to estimate the price of an Asian call option. The first step is to estimate the price of underlying stock, and the second step is to price the option. 
+
+#### Estimating the payoff
+First, we set all parameters according to the question.  
+```{r}
+S0 <- 100  # Initial stock price
+T <- 1  # time in years
+Num_Periods = 11
+dt <- T/Num_Periods # time
+mu <- .05   # Annualized drift
+sigma <- .25 # Annualized volatility 
+Num_Paths = 10000
+```
+
+Second, we estimate the price of underlying stock $S_t$ that could be denoted as a gemetric Brownian motion. The price is stored in a matrix with 10000 rows and 12 columns.
+```{r}
+X <- matrix(rnorm(n=Num_Paths*Num_Periods, (mu - (sigma^2)/2)*dt, sigma*sqrt(dt)),Num_Paths,Num_Periods)
+X <- cbind(rep(0,Num_Paths),t(apply(X,1,cumsum)))
+GBM <- S0*exp(X)
+Time_Periods = seq(0,T,dt)
+```
+
+#### Pricing the option.
+Now we have estimated the price of underlying stock at different time, we could price the Asian option now. We will price the option for K = 90, 100, 110 and 120. 
+
+First, we assume K = 90. The payoff of the Asian call option could be calculated using function: $h(X) = max( \frac{\sum_{i=1}^{m} S_{iT/m}}{m}-K)$.
+```{r}
+k=90
+Mean_BM = rowMeans(GBM)
+h=pmax(Mean_BM-k,0)
+```
+
+Second, we calculate the price of Asian call option in each option using funtion $E_0^Q[e^{-rt}h(X)]$.
+```{r}
+price=c()
+for (i in 1:length(h)) price[i]=exp(-mu*T)*h[i]
+price_mean_90=mean(price)
+```
+
+Third, we report the 95 CIs for the price of the Asian call option
+```{r}
+ci_95_90=t.test(price,conf.level = 0.95)[4]
+```
+
+We duplicate the calculation above to other value of K.
+
+K = 100
+```{r}
+k=100
+h=pmax(Mean_BM-k,0)
+price=c()
+for (i in 1:length(h)) price[i]=exp(-mu*T)*h[i]
+price_mean_100=mean(price)
+ci_95_100=t.test(price,conf.level = 0.95)[4]
+```
+
+K = 110
+```{r}
+k=110
+h=pmax(Mean_BM-k,0)
+price=c()
+for (i in 1:length(h)) price[i]=exp(-mu*T)*h[i]
+price_mean_110=mean(price)
+ci_95_110=t.test(price,conf.level = 0.95)[4]
+```
+
+K = 120
+```{r}
+k=120
+h=pmax(Mean_BM-k,0)
+price=c()
+for (i in 1:length(h)) price[i]=exp(-mu*T)*h[i]
+price_mean_120=mean(price)
+ci_95_120=t.test(price,conf.level = 0.95)[4]
+```
+
+The option prices and the corresponding CI for K = 90, 100, 100 and 120 are reported below.
+```{r echo=FALSE}
+cat("When K = 90, the price of Asian call Option is", price_mean_90, ", with CI(95%) [",ci_95_90$conf.int[1], ci_95_90$conf.int[2],"]\n")
+cat("When K = 100, the price of Asian call Option is", price_mean_100, ", with CI(95%) [",ci_95_100$conf.int[1], ci_95_100$conf.int[2],"]\n")
+cat("When K = 110, the price of Asian call Option is", price_mean_110, ", with CI(95%) [",ci_95_110$conf.int[1], ci_95_110$conf.int[2],"]\n")
+cat("When K = 120, the price of Asian call Option is", price_mean_120, ", with CI(95%) [",ci_95_120$conf.int[1], ci_95_120$conf.int[2],"]\n")
+```
+
