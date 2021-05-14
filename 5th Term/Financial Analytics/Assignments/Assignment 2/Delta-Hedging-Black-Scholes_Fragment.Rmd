@@ -1,0 +1,24 @@
+---
+title: "Delta-Hedging-Black-Scholes Code Fragment"
+output: html_notebook
+---
+First let's create a function that produces call option prices and deltas in the Black-Scholes model.
+Input Parameters: S =  stock price, T =  option maturity, K = call strike, sigma = implied vol used to generate prices
+r = riskfree rate, q = div yield.
+```{r}
+C_Price_Delta <- function(S, K, r, q, T, sigma) {
+  d1  <-  (log(S/K) + (r - q + (sigma^2)/2)*T) / (sigma*sqrt(T))
+  d2  <-  d1 - sigma*sqrt(T)
+  C_Price <- S * exp(-q*T) *  pnorm(d1)  - K*exp(-r*T)*pnorm(d2)
+  C_Delta <- exp(-q*T) *  pnorm(d1) 
+  return(cbind(C_Price, C_Delta))
+}
+```
+Now let's test it.
+```{r}
+S <- c(10,400);  K <- 100;   r <- .01;  q <- .01;   T <- 0.5;   sigma <- 0.3
+C_Price_Delta(S, K, r, q, T, sigma)
+```
+So the call options prices and deltas are now being calculated correctly. Time now for the Monte-Carlo.  Actual dynamics of S_t are GBM(mu,sigma)
+
+
