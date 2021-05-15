@@ -1,0 +1,113 @@
+---
+title: "Baseball Hitters and the Tidyverse"
+output: html_notebook
+---
+This R Notebook contains material drawn from an R Notebook by David Robinson on the use of empirical Bayesian methods to construct shrinkage estimators. (See http://varianceexplained.org/r/empirical_bayes_baseball/ ) The purpose of this R Notebook is simply to demonstrate the functionality and power of the Tidyverse suite of R packages.
+ 
+### Working with batting averages
+
+Consider the `Batting` dataset from the excellent [Lahman package](https://cran.r-project.org/web/packages/Lahman/index.html). We'll prepare and clean the data a little first, using dplyr and tidyr:
+```{r}
+library(dplyr)
+library(tidyr)
+library(Lahman)
+head(Batting)
+nrow(Batting)
+```
+Let's filter out all those players who have zero at-bats
+```{r}
+career <- filter(Batting,AB > 0)
+nrow(career)
+```
+We want to remove pitchers from the batting statistics since the vast majority of pitchers are awful batters and so we wouldn't want to include them in any analysis of batting statistics 
+```{r}
+head(Pitching)
+nrow(Pitching)
+```
+So let's remove the pitchers
+```{r}
+career <- anti_join(career, Pitching, by = "playerID")  # keeps all rows in career where PlayerID is not in Pitching
+nrow(career)
+```
+Now it's time to summarize. We want to group all rows by PlayerID and compute the sum of hits (H) and at-bats (AB) (across years) and then create a new field ``average'' which is the ratio of hits to at-bats.
+So, first we perform a group_by operation
+```{r}
+career <- group_by(career, playerID) 
+head(career)
+nrow(career)
+```
+Now compute the sum of hits (H) and at-bats (AB) ...
+```{r}
+career <- summarize(career,H = sum(H), AB = sum(AB))
+head(career)
+nrow(career)
+```
+Now create the batting ratio ...
+```{r}
+career <- mutate(career, average = H / AB)
+head(career)
+```
+Now rather than doing that step-by-setp we can in fact do all of these previous operations in one go using the pipe operator. Specifically we could have done: 
+```{r}
+career <- Batting %>%
+  filter(AB > 0) %>%
+  anti_join(Pitching, by = "playerID") %>%
+  group_by(playerID) %>%
+  summarize(H = sum(H), AB = sum(AB)) %>%
+  mutate(average = H / AB)
+
+head(career)
+```
+
+Would like to know the actual names of these players. Let's take a look at the Master data-frame
+```{r}
+head(Master)
+nrow(Master)
+```
+
+
+Let's convert Master into a Tibble dataframe, select playerID, nameFirst, nameLast from it, combine nameFirst and nameLast into a single column called name and then perform an inner-join on career, finally dropping the PlayerID field
+```{r}
+# use names along with the player IDs
+career <- Master %>%
+  tbl_df() %>%
+  select(playerID, nameFirst, nameLast) %>%
+  unite(name, nameFirst, nameLast, sep = " ") %>%   # unite combines columns into a single column
+  inner_join(career, by = "playerID") %>%
+  select(-playerID)
+
+head(career)
+```
+I wonder who the best batters in history were. Well, here are the ones with the highest batting average:
+
+```{r}
+library(knitr)
+options(digits = 3)
+career %>%
+  arrange(desc(average)) %>%
+  head(5) %>%
+  kable()
+```
+
+Err, that's not really what I was looking for. These aren't the best batters, they're just the batters who went up once or twice and got lucky. How about the worst batters?
+
+```{r}
+career %>%
+  arrange(average) %>%
+  head(5) %>%
+  kable()
+```
+Also not what I was looking for. That "average" is a really crummy estimate. **Let's make a better one.**
+
+Let's look at the distribution of batting averages across players who have at least 500 at-bats.
+
+```{r}
+library(ggplot2)
+career %>%
+    filter(AB >= 500) %>%
+    ggplot(aes(average)) +
+    geom_histogram(binwidth = .005)
+```
+
+
+
