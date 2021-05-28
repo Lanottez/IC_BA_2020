@@ -1,0 +1,21 @@
+---
+title: "LDA v QDA Mock Exam Question"
+output: html_notebook
+---
+
+**Note**: You may need to go to "Session"" in the menu at the top of the RStudio window and then select the "Select Working Directory" -> "Source File Location" option.
+```{r}
+library(MASS)
+trainset = read.csv(file="MockExam_TrainSet.csv", header=TRUE, sep=",")
+testset = read.csv(file="MockExam_TestSet.csv", header=TRUE, sep=",")
+```
+Summary of the training data ...
+```{r}
+summary(trainset)
+```
+Inspect the first few rows of the training set
+```{r}
+head(trainset)
+```
+Your task now is to apply LDA and QDA to the training set and then use the test set to estimate the out-of-sample error rates of the two models. You need to construct the confusion matrices (applied to the test set) for each fitted model (LDA and QDA) and also report the overall test error rate of your two models.
+

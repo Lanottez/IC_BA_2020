@@ -1,0 +1,50 @@
+---
+title: "LDA v QDA Mock Exam Question"
+output: html_notebook
+---
+
+
+```{r}
+library(MASS)
+trainset = read.csv(file="MockExam_TrainSet.csv", header=TRUE, sep=",")
+testset = read.csv(file="MockExam_TestSet.csv", header=TRUE, sep=",")
+summary(trainset)
+```
+```{r}
+head(trainset)
+```
+```{r}
+dim(trainset)
+dim(testset)
+```
+### Run LDA
+```{r}
+lda.fit = lda(factor(Class)~.,data=trainset)  
+lda.fit
+```
+
+```{r}
+lda.pred = predict(lda.fit,testset)$class
+names(lda.pred)
+```
+Let's create the confusion matrix 
+```{r}
+length(lda.pred)
+table(lda.pred,testset[,1]) 
+cat("\n Error rate of LDA is",100*(1-mean(lda.pred==testset[,1])),"%\n")
+```
+### Run QDA
+```{r}
+qda.fit = qda(factor(Class)~.,data=trainset)  
+qda.fit
+```
+
+```{r}
+qda.pred = predict(qda.fit,testset)$class
+table(qda.pred,testset[,1]) 
+cat("\n Error rate of QDA is",100*(1-mean(qda.pred==testset[,1])),"%\n")
+```
+```{r}
+sum(testset[,1] ==1)
+```
+

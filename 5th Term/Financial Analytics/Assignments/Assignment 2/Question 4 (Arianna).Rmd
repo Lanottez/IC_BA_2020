@@ -1,0 +1,242 @@
+---
+title: "Ass2_Q4_FirstGraph"
+author: "Yuxifu"
+date: "15/05/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Frist graph
+### To simulate the stock price using GBM
+```{r }
+S0 <- 100  # Initial stock price
+T <- 0.5  # time in years
+Num_Periods = 2000
+dt <- T/Num_Periods # time
+mu <- 0   # Annualized drift
+sigma <- .3 # Annualized volatility 
+
+Num_Paths = 100000
+
+#simulate data for the first graph 
+X <- matrix(rnorm(n=Num_Paths*Num_Periods, (mu - (sigma^2)/2)*dt, sigma*sqrt(dt)),Num_Paths,Num_Periods)
+
+X <- cbind(rep(0,Num_Paths),t(apply(X,1,cumsum)))
+#X- t(apply(X,1,cumsum))
+GBM <- t(S0*exp(X))
+Time_Periods = seq(0,T,dt)
+
+
+
+
+```
+
+
+```{R}
+#dim(GBM)
+path_end=GBM[nrow(GBM),]
+
+#path=GBM[1:nrow(GBM)-1,]
+#dim(path)
+```
+
+### To define delta hedging function
+```{R}
+C_Price_Delta <- function(S, K, r, q, T, sigma) {
+  d1  <-  (log(S/K) + (r - q + (sigma^2)/2)*T) / (sigma*sqrt(T))
+  d2  <-  d1 - sigma*sqrt(T)
+  C_Price <- S * exp(-q*T) *  pnorm(d1)  - K*exp(-r*T)*pnorm(d2)
+  C_Delta <- exp(-q*T) *  pnorm(d1) 
+  return(cbind(C_Price, C_Delta))
+}
+
+
+K <- 100;   r <- .01;  q <- 0.01;   T <- 0.5;   imp_sigma <- 0.2
+
+
+portfolio_initial=C_Price_Delta(S=path_end, K, r, q, T, imp_sigma)
+#portfolio_initial[,2]
+
+
+```
+
+### To calculate option price
+```{R}
+
+
+
+for (row in 1:(nrow(GBM)-1)){
+  path_prev = GBM[row-1,]
+  path_current= GBM[row,]
+  portfolio_prev=C_Price_Delta(S=path_prev, K, r, q, T, imp_sigma)
+  portfolio_price = portfolio_prev[,1]
+  portfolio_delta = portfolio_prev[,2] 
+
+  T=0.5-dt*(row-1)
+
+
+  if(row==1){
+    
+    path_t = GBM[1,]
+    T=0.5
+
+    portfolio_initial=C_Price_Delta(S=path_t, K, r, q, T, imp_sigma)
+    portfolio_price = portfolio_initial[,1]
+    portfolio_delta = portfolio_initial[,2]
+
+  }
+  
+  if(row>1){
+    current_price = portfolio_price+ (portfolio_price - portfolio_delta*path_prev)*r*dt + 
+      portfolio_delta*(path_current-path_prev+q*dt*path_prev)
+  }
+  
+  
+  # to calculate next period price and delta
+
+
+
+
+  
+  
+}
+
+
+
+```
+
+
+### To calculate the P&L of ending period and generate the corresponding Histogram.
+```{R}
+
+portfolio_price=current_price
+increment=pmax(path_end-100,0)
+result=as.data.frame(cbind(portfolio_price,increment))
+result$first_graph=result$portfolio_price-result$increment
+hist(result$first_graph)
+
+
+
+```
+
+
+# Second graph
+### To simulate the stock price using GBM
+```{r }
+# to clear all environment variables
+rm(list=ls())
+
+
+S0 <- 100  # Initial stock price
+T <- 0.5  # time in years
+Num_Periods = 2000
+dt <- T/Num_Periods # time
+mu <- 0   # Annualized drift
+sigma <- .3 # Annualized volatility 
+
+Num_Paths = 100000
+
+#simulate data for the first graph 
+X <- matrix(rnorm(n=Num_Paths*Num_Periods, (mu - (sigma^2)/2)*dt, sigma*sqrt(dt)),Num_Paths,Num_Periods)
+
+X <- cbind(rep(0,Num_Paths),t(apply(X,1,cumsum)))
+#X- t(apply(X,1,cumsum))
+GBM <- t(S0*exp(X))
+Time_Periods = seq(0,T,dt)
+
+
+
+
+```
+
+
+```{R}
+#dim(GBM)
+path_end=GBM[nrow(GBM),]
+
+#path=GBM[1:nrow(GBM)-1,]
+#dim(path)
+```
+
+### To define delta hedging function
+```{R}
+C_Price_Delta <- function(S, K, r, q, T, sigma) {
+  d1  <-  (log(S/K) + (r - q + (sigma^2)/2)*T) / (sigma*sqrt(T))
+  d2  <-  d1 - sigma*sqrt(T)
+  C_Price <- S * exp(-q*T) *  pnorm(d1)  - K*exp(-r*T)*pnorm(d2)
+  C_Delta <- exp(-q*T) *  pnorm(d1) 
+  return(cbind(C_Price, C_Delta))
+}
+
+
+K <- 100;   r <- .01;  q <- 0.01;   T <- 0.5;   imp_sigma <- 0.4
+
+
+portfolio_initial=C_Price_Delta(S=path_end, K, r, q, T, imp_sigma)
+#portfolio_initial[,2]
+
+
+```
+
+### To calculate option price
+```{R}
+
+
+
+for (row in 1:(nrow(GBM)-1)){
+  path_prev = GBM[row-1,]
+  path_current= GBM[row,]
+  portfolio_prev=C_Price_Delta(S=path_prev, K, r, q, T, imp_sigma)
+  portfolio_price = portfolio_prev[,1]
+  portfolio_delta = portfolio_prev[,2] 
+
+  T=0.5-dt*(row-1)
+
+
+  if(row==1){
+    
+    path_t = GBM[1,]
+    T=0.5
+
+    portfolio_initial=C_Price_Delta(S=path_t, K, r, q, T, imp_sigma)
+    portfolio_price = portfolio_initial[,1]
+    portfolio_delta = portfolio_initial[,2]
+
+  }
+  
+  if(row>1){
+    current_price = portfolio_price+ (portfolio_price - portfolio_delta*path_prev)*r*dt + 
+      portfolio_delta*(path_current-path_prev+q*dt*path_prev)
+  }
+  
+  
+  # to calculate next period price and delta
+
+
+
+
+  
+  
+}
+
+
+
+```
+
+
+### To calculate the P&L of ending period and generate the corresponding Histogram.
+```{R}
+
+portfolio_price=current_price
+increment=pmax(path_end-100,0)
+result=as.data.frame(cbind(portfolio_price,increment))
+result$first_graph=result$portfolio_price-result$increment
+hist(result$first_graph)
+
+
+
+```
+

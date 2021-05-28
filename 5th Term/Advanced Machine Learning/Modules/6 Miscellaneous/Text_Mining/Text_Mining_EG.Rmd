@@ -1,0 +1,77 @@
+---
+title: "Text Mining Examples"
+output: html_notebook
+---
+
+This R Notebook was constructed using the material in "How to Use Text Mining with R" by Barkha Patel AND Sapan Mankad.
+
+```{r}
+library(tm)
+docs = Corpus(DirSource("Text_EGs"))
+docs
+```
+Let's inspect a document
+```{r}
+inspect(docs[1])
+```
+### Preprocessing
+Now let's start processing the corpus
+```{r}
+docs = tm_map(docs, removePunctuation)
+docs = tm_map(docs, removeNumbers)
+docs = tm_map(docs, tolower)
+docs = tm_map(docs, removeWords, stopwords("english"))
+docs = tm_map(docs, stripWhitespace)
+```
+Can view **inspect** to view the entire corpus or specific elements
+```{r}
+inspect(docs[1])
+```
+```{r}
+print(docs)
+```
+### Stemming
+Now lets **stem** the corpus. (Stemming is the procedure of converting words to their base or root form. For example, playing, played, plays, etc, will be converted to play.)
+```{r}
+library(SnowballC)
+docs = tm_map(docs, stemDocument)
+inspect(docs[1])
+```
+### The Term-Document Matrix
+NOw let's create a term document matrix
+```{r}
+dtm = DocumentTermMatrix(docs)
+dtm
+```
+The summary of our DTM states that there are 12 documents and 554 unique words. Hence,
+let's give a matrix with the dimensions of 12 x 554, in which 80% of the rows have value
+0.
+
+To get the total frequency of words in the whole corpus, we can sum the values in a row, as
+follows:
+```{r}
+freq = colSums(as.matrix(dtm))
+ord = order(freq,decreasing=TRUE)
+freq[head(ord)]
+```
+### Finding Associations
+
+```{r}
+findAssocs(dtm, "loki", corlimit=0.80)
+```
+### Plotting Term Frequencies
+```{r}
+library(ggplot2)
+wf = data.frame(word=names(freq), freq=freq)
+p = ggplot(subset(wf, freq>30), aes(word, freq))
+p = p + geom_bar(stat="identity")
+p = p + theme(axis.text.x=element_text(angle=45, hjust=1))
+p
+```
+### Word Cloud
+Word Cloud is another way of representing the frequency of terms in a document. Here, the size of a word indicates its frequency in the document corpus.
+
+```{r}
+library(wordcloud)
+wordcloud(names(freq), freq, min.freq=30,colors=brewer.pal(3,"Dark2"))
+```

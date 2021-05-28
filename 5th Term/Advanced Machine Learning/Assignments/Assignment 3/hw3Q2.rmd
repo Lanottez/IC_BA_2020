@@ -1,0 +1,56 @@
+---
+title: "hw3 Q2"
+author: "Qian Zhang"
+date: "2021/5/22"
+output: html_document
+---
+
+#question 2
+a.
+```{r}
+y <- c(rep(1, 20),rep(2, 20),rep(3, 20))
+set.seed(1)
+x <- rbind(matrix(rnorm(20*50, mean = 0), nrow = 20),
+           matrix(rnorm(20*50, mean=1), nrow = 20),
+           matrix(rnorm(20*50, mean=2), nrow = 20))
+all <- cbind(y,x)
+```
+b.
+```{r}
+library(GGally)
+pca <- prcomp(x, scale=TRUE)
+pc_label <- data.frame(pca$x, y=as.factor(y))
+ggparcoord(data=pc_label, columns=1:2, groupColumn=ncol(pc_label))
+plot(pc_label[1:2],col=y)
+```
+c
+```{r}
+res = kmeans(x, centers = 3)
+table (res$cluster,y)
+```
+perfect result
+d
+```{r}
+res2 = kmeans(x, centers = 2)
+table (res2$cluster,y)
+```
+The two groups with larger values were grouped into one group
+e
+```{r}
+res3 = kmeans(x, centers = 4)
+table (res3$cluster,y)
+```
+The smaller groups were divided into two groups
+f
+```{r}
+res4 = kmeans(pc_label[1:2], centers = 3)
+table (res4$cluster,y)
+```
+perfect result
+g
+```{r}
+res5 = kmeans(scale(x), centers = 3)
+table (res5$cluster,y)
+```
+
+

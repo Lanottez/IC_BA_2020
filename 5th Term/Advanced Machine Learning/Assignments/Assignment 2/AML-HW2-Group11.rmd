@@ -1,0 +1,91 @@
+---
+title: "Assignment 2"
+subtitle: "Group 11"
+author: "Chang Zhou 01983512, Qian Zhang 01939418, Yutong Zheng 01895402"
+date: "2021/5/17"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r include=FALSE}
+library(dplyr)
+library(stargazer)
+library(ggplot2)
+```
+
+# Question 1
+(a) $\beta^*= (\sum_{i=1}^N z_i^Tz_i +\lambda I )(\sum_{i=1}^N x_i^Ty_i) $\newline
+
+(b) similarly we can just add another $(z_i^Tz_i)$ as the extension of $x_{k+1}$ for $x_{k}$
+(c) 
+
+# Question 2
+(a)
+Use the probability of violation on a street to predict the probability of violation of parking spaces in the entire city at this time.
+
+
+(b)
+Since the payment of each person is distributed independently, the difference between streets is very small, so the calculation result of one street can be regarded as a microcosm of the entire city.
+(c)
+
+
+(d)
+
+
+# Question3
+```{r}
+samples <- matrix(c(4,12,3,8,3,9,3,16,2,7,4,15,4,10,3,15,2,6,1,12,3,8,2,14), ncol = 2, byrow = T)
+df <- data.frame(samples)
+#first we input the data as a object with x1=xi,x2=zi for next calculations.
+```
+
+
+# a
+```{r}
+alpha_hat <- t(apply(df, 2, sum)[1]/apply(df, 2, sum)[2]) # 0.2575758
+# we sum the x1 and x2 separately and divide x1 by x2.
+```
+
+#b
+Since in this problem, we do not know the specific sample distribution, and it is difficult to collect all the data at the same time.
+
+#c
+it get the data from a empirical distribution sample and get the true distribution,
+
+# d
+```{r}
+list1 <- c()
+set.seed(1)#set seed in case to change the list every time 
+for (i in 1:1000){
+  df1 <- df[sample(nrow(df), 12, replace = T), ]
+  #Re extract 12 data for each list with 1000 times to form bootstrap samples
+  p <- t(apply(df1, 2, sum)[1]/apply(df1, 2, sum)[2])
+  #calculate each p-hat 
+  list1 <- c(list1, p)
+  #save 1000 p-hat as a list
+}
+alpha_b <- mean(list1) 
+#get the 1000 p-hat mean as 0.25792
+```
+
+
+
+# e
+```{r}
+library(Rmisc)
+CI(list1,ci=0.95)
+```
+
+
+
+# f
+```{r}
+df2 <- data.frame(list1)
+library(ggplot2)
+
+ggplot(df2, aes(x = list1)) +
+  geom_histogram(colour="blue") + labs(x = 'p' , y = 'count') + 
+  scale_y_continuous(limits=c(0, 100)) + 
+  geom_vline(xintercept=alpha_b, color = "red", size = 1, linetype="dashed")
+```
+Because the data shows a normal distribution trend, the data outside the confidence interval is a small probability event by default and will not occur.
