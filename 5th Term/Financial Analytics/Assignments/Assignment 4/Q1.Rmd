@@ -1,0 +1,220 @@
+---
+title: "Q1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Question 1
+
+## (a).
+
+### (i).
+```{r}
+library(Matrix)
+V=Diagonal(x = seq(0.8,1.25,0.05))
+r=rep(0, 10)
+```
+
+
+
+```{r}
+set.seed(12345)
+X0 <- MASS::mvrnorm(n=120, mu = r, Sigma = V)
+```
+
+
+```{r}
+colMeans(X0)
+```
+
+
+```{r}
+r_mean=colMeans(X0)
+z=X0-r_mean
+```
+
+```{r}
+res=0
+for (r in 1:nrow(z))
+  res=res+z[r,]%*% t(z[r,])
+  res=res/nrow(z)
+V2=res
+      
+```
+
+
+
+
+```{r}
+e <- eigen(V)
+e$values
+```
+
+```{r}
+e2 <- eigen(V2)
+e2$values
+```
+
+```{r}
+library(ggplot2)
+library(RColorBrewer)
+cbPalette <- brewer.pal(10, name = "Paired")
+ggplot() +
+    geom_line(mapping = aes(x = seq(1,10,1), y = eigen(V)$values, color = "True Covariance Matrix")) +
+    geom_line(mapping = aes(x = seq(1,10,1), y = eigen(V2)$values, color = "Estimated Covariance Matrix")) +
+    labs(x = "#", y = "EigenValues", title = "EigenValue Chart")
+```
+
+The eigenvalue is distorted when using only a finite set of observations
+
+
+
+
+### (ii).
+```{r}
+library(CVXR)
+
+NumAssets=10
+w <- Variable(NumAssets)   # decision variables
+risk <- quad_form(w, V2)  # This is w' Sample_Cov w
+constraints <- list(w >= 0, sum(w) == 1)    
+prob <- Problem(Minimize(risk), constraints)
+result <- solve(prob)
+MinVar <- result$getValue(risk)
+w_MinVar <- result$getValue(w)
+return_Min <- t(r_mean) %*% w_MinVar
+```
+
+```{r}
+expected=t(w_MinVar) %*%V2 %*%w_MinVar
+actual=t(w_MinVar) %*%V %*%w_MinVar
+```
+
+
+```{r}
+library(CVXR)
+
+NumAssets=10
+w <- Variable(NumAssets)   # decision variables
+risk <- quad_form(w, V)  # This is w' Sample_Cov w
+constraints <- list(w >= 0, sum(w) == 1)    
+prob <- Problem(Minimize(risk), constraints)
+result <- solve(prob)
+MinVar <- result$getValue(risk)
+w_MinVar2 <- result$getValue(w)
+return_Min <- t(r_mean) %*% w_MinVar
+```
+
+```{r}
+true=t(w_MinVar2) %*%V %*%w_MinVar2
+expected
+```
+
+```{r}
+df <- data.frame(dose=c("Estimated", "Actual", "True"),
+                len=c(expected[1], actual[1], true[1]))
+p<-ggplot(data=df, aes(x=dose, y=len)) +
+  geom_bar(stat="identity")
+p
+```
+
+### (iii).
+The actual variance is always larger than the true variance For the estimated variance, it is really unstable and there is not an obvious trend.
+
+## b.
+
+### (i).
+```{r}
+lamda=eigen(V2)$values
+lamda
+lamda_mean=mean(lamda)
+```
+
+```{r}
+C=lamda_mean*diag(10)
+```
+
+```{r}
+library(psych)
+```
+
+
+```{r}
+res=0
+for (r in 1:nrow(z))
+  res=res+tr((z[r,]%*% t(z[r,])-V2)^2)
+  res=res/nrow(z)
+alpha=min((res/tr((V2-C)^2))/nrow(z),1)
+```
+
+```{r}
+V3=(1-alpha)*V2+alpha*C
+```
+
+```{r}
+eigen(V2)$values
+```
+
+
+```{r}
+library(RColorBrewer)
+cbPalette <- brewer.pal(10, name = "Paired")
+ggplot() +
+    geom_line(mapping = aes(x = seq(1,10,1), y = eigen(V)$values, colour = "True Covariance Matrix")) +
+    geom_line(mapping = aes(x = seq(1,10,1), y = eigen(V2)$values, colour = "Estimated Covariance Matrix")) +
+    geom_line(mapping = aes(x = seq(1,10,1), y = eigen(V3)$values, colour = "Shrunk Covariance Matrix")) +
+    labs(x = "#", y = "EigenValues", title = "EigenValue Chart")
+```
+
+The eigenvalue with shrinkage method, compared with the one only using sample data, is much closer to the actual one
+
+### (ii).
+```{r}
+library(CVXR)
+
+NumAssets=10
+w <- Variable(NumAssets)   # decision variables
+risk <- quad_form(w, V3)  # This is w' Sample_Cov w
+constraints <- list(w >= 0, sum(w) == 1)    
+prob <- Problem(Minimize(risk), constraints)
+result <- solve(prob)
+MinVar <- result$getValue(risk)
+w_MinVar3 <- result$getValue(w)
+return_Min <- t(r_mean) %*% w_MinVar
+```
+
+```{r}
+expected=t(w_MinVar3) %*%V3 %*%w_MinVar3
+actual=t(w_MinVar3) %*%V %*%w_MinVar3
+```
+
+```{r}
+library(CVXR)
+
+NumAssets=10
+w <- Variable(NumAssets)   # decision variables
+risk <- quad_form(w, V)  # This is w' Sample_Cov w
+constraints <- list(w >= 0, sum(w) == 1)    
+prob <- Problem(Minimize(risk), constraints)
+result <- solve(prob)
+MinVar <- result$getValue(risk)
+w_MinVar2 <- result$getValue(w)
+return_Min <- t(r_mean) %*% w_MinVar
+```
+
+```{r}
+true=t(w_MinVar2) %*%V %*%w_MinVar2
+```
+
+```{r}
+df <- data.frame(dose=c("Estimated", "Actual", "True"),
+                len=c(expected[1], actual[1], true[1]))
+p<-ggplot(data=df, aes(x=dose, y=len)) +
+  geom_bar(stat="identity")
+p
+```
+
+### (iii).
+The actual variance is much closer to the true variance. Also, comparing to part b, now the estimated variance is less unstable.
