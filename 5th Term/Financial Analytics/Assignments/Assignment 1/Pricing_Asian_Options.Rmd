@@ -1,0 +1,50 @@
+---
+title: "Pricing Asian Options"
+output: html_notebook
+---
+Code by Martin Haugh
+
+### The Problem
+Use Monte-Carlo to estimate the price of an Asian call option where the time $T$ payoff
+is given by
+\[
+h({\bf X}) := \max \left(0, \, \frac{\sum_{i=1}^m S_{iT/m}}{m} - K \right)
+\]
+where ${\bf X} = (S_{T/m}, S_{2T/m}, \ldots , S_T)$.  You may assume that $S_t \sim \mbox{GBM}(r,\sigma)$ where $r = .05$ and $\sigma = .25$. Other relevant parameters are $T = 1$ year, $S_0$ = 100 and $m = 11$. Simulate $10,000$ paths and estimate the option price (with approx 95\% CIs) for $K = 90, 100, 110$ and $120$. Note the price of the option is given by $E_0^Q[e^{-rT}h({\bf X})]$.
+
+### The Solution
+```{r}
+T = 1
+S0 = 100
+r = .05
+sigma = .25
+K = c(90,100,110,120)
+m = 11
+N = 1000000  # Number of GBM paths
+dt = T/m
+
+# Let's define a couple of constants
+c1 = (r - (sigma^2)/2)*dt
+c2 = sigma*sqrt(dt)
+
+Asian =numeric(N)
+S_old = S0
+for (i in 1:m){
+  S_new = S_old*exp(c1 + c2*rnorm(N))
+  Asian = Asian + S_new
+  S_old = S_new
+}
+Asian = Asian/m
+```
+Now let's price the options ...
+```{r}
+Num_K = length(K)
+Prices = numeric(Num_K)
+for (i in 1:Num_K){
+  Discount_Payoff = exp(-r*T)*pmax(0, Asian - K[i])  
+  Option_Mean = mean(Discount_Payoff)
+  Option_std = sd(Discount_Payoff)
+  Option_CI = c(Option_Mean - 1.96*Option_std/sqrt(N), Option_Mean + 1.96*Option_std/sqrt(N))
+  cat("Approx 95% CI for Asian option with strike", K[i]," is [", Option_CI[1],",",Option_CI[2],"]", "\n")
+}
+```
