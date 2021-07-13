@@ -1,0 +1,3 @@
+Pythex: a Python regular expression editor
+
+https://pythex.org/
