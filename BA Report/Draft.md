@@ -2,32 +2,56 @@
 
 Name: Qian Zhang
 
-CID number: 
+CID number: 01939418
 
 Report title: 
 
-Word count:
+Word count: 964
 
 ### Abstract (suggest 150 words)
 
-* 1. 英格兰奢侈品市场及其供应链的数据
-  2. covid-19 对奢侈品供应链的破坏
-  3. 奢侈品供应链的复苏
-  4. 奢侈品市场的复苏
 
-**Coronavirus disease 2019** (**COVID-19**), a [contagious disease](https://en.wikipedia.org/wiki/Contagious_disease) caused by [severe acute respiratory syndrome coronavirus 2](https://en.wikipedia.org/wiki/Severe_acute_respiratory_syndrome_coronavirus_2) (SARS-CoV-2), has 
-
-COVID-19, which is caused by severe acute respiratory syndrome coronavirus 2 (SARS-CoV-2), emerged in late December 2019, but quickly spread to other countries[1](https://www.nature.com/articles/s41562-020-0896-8#ref-CR1) in Asia, Europe and North America and was declared a pandemic by the World Health Organization (WHO) on 11 March 2020 (ref. [2](https://www.nature.com/articles/s41562-020-0896-8#ref-CR2)). There are now confirmed individuals with COVID-19 in nearly every country of the world, and the WHO has urged affected countries to slow the spread of the virus by imposing containment and suppression measures[3](https://www.nature.com/articles/s41562-020-0896-8#ref-CR3),[4](https://www.nature.com/articles/s41562-020-0896-8#ref-CR4) ranging from strict controls on travel, social gatherings and commercial activities aimed at ‘flattening the curve’ (that is, decreasing the rate of new infections to avoid overwhelming healthcare systems) to less strict measures designed to shield immunologically compromised individuals, treat victims and achieve ‘herd immunity’ (that is, a sufficiently large number of recovered and, therefore, immune individuals to prevent the effective spread of the virus)[5](https://www.nature.com/articles/s41562-020-0896-8#ref-CR5). Differences in the strictness of such policies and the rapidity with which jurisdictions have imposed and relaxed the policies reflect divergent (and perhaps hasty) assessments of both the public health risk of COVID-19 and the social and economic impacts of the different policies[6](https://www.nature.com/articles/s41562-020-0896-8#ref-CR6),[7](https://www.nature.com/articles/s41562-020-0896-8#ref-CR7). Using a newly developed economic disaster model[8](https://www.nature.com/articles/s41562-020-0896-8#ref-CR8),[9](https://www.nature.com/articles/s41562-020-0896-8#ref-CR9),[10](https://www.nature.com/articles/s41562-020-0896-8#ref-CR10), we quantitatively assess the short-run supply-chain effects of different containment strategies across countries and industry sectors to inform ongoing efforts to contain COVID-19 and to reveal more generally how pandemic-related economic losses will be distributed along global supply chains.
-
-Details of our analytical approach are provided in th In summary, we modelled the short-term economic shocks of different COVID-19 response scenarios as sector-specific transportation and labour supply constraints. The model operates in weekly time steps using the latest available global input–output data[11](https://www.nature.com/articles/s41562-020-0896-8#ref-CR11) and taking into account interactions throughout complex global supply chains and the contexts of scarcity and imbalance that prevail in most markets[9](https://www.nature.com/articles/s41562-020-0896-8#ref-CR9). Our enhanced adaptive regional input–output (ARIO) model incorporates substitutability of inputs and dynamic choices of supply-chain linkages (Supplementary Fig. [1](https://www.nature.com/articles/s41562-020-0896-8#MOESM1)), which contribute to a more realistic representation of bottlenecks along global supply chains. By applying our model to the simulation of control policies during a pandemic, we can assess the potential impact of different policies on the supply chains and examine the externalities of control measures. Note that our model is distinct from computable general equilibrium (CGE) models in that it is specifically designed to assess economic impacts in response to disasters that unfold over weeks or months, before production structures and trade networks have time to adjust to new production patterns. Moreover, the goal of this study is not to predict the true cost of the COVID-19 pandemic, but to identify the most important aspects of disease control (such as strictness, duration and recurrence of lockdowns) and test the sensitivity of these factors as their impacts ripple through global supply chains, supported by several sets of scenarios for containment measures. Thus, in addition to showing how overall damages might change under different policy scenarios, the incidence of damages across sectors and countries may inform the allocation of international aid and economic stimulus.
 
 ### Main text:
 
-* Introduction - background to research, overview of topic, aims and objectives
+*Introduction*
 
-- Supported arguments
-- Conclusions and recommendations
+Coronavirus disease, as known as Covid-19, is an infectious disease caused by a newly discovered coronavirus(1). Being a highly infectious disease, Covid-19 has spread to almost whole world since the first confirmed victim, a Wuhan resident, fell sick on Dec. 8, 2019(2). On 30 January 2020, following the fact that COVID-19 has spread from the People’s Republic of China to 20 other countries, the World Health Organization (WHO) declared the outbreak as a Public Health Emergency of International Concern(3). On 11 March 2020, WHO made made the assessment that COVID-19 can be characterized as a pandemic(4). The United Kingdom became a part of the worldwide pandemic two people from the same family have tested positive for coronavirus in the UK on 31 January 2020(5). The initial response from UK government on the COVID-19 situation was to launch public health information campaign to minimize the impact of COVID-19 on society. Governments campaign on the public use of mask, however, was vague. It takes a while until 15 June 2020 for the government to announce that face coverings will be mandatory on public transport after 15 June(7).  英国首相提出flatten the curve的政策to slow down the spread of the SARS-CoV-2，以此避免对NHS造成医疗资源上的挤兑。这依赖于民众本身的努力，需要social distance及使用PPE来阻碍新冠疫情的传播，但是由于mask在英国原本仅用于医护人员，而新冠疫情导致的大幅需求上升是始料未及的。Early on in the pandemic, the NHS experienced severe shortages of personal protective equipment, known as PPE(6). 因此，英国的mask多数来自于进口，mainly from china。（面具禁出口的新闻~~）
+
+未来的将来，是否会因为出现逆全球化，或者国家是否会定义新的战略物资，并不在这篇文章的讨论范围内。这paper致力于回答，在可见的、英国尚且依赖于国外进口口罩的时期，如何保证进口的口罩足够于国内居民的应用。或者，如果未来出现新的变种或者新的传染病，在假设口罩十分重要的情况下，如何储备库存，以免出现口罩不足的情况。
+
+因此，我们需要一种手段来预测对mask的需求，并判断不同的mask采购量，以避免出现PPE出现严重短缺的情况。会对新冠造成多大的抑制效果。另外，我们需要考虑有R值更高的变种出现时，是否会出现PPE的严重短缺，或者是NHS资源的短缺。1.分析PPE对防止疫情蔓延的作用；2.分析2020年期间，如果英国没有出现PPE短缺现象，且民众对PPE接受程度很高，死亡人数是否会出现变化；3.分析在目前情况下，英国总体需要储备多少口罩，每个月需要购买多少PPE；4.分析如果未来出现传播率更高的病毒亚种，是否需要更多PPE。
+
+
+
+*Will Personal Protective Equipment protect people from COVID-19?*
+
+首先，证明政府开始推广PPE之后，疫情的蔓延速度有所下降。为了可视化这个过程，我们需要先绘制疫情推广的速度。由于初期的数值是有限的，我们需要根据死亡人数倒推真实的疫情蔓延速度，同时通过这个速度，比较推广PPE及不推广PPE，对疫情的阻碍有多大作用。同时，我们要结合疫情的R值，及模拟不同程度的面具使用程度，判断推广PPE对疫情的阻碍，病人的住院率及死亡率会有什么作用。
+
+这篇paper对于PPE效果的预测必须基于真实的疫情蔓延数字。尽管英国官网提供了官方的确诊数字，但从以下图表可以看出，尽管第一波疫情及第二波疫情的死亡人数曲线非常类似，但确诊人数却差别很大。根据xxx，原始毒株及alpha毒株的致死率差距并无很大。因此，导致两者出现以上区别的原因是，在2020年初期疫情爆发的初期，官方的测量数据并不等于真实感染疫情的人数。这个现象有很多原因，包括无症状感染者，抗体检测的不足，官方检测的目标不同、患者因为各种原因（例如不想被隔离）主观上拒绝检测等等。因此，我们需要某种手段去推测真实的感染人数。
+
+*All Models are wrong, but some models are useful*
+
+自从疫情爆发以来，由于病毒本身的特征，确诊数字远远小于感染数字，因此数据分析师，生物学家，政客已经尝试通过许多模型来预测正式的感染数字。毫无疑问的是，没有模型可以准确预测真实的确诊数字，但是一个sophisticated的模型可以尽量接近于真实的确诊数字。因此，我们会通过以下的模型，预测了真实的数字。
+
+xxxx（真实感染预测 I.pdf）
+
+
+
+根据以上的模型，我们可以得出一个比确诊数字更加接近于真实的感染人数的数字。我们可以通过这个数字，
+
+
+
+
 
 ### References
+
+1. https://www.who.int/health-topics/coronavirus#tab=tab_1
+2. https://www.wsj.com/articles/in-hunt-for-covid-19-origin-patient-zero-points-to-second-wuhan-market-11614335404
+3. COVID 19 PHEIC.pdf
+4. https://www.who.int/director-general/speeches/detail/who-director-general-s-opening-remarks-at-the-media-briefing-on-covid-19---11-march-2020
+5. https://www.bbc.com/news/health-51325192
+6. https://www.bbc.com/news/uk-54897737
+7. https://www.independent.co.uk/news/uk/home-news/coronavirus-face-mask-uk-fine-police-public-transport-grant-shapps-tube-bus-train-a9567056.html
 
 ### Appendix or appendices (if applicable)
