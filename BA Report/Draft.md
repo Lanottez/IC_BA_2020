@@ -52,56 +52,32 @@ Coronavirus disease, as known as Covid-19, is an infectious disease caused by a 
 
 Compartmental models in epidemiology需要parameters以用于量化不同compartments的group之间转化的速率。因此，我们设立parameters如下
 
-| Letters            | Parameters                                                 |
-| ------------------ | ---------------------------------------------------------- |
-| $\beta$            | the baseline infectious contact rate                       |
-| $\sigma$           | the transition rate from the exposed to infectious class   |
-| $\frac{1}{\sigma}$ | the disease incubation period                              |
-| $\eta$             | the infectiousness of asymptomatic carriers                |
-| $\alpha$           | fraction of infections that become symptomatic             |
-| $\varphi$          | the rate at which symptomatic individuals are hospitalized |
-| $\gamma_{A}$       | the recover rate - asymptomatic infectious                 |
-| $\gamma_{I}$       | the recover rate - symptomatic infectious                  |
-| $\gamma_{H}$       | the recover rate - hospitizlied                            |
-| $\delta$           | the disease-induced death rate                             |
+| Parameters         | Explanation                                                | Default Value               | Referecnce |
+| ------------------ | ---------------------------------------------------------- | --------------------------- | ---------- |
+| $\beta$            | the baseline infectious contact rate                       |                             |            |
+| $\sigma$           | the transition rate from the exposed to infectious class   | $\frac{1}{5}   $ $day^{-1}$ | [12]       |
+| $\frac{1}{\sigma}$ | the disease incubation period                              | $5$ $day$                   | [12]       |
+| $\eta$             | the relative infectiousness of asymptomatic carriers       | 0.25                        | [13]       |
+| $\alpha$           | fraction of infections that become symptomatic             | 0.16                        | [14]       |
+| $\varphi$          | the rate at which symptomatic individuals are hospitalized |                             |            |
+| $\gamma_{A}$       | the recover rate - asymptomatic infectious                 |                             |            |
+| $\gamma_{I}$       | the recover rate - symptomatic infectious                  |                             |            |
+| $\gamma_{H}$       | the recover rate - hospitizlied                            |                             |            |
+| $\delta$           | the disease-induced death rate                             |                             |            |
 
 各Compartments的改变速率如下
 
-| Changing Rate of Compartments                               | Explanation                                                  |
-| ----------------------------------------------------------- | ------------------------------------------------------------ |
-| $\frac{dS}{dt} = -\beta(t) (I + \eta A)\frac{S}{N}$         | $(I + \eta A) $ stands for the group that 有传染性，会以$\beta$的速率导致S的人群暴露。因此S中人群的改变速率为$\beta(t) (I + \eta A)\frac{S}{N} $ . |
-| $\frac{dE}{dt} = \beta(t) (I + \eta A)\frac{S}{N}-\sigma E$ | $\beta(t) (I + \eta A)\frac{S}{N}$ 为每个时间单位增加的exposed的人群。Moreover，有一部分exposed的人群会转变为有症状或无症状感染者，因此exposed人群的改变速率为$\beta(t) (I + \eta A)\frac{S}{N}-\sigma E$. |
-| $\frac{dI}{dt} = \alpha \sigma E - \varphi I - \gamma_{I}I$ | $\sigma E$为每个时间单位从exposed的人群转变为感染者的人数，其中有$\alpha$比例的人为有症状感染者。另外，有症状感染者中，每个时间单位有$\varphi I$的人住院，有$\gamma_{I} I$的人康复，因此I人群的改变速率为$\alpha \sigma E - \varphi I - \gamma_{I}I$. |
-| $\frac{dA}{dt} = (1-\alpha) \sigma E - \gamma_{A}A$         | $(1-\alpha)\sigma E$为每个时间单位exposed人群转为无症状感染者的人数，$\gamma_{A}A$为每个时间单位无症状感染者康复的人数，因此A人群的改变速率为$(1-\alpha) \sigma E - \gamma_{A}A$. |
-| $\frac{dH}{dt} = \varphi I - \delta H - \gamma_{H}H$        | $\varphi I$为每个时间单位有症状感染者需要住院的人数。另外，有症状感染者中，每个时间单位有$\delta H$的人死亡，而$\gamma_{H}H$的人会直复，因此H人群的改变速率为$\varphi I - \delta H - \gamma_{H}H$. |
-| $\frac{dR}{dt}$                                             | $R$为所有康复人群的总和，因此每个时间单位，有$\gamma_{I} I + \gamma_{A} A + \gamma_{H} H$康复 |
-| $\frac{dD}{dt}$                                             | 每个时间单位，住院的人中有$\delta H$的人数死亡               |
+| Changing Rate of Compartments                                | Explanation                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| $\frac{dS}{dt} = -\beta(t) (I + \eta A)\frac{S}{N}$          | $(I + \eta A) $ stands for the group that 有传染性，会以$\beta$的速率导致S的人群暴露。因此S中人群的改变速率为$\beta(t) (I + \eta A)\frac{S}{N} $ . |
+| $\frac{dE}{dt} = \beta(t) (I + \eta A)\frac{S}{N}-\sigma E$  | $\beta(t) (I + \eta A)\frac{S}{N}$ 为每个时间单位增加的exposed的人群。Moreover，有一部分exposed的人群会转变为有症状或无症状感染者，因此exposed人群的改变速率为$\beta(t) (I + \eta A)\frac{S}{N}-\sigma E$. |
+| $\frac{dI}{dt} = \alpha \sigma E - \varphi I - \gamma_{I}I$  | $\sigma E$为每个时间单位从exposed的人群转变为感染者的人数，其中有$\alpha$比例的人为有症状感染者。另外，有症状感染者中，每个时间单位有$\varphi I$的人住院，有$\gamma_{I} I$的人康复，因此I人群的改变速率为$\alpha \sigma E - \varphi I - \gamma_{I}I$. |
+| $\frac{dA}{dt} = (1-\alpha) \sigma E - \gamma_{A}A$          | $(1-\alpha)\sigma E$为每个时间单位exposed人群转为无症状感染者的人数，$\gamma_{A}A$为每个时间单位无症状感染者康复的人数，因此A人群的改变速率为$(1-\alpha) \sigma E - \gamma_{A}A$. |
+| $\frac{dH}{dt} = \varphi I - \delta H - \gamma_{H}H$         | $\varphi I$为每个时间单位有症状感染者需要住院的人数。另外，有症状感染者中，每个时间单位有$\delta H$的人死亡，而$\gamma_{H}H$的人会直复，因此H人群的改变速率为$\varphi I - \delta H - \gamma_{H}H$. |
+| $\frac{dR}{dt} = \gamma_{I} I + \gamma_{A} A + \gamma_{H} H$ | $R$为所有康复人群的总和，因此每个时间单位，有$\gamma_{I} I + \gamma_{A} A + \gamma_{H} H$的人康复 |
+| $\frac{dD}{dt} = \delta H$                                   | 每个时间单位，住院的人中有$\delta H$的人数死亡               |
 
-
-
-xxxx（真实感染预测 I.pdf）
-
-
-
-根据以上的模型，我们可以得出一个比确诊数字更加接近于真实的感染人数的数字。我们可以通过这个数字，
-
- 
-
-|      |      |      |      |
-| ---- | ---- | ---- | ---- |
-|      |      |      |      |
-|      |      |      |      |
-|      |      |      |      |
-|      |      |      |      |
-|      |      |      |      |
-|      |      |      |      |
-|      |      |      |      |
-|      |      |      |      |
-|      |      |      |      |
-
- 
-
-
+这是一个符合新冠特质的传染病模型，首先，我们用这个模型来预测
 
 ### References
 
@@ -116,6 +92,11 @@ xxxx（真实感染预测 I.pdf）
 9. https://www.theguardian.com/society/2020/apr/20/raf-planes-await-order-to-set-off-to-collect-ppe-from-turkey
 10. https://www.euronews.com/2020/03/06/coronavirus-french-protective-mask-manufacturer-scraps-nhs-order-to-keep-masks-in-france
 11. To mask or not to mask: Modeling the potential for face mask use by the general public to curtail the COVID-19 pandemic
+12. https://www.webmd.com/lung/coronavirus-incubation-period#1
+13. Infectivity of asymptomatic versus symptomatic COVID-19
+14. Quantifying asymptomatic infection and transmission of COVID-19 in New York City using observed cases, serology, and testing capacity
+
+
 
 ### Appendix or appendices (if applicable)
 
@@ -123,20 +104,3 @@ xxxx（真实感染预测 I.pdf）
 
 
 
-# The SIR epidemic model
-
-A simple mathematical description of the spread of a disease in a population is the so-called SIR model, which divides the (fixed) population of $N$ individuals into three "compartments" which may vary as a function of time, $t$:
-
-- $S(t)$ are those susceptible but not yet infected with the disease;
-- $I(t)$ is the number of infectious individuals;
-- $R(t)$ are those individuals who have recovered from the disease and now have immunity to it.
-
-The SIR model describes the change in the population of each of these compartments in terms of two parameters, $\beta$ and $\gamma$. $\beta$ describes the effective *contact rate* of the disease: an infected individual comes into contact with $\beta N$ other individuals per unit time (of which the fraction that are susceptible to contracting the disease is $S/N$). $\gamma$ is the mean recovery rate: that is, $1/\gamma$ is the mean period of time during which an infected individual can pass it on.
-
-The differential equations describing this model were first derived by Kermack and McKendrick [*Proc. R. Soc. A*, **115**, 772 (1927)]:
-
-\begin {align} \frac{\mathrm{d}S}{\mathrm{d}t} &= -\frac{\beta S I}{N},\\ \frac{\mathrm{d}I}{\mathrm{d}t} &= \frac{\beta S I}{N} - \gamma I,\\ \frac{\mathrm{d}R}{\mathrm{d}t} &= \gamma I. \end{align}
-
-
-
-The following Python code integrates these equations for a disease characterised by parameters $\beta = 0.2$, $1/\gamma = 10\;\mathrm{days}$ in a population of $N=1000$ (perhaps 'flu in a school). The model is started with a single infected individual on day 0: $I(0)=1$. The plotted curves of $S(t)$, $I(t)$ and $R(t)$ are styled to look a bit nicer than Matplotlib's defaults.
