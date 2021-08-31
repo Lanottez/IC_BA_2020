@@ -36,46 +36,37 @@ Coronavirus disease, as known as Covid-19, is an infectious disease caused by a 
 
 自从疫情爆发以来，由于病毒本身的特征，确诊数字远远小于感染数字，因此数据分析师，生物学家，政客已经尝试通过许多模型来预测正式的感染数字。毫无疑问的是，没有模型可以准确预测真实的确诊数字，但是一个sophisticated的模型可以提供非常有意义的数字。
 
-我们将使用Compartmental models in epidemiology来预测口罩政策是否会改变疫情的死亡数字。Compartmental models作为传染病界广泛应用的数学模型，可以根据传染病的各种性质进行调整，来针对性预测指导传染病的预防和控制工作。在文章To mask or not to mask Modeling the potential for face mask中，作者根据新冠的特征对compartmental models进行了调整。对于最简单的Compartmental models，人群会被分为S(Susceptible), I(Infectious), or R(Recovered)三个群体，I为患病的群体，R为患病后康复的群体，而剩下未曾患病但又得病可能的即为S群体。由于新冠的一大特征是存在无症状患者，who没有住院但依然存在传染性。因此，我们额外添加A群体以代表无症状患者，而I群体即为有症状患者。由于新冠存在潜伏期，患者在感染病毒后几天内无症状也无传染性，这段期间的患者被称为暴露期，我们以E来代表这个群体。最后，H为hospitalized的群体，D为死亡的群体。
+我们将使用Compartmental models in epidemiology来预测口罩政策是否会改变疫情的死亡数字。Compartmental models作为传染病界广泛应用的数学模型，可以根据传染病的各种性质进行调整，来针对性预测指导传染病的预防和控制工作。对于最简单的Compartmental models，人群会被分为S(Susceptible), I(Infectious), or R(Recovered)三个群体，I为患病的群体，R为患病后康复的群体，而剩下未曾患病但又得病可能的即为S群体。这篇文章采用了文章Infectious Disease Modelling: Fit Your Model to Coronavirus Data中[15]设计的模型。作者Henri Froese根据新冠的特征对compartmental models进行了调整。由于新冠存在潜伏期，患者在感染病毒后几天内无症状也无传染性，这段期间的患者被称为暴露期，我们以E来代表这个群体。另外，绝大多数新冠患者实际上不需要入院治疗，但是由于新冠的传播力过强，因此大规模传播时会挤兑医疗资源。在March，2020，就有a leading ventilator manufacturer said that Britain faces a “massive shortage” of ventilators that will be needed to treat critically ill patients suffering from coronavirus.[16].因此，作者用C来标记 individuals that need intensive care。这可以帮助我们判断英国是否有额外购买呼吸机的必要。最后，D为死亡的群体。
 
-总人数N = S + E + I + A + R, where H is excluded since hospitalized persons are supposed not exposed to the general population and do not contribute to infection rates in the general community. [11]
-
-| Letters | Compartments                      |
-| ------- | --------------------------------- |
-| $S$     | Susceptible people                |
-| $I$     | Infectious peolpe with symptom    |
-| $R$     | Recovered people                  |
-| $A$     | Infectious peolpe without symptom |
-| $E$     | Exposed people                    |
-| $H$     | Hospitalized people               |
-| $D$     | Dead People                       |
+| Letters | Compartments              |
+| ------- | ------------------------- |
+| $S$     | Susceptible people        |
+| $E$     | Exposed people            |
+| $I$     | Infectious people         |
+| $C$     | People need Critical Care |
+| $R$     | Recovered People          |
+| $D$     | Dead People               |
 
 Compartmental models in epidemiology需要parameters以用于量化不同compartments的group之间转化的速率。因此，我们设立parameters如下
 
-| Parameters         | Explanation                                                | Default Value               | Referecnce |
-| ------------------ | ---------------------------------------------------------- | --------------------------- | ---------- |
-| $\beta$            | the baseline infectious contact rate                       |                             |            |
-| $\sigma$           | the transition rate from the exposed to infectious class   | $\frac{1}{5}   $ $day^{-1}$ | [12]       |
-| $\frac{1}{\sigma}$ | the disease incubation period                              | $5$ $day$                   | [12]       |
-| $\eta$             | the relative infectiousness of asymptomatic carriers       | 0.25                        | [13]       |
-| $\alpha$           | fraction of infections that become symptomatic             | 0.16                        | [14]       |
-| $\varphi$          | the rate at which symptomatic individuals are hospitalized |                             |            |
-| $\gamma_{A}$       | the recover rate - asymptomatic infectious                 |                             |            |
-| $\gamma_{I}$       | the recover rate - symptomatic infectious                  |                             |            |
-| $\gamma_{H}$       | the recover rate - hospitizlied                            |                             |            |
-| $\delta$           | the disease-induced death rate                             |                             |            |
+| Parameters         | Explanation                                                  | Default Value               | Reference |
+| ------------------ | ------------------------------------------------------------ | --------------------------- | --------- |
+| $\beta$            | the baseline infectious contact rate                         |                             |           |
+| $\sigma$           | the transition rate from the exposed to infectious class     | $\frac{1}{5}   $ $day^{-1}$ | [12]      |
+| $\frac{1}{\sigma}$ | the disease incubation period                                | $5$ $day$                   | [12]      |
+| $\eta$             | probability that an infected individual becomes critically ill | 0.25                        | [13]      |
+| $\alpha$           | the probability of dying while critical                      | 0.16                        | [14]      |
 
 各Compartments的改变速率如下
 
 | Changing Rate of Compartments                                | Explanation                                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| $\frac{dS}{dt} = -\beta(t) (I + \eta A)\frac{S}{N}$          | $(I + \eta A) $ stands for the group that 有传染性，会以$\beta$的速率导致S的人群暴露。因此S中人群的改变速率为$\beta(t) (I + \eta A)\frac{S}{N} $ . |
-| $\frac{dE}{dt} = \beta(t) (I + \eta A)\frac{S}{N}-\sigma E$  | $\beta(t) (I + \eta A)\frac{S}{N}$ 为每个时间单位增加的exposed的人群。Moreover，有一部分exposed的人群会转变为有症状或无症状感染者，因此exposed人群的改变速率为$\beta(t) (I + \eta A)\frac{S}{N}-\sigma E$. |
-| $\frac{dI}{dt} = \alpha \sigma E - \varphi I - \gamma_{I}I$  | $\sigma E$为每个时间单位从exposed的人群转变为感染者的人数，其中有$\alpha$比例的人为有症状感染者。另外，有症状感染者中，每个时间单位有$\varphi I$的人住院，有$\gamma_{I} I$的人康复，因此I人群的改变速率为$\alpha \sigma E - \varphi I - \gamma_{I}I$. |
+| $\frac{dS}{dt} = -\beta(t) * I * \frac{S}{N}$                | the chance that a susceptible individual meets infect people is $I*\frac{S}{N}$, and the probability of catching the virus is $\beta(t)$. 因此S群体改变速率为$-\beta(t)*I*\frac{S}{N} $ . |
+| $\frac{dE}{dt} = \beta(t) * I *\frac{S}{N}-\sigma E$         | $\beta(t) *I*\frac{S}{N}$ 为每个时间单位增加的exposed的人群。Moreover，有一部分exposed的人群会转变为有症状或无症状感染者，因此exposed人群的改变速率为$\beta(t) * I * \frac{S}{N}-\sigma E$. |
+| $\frac{dI}{dt} = \sigma E - \delta I - \gamma_{I}I$sigma * E - 1/12.0 * eta * I - gamma * (1 - eta) * I | $\sigma E$为每个时间单位从exposed的人群转变为感染者的人数，其中有$\alpha$比例的人为有症状感染者。另外，有症状感染者中，每个时间单位有$\delta I$的人死亡，有$\gamma_{I} I$的人康复，因此I人群的改变速率为$\alpha \sigma E - \delta I - \gamma_{I}I$. |
 | $\frac{dA}{dt} = (1-\alpha) \sigma E - \gamma_{A}A$          | $(1-\alpha)\sigma E$为每个时间单位exposed人群转为无症状感染者的人数，$\gamma_{A}A$为每个时间单位无症状感染者康复的人数，因此A人群的改变速率为$(1-\alpha) \sigma E - \gamma_{A}A$. |
-| $\frac{dH}{dt} = \varphi I - \delta H - \gamma_{H}H$         | $\varphi I$为每个时间单位有症状感染者需要住院的人数。另外，有症状感染者中，每个时间单位有$\delta H$的人死亡，而$\gamma_{H}H$的人会直复，因此H人群的改变速率为$\varphi I - \delta H - \gamma_{H}H$. |
-| $\frac{dR}{dt} = \gamma_{I} I + \gamma_{A} A + \gamma_{H} H$ | $R$为所有康复人群的总和，因此每个时间单位，有$\gamma_{I} I + \gamma_{A} A + \gamma_{H} H$的人康复 |
-| $\frac{dD}{dt} = \delta H$                                   | 每个时间单位，住院的人中有$\delta H$的人数死亡               |
+| $\frac{dR}{dt} = \gamma_{I} I + \gamma_{A} A$                | $R$为所有康复人群的总和，因此每个时间单位，有$\gamma_{I} I + \gamma_{A} A + \gamma_{H} H$的人康复 |
+| $\frac{dD}{dt} = \delta I$                                   | 每个时间单位，住院的人中有$\delta H$的人数死亡               |
 
 这是一个符合新冠特质的传染病模型，首先，我们用这个模型来预测
 
@@ -95,6 +86,8 @@ Compartmental models in epidemiology需要parameters以用于量化不同compart
 12. https://www.webmd.com/lung/coronavirus-incubation-period#1
 13. Infectivity of asymptomatic versus symptomatic COVID-19
 14. Quantifying asymptomatic infection and transmission of COVID-19 in New York City using observed cases, serology, and testing capacity
+15. https://towardsdatascience.com/infectious-disease-modelling-fit-your-model-to-coronavirus-data-2568e672dbc7
+16. https://www.reuters.com/article/us-health-coronavirus-ventilators-idUSKBN2153JV
 
 
 
