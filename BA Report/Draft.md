@@ -6,7 +6,7 @@ CID number: 01939418
 
 Report title: 
 
-Word count: 964
+Word count: 3093
 
 ### Abstract (suggest 150 words)
 
@@ -14,7 +14,9 @@ Word count: 964
 
 ### Introduction:
 
-Coronavirus disease, as known as Covid-19, is an infectious disease caused by a newly discovered coronavirus(1). Being a highly infectious disease, Covid-19 has spread to almost whole world since the first confirmed victim, a Wuhan resident, fell sick on Dec. 8, 2019(2). On 30 January 2020, following the fact that COVID-19 has spread from the People’s Republic of China to 20 other countries, the World Health Organization (SARSWHO) declared the outbreak as a Public Health Emergency of International Concern(3). On 11 March 2020, WHO made made the assessment that COVID-19 can be characterized as a pandemic(4). The United Kingdom became a part of the worldwide pandemic two people from the same family have tested positive for coronavirus in the UK on 31 January 2020(5). The initial response from UK government on the COVID-19 situation was to launch public health information campaign to minimize the impact of COVID-19 on society. Governments campaign on the public use of mask, however, was vague. On the one hand, the study on severe acute respiratory syndrome (SARS), which was caused by another strain of SARSr-CoV, frequent mask use in public venues, frequent hand washing, and disinfecting the living quarters were significant protective factors(8).  On the other hand,  It takes a while until 15 June 2020 for the government to announce that face coverings will be mandatory on public transport after 15 June(7). 
+Coronavirus disease, also known as Covid-19, is an infectious disease caused by a newly discovered coronavirus(1). Being a highly infectious disease, Covid-19 has spread to almost whole world since the first confirmed victim, a Wuhan resident, fell sick on Dec. 8, 2019(2). On 30 January 2020, following the fact that COVID-19 has spread from the People’s Republic of China to 20 other countries, the World Health Organization (SARSWHO) declared the outbreak as a Public Health Emergency of International Concern(3). On 11 March 2020, WHO made made the assessment that COVID-19 can be characterized as a pandemic(4). The United Kingdom became a part of the worldwide pandemic after two people from the same family have tested positive for coronavirus in the UK on 31 January 2020(5). The initial response from UK government on the COVID-19 situation was to launch public health information campaign to minimize the impact of COVID-19 on society. 
+
+Governments campaign on the public use of mask, however, was vague. On the one hand, the study on severe acute respiratory syndrome (SARS), which was caused by another strain of SARSr-CoV, frequent mask use in public venues, frequent hand washing, and disinfecting the living quarters were significant protective factors(8).  On the other hand, it takes a while until 15 June 2020 for the government to announce that face coverings will be mandatory on public transport after 15 June(7). 
 
 英国首相提出flatten the curve的政策to slow down the spread of the SARS-CoV-2，以此避免对NHS造成医疗资源上的挤兑。这依赖于民众本身的努力，需要social distance及使用PPE来阻碍新冠疫情的传播，但是由于mask在英国原本仅用于医护人员，而新冠疫情导致的大幅需求上升是始料未及的。Early on in the pandemic, the NHS experienced severe shortages of personal protective equipment, known as PPE(6). 因此，英国的mask多数来自于进口，mainly from china. In March, 2020, France government forced a face mask manufacturer to cancel a major UK order(10)In 10 April 2020, British Govement dispatched a RAF plane to pressure Turkey to release gowns for NHS(9). 
 
@@ -82,17 +84,11 @@ Compartmental models in epidemiology需要parameters以用于量化不同compart
 
 
 
-Fitting Parameter of Adjusting Model with respect to Current Wave
-
-
-
-
-
-
-
 
 
 ### Result
+
+##### Fitting Parameters 
 
 
 
