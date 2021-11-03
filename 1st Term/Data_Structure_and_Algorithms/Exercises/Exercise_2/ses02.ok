@@ -1,0 +1,24 @@
+{
+    "name": "Session 2",
+    "endpoint": "icbs/busi97284/fa20/ses02",
+    "src": [
+        "ses02.py",
+        "ses02_extra.py"
+    ],
+    "tests": {
+        "tests/q1.py": "ok_test",
+        "tests/q2.py": "ok_test",
+        "ses02.py:sum_of_squares": "doctest",
+        "ses02.py:print_grade": "doctest",
+        "ses02_extra.py:square_root_heron": "doctest",
+        "ses02_extra.py:square_root_bisection": "doctest",
+        "ses02_extra.py:middle_of_three": "doctest",
+        "ses02_extra.py:sum_up_to": "doctest"
+    },
+    "protocols": [
+        "file_contents",
+        "grading",
+        "analytics",
+        "backup"
+    ]
+}
